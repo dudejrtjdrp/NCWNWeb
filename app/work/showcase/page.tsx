@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import FilterBar from '@/components/common/FilterBar'
 import ShowcaseGrid from '@/components/sections/ShowcaseGrid'
@@ -11,7 +12,7 @@ export default function ShowcasePage() {
   const [activeFilter, setActiveFilter] = useState('전체')
 
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="WORK — SHOWCASE"
         title="학생 작품 전시"
@@ -28,6 +29,6 @@ export default function ShowcasePage() {
           <ShowcaseGrid activeFilter={activeFilter} />
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

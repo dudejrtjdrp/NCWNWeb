@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Button from '@/components/ui/Button'
 
@@ -10,7 +11,7 @@ const FAQS = [
 
 export default function AdmissionPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="INFO — ADMISSION"
         title="입시 안내"
@@ -53,6 +54,6 @@ export default function AdmissionPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

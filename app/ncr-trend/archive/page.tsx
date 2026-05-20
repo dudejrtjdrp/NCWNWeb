@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import FilterBar from '@/components/common/FilterBar'
 import Badge from '@/components/ui/Badge'
@@ -24,7 +25,7 @@ export default function ArchivePage() {
     : ARCHIVE_REPORTS.filter((r) => r.season === activeSeason)
 
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="NCR TREND — ARCHIVE"
         title="리포트 아카이브"
@@ -55,6 +56,6 @@ export default function ArchivePage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

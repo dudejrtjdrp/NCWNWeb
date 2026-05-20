@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="354" viewBox="0 0 390 354" role="img" aria-label="NINC card 4">
+  <rect width="100%" height="100%" fill="#ffd6e6" rx="0"/>
+  <defs>
+    <linearGradient id="g4" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="rgba(0,0,0,0)" />
+      <stop offset="100%" stop-color="rgba(0,0,0,0.35)" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="220" width="100%" height="134" fill="url(#g4)" />
+  <text x="50%" y="292" font-family="Inter, Arial, sans-serif" font-size="18" fill="#ffffff" text-anchor="middle">NINC 활동 4</text>
+</svg>

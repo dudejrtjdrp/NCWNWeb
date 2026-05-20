@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 
 const GOALS = [
@@ -13,7 +14,7 @@ const CERTIFICATIONS = [
 
 export default function DepartmentPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="ABOUT — DEPARTMENT"
         title="학과 소개"
@@ -51,6 +52,6 @@ export default function DepartmentPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

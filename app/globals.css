@@ -1,35 +1,97 @@
-/* @import는 반드시 최상단에 위치해야 합니다 */
+/* @import는 최상단 */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── A2Z 폰트 ───────────────────────────────────── */
+/* ── A2z 브랜드 폰트 (원격 로드, 여러 weight) ────────────────────────────── */
 @font-face {
-  font-family: 'A2Z';
-  src: url('/fonts/A2Z.woff2') format('woff2'),
-       url('/fonts/A2Z.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-1Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-2ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-3Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-4Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-5Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-6SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-7Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-8ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'A2z';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-9Black.woff2') format('woff2');
+  font-weight: 900;
   font-display: swap;
 }
 
 /* ── CSS 변수 ───────────────────────────────────── */
 :root {
-  --nwcn-green: #09F593;
-  --nwcn-yellow: #E3E94D;
-  --nwcn-dark: #0A0A0A;
-  --nwcn-dark-2: #111111;
-  --nwcn-dark-3: #1A1A1A;
+  --color-green: #09F593;
+  --color-green-dark: #07C274;
+  --color-green-darker: #058F56;
+  --color-yellow: #E3E94D;
+  --color-dark: #151515;
+  --color-text-default: #050505;
+  --color-text-muted: #323131;
+  --color-text-sub: #B9B8B6;
+  --color-text-inverse: #ffffff;
+  --color-brand-primary: #09F593;
+  --color-brand-secondary: #E3E94D;
+  --color-background-dark: #151515;
+  --color-background-default: #B9B8B6;
 }
 
-/* ── 기본 설정 ──────────────────────────────────── */
+/* ── Base ───────────────────────────────────────── */
 @layer base {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
   html {
@@ -37,14 +99,15 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* ⚠️ 배경: 화이트 (Figma 기준) */
   body {
-    background-color: var(--nwcn-dark);
-    color: #ffffff;
-    font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont,
-      system-ui, Roboto, 'Helvetica Neue', sans-serif;
+    background-color: #ffffff;
+    color: var(--color-text-muted);
+    font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.6;
+    overflow-x: hidden;
   }
 
   a {
@@ -52,29 +115,26 @@
     text-decoration: none;
   }
 
-  img,
-  video {
+  img, video {
     max-width: 100%;
     height: auto;
+    display: block;
   }
 }
 
-/* ── 커스텀 유틸리티 ─────────────────────────────── */
+/* ── 유틸리티 ───────────────────────────────────── */
 @layer utilities {
-  /* A2Z 브랜드 폰트 */
   .font-brand {
-    font-family: 'A2Z', 'Pretendard Variable', sans-serif;
+    font-family: 'A2z', sans-serif;
   }
 
-  /* 그린-옐로우 그라디언트 텍스트 */
   .text-gradient-green {
-    background: linear-gradient(135deg, var(--nwcn-green) 0%, var(--nwcn-yellow) 100%);
+    background: linear-gradient(to right, #00e888, #00824c);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* 스크롤바 숨기기 */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -82,46 +142,29 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-
-  /* 텍스트 밸런스 */
-  .text-balance {
-    text-wrap: balance;
-  }
 }
 
 /* ── 공통 컴포넌트 ──────────────────────────────── */
 @layer components {
-  /* 버튼 */
-  .btn-primary {
-    @apply inline-flex items-center gap-2 px-6 py-3
-           bg-nwcn-green text-nwcn-dark
-           font-body font-semibold text-sm rounded-full
-           transition-all duration-200
-           hover:bg-nwcn-yellow hover:scale-105 active:scale-95;
-  }
-
-  .btn-outline {
-    @apply inline-flex items-center gap-2 px-6 py-3
-           border border-nwcn-green text-nwcn-green
-           font-body font-semibold text-sm rounded-full
-           transition-all duration-200
-           hover:bg-nwcn-green hover:text-nwcn-dark active:scale-95;
-  }
-
-  /* 카드 */
-  .card-base {
-    @apply bg-nwcn-dark-3 border border-white/10 rounded-2xl overflow-hidden
-           transition-all duration-300
-           hover:border-nwcn-green/30 hover:-translate-y-1;
-  }
-
-  /* 섹션 타이틀 */
-  .section-title {
-    @apply font-brand text-display-md text-white;
-  }
-
-  /* 페이지 컨테이너 */
   .page-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px];
+  }
+
+  .section-label {
+    @apply font-brand text-[23px] text-nwcn-text-default text-center;
+  }
+
+  .tag-green {
+    @apply inline-flex items-center justify-center px-[3.979px] py-[1.989px]
+           bg-nwcn-green text-nwcn-text-default
+           font-body font-medium text-[16.58px]
+           drop-shadow-sm;
+  }
+
+  .tag-yellow {
+    @apply inline-flex items-center justify-center px-[3.979px] py-[1.989px]
+           bg-nwcn-yellow text-nwcn-text-default
+           font-body font-medium text-[16.58px]
+           drop-shadow-sm;
   }
 }

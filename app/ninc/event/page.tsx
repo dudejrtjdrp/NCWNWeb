@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Badge from '@/components/ui/Badge'
 
@@ -16,7 +17,7 @@ const TYPE_COLORS = {
 
 export default function EventPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="NINC — EVENT"
         title="이벤트·행사"
@@ -58,6 +59,6 @@ export default function EventPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Badge from '@/components/ui/Badge'
 
@@ -9,7 +10,7 @@ const PROJECTS = [
 
 export default function ProjectPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="NINC — PROJECT"
         title="프로젝트"
@@ -34,6 +35,6 @@ export default function ProjectPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

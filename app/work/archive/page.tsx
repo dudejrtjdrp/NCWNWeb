@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 
 const ARCHIVE_DATA = [
@@ -10,7 +11,7 @@ const ARCHIVE_DATA = [
 
 export default function ArchivePage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="WORK — ARCHIVE"
         title="졸업전시 기록"
@@ -54,6 +55,6 @@ export default function ArchivePage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

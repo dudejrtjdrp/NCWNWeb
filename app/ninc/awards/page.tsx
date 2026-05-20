@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Badge from '@/components/ui/Badge'
 
@@ -12,7 +13,7 @@ const years = [...new Set(AWARDS_DATA.map((a) => a.year))].sort((a, b) => b - a)
 
 export default function AwardsPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="NINC — AWARDS"
         title="수상 성과"
@@ -40,6 +41,6 @@ export default function AwardsPage() {
           ))}
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

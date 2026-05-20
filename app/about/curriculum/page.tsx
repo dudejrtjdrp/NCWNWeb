@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 
 const CURRICULUM = {
@@ -13,7 +14,7 @@ const CURRICULUM = {
 
 export default function CurriculumPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="ABOUT — CURRICULUM"
         title="교육과정"
@@ -45,6 +46,6 @@ export default function CurriculumPage() {
           ))}
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

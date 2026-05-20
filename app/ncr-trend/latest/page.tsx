@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Image from 'next/image'
 import Badge from '@/components/ui/Badge'
@@ -13,7 +14,7 @@ const TYPE_LABELS = { editorial: '에디토리얼', trend: '트렌드', card_new
 
 export default function LatestReportPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="NCR TREND — LATEST REPORT"
         title="최신 리포트"
@@ -58,6 +59,6 @@ export default function LatestReportPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

@@ -1,6 +1,5 @@
-import type { NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     remotePatterns: [
       {
@@ -12,10 +11,6 @@ const nextConfig: NextConfig = {
         hostname: '**.r2.cloudflarestorage.com',
       },
     ],
-  },
-  // 실험적 기능
-  experimental: {
-    typedRoutes: false,
   },
 }
 

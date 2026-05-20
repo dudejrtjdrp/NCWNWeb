@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Image from 'next/image'
 
@@ -19,7 +20,7 @@ const FACULTY_DATA = [
 
 export default function FacultyPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="ABOUT — FACULTY"
         title="교수진"
@@ -59,6 +60,6 @@ export default function FacultyPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

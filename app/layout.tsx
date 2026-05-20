@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import Header from '@/components/layout/Header'
-import Footer from '@/components/layout/Footer'
 
 export const metadata: Metadata = {
   title: {
@@ -18,10 +16,7 @@ export const metadata: Metadata = {
     title: 'NWCN — 뉴미디어콘텐츠과',
     description: '예술과 기술이 만나는 곳에서 새로운 미디어를 만들어냅니다.',
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 }
 
 export const viewport: Viewport = {
@@ -30,17 +25,16 @@ export const viewport: Viewport = {
   themeColor: '#09F593',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" suppressHydrationWarning>
       <body>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        {/*
+          NavBar와 Footer는 각 페이지에서 직접 렌더링.
+          홈 페이지는 HeroSection 스크롤 애니메이션 위에 NavBar가 fixed로 올라옴.
+          서브 페이지는 SubPageLayout을 통해 공통 Header/Footer를 포함.
+        */}
+        {children}
       </body>
     </html>
   )

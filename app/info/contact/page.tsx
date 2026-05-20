@@ -1,9 +1,10 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Button from '@/components/ui/Button'
 
 export default function ContactPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="INFO — CONTACT"
         title="문의 및 오시는 길"
@@ -50,6 +51,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

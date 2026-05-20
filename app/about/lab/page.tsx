@@ -1,8 +1,9 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 
 export default function LabPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="ABOUT — LAB"
         title="시설 안내"
@@ -23,6 +24,6 @@ export default function LabPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

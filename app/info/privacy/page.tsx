@@ -1,3 +1,4 @@
+import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 
 const SECTIONS = [
@@ -25,7 +26,7 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   return (
-    <>
+    <SubPageLayout>
       <PageHeader
         category="INFO — PRIVACY"
         title="개인정보처리방침"
@@ -45,6 +46,6 @@ export default function PrivacyPage() {
           </div>
         </div>
       </section>
-    </>
+    </SubPageLayout>
   )
 }

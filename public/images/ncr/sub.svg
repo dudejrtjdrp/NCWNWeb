@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="430" height="430" viewBox="0 0 430 430" role="img" aria-label="NCR sub placeholder">
+  <rect width="100%" height="100%" fill="#fff7ef"/>
+  <rect x="30" y="30" width="370" height="260" fill="#ffe0b8" rx="8"/>
+  <text x="50%" y="340" dominant-baseline="middle" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" fill="#c55b3a">Sub Thumbnail</text>
+</svg>
