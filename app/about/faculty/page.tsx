@@ -1,65 +1,31 @@
-import SubPageLayout from '@/components/layout/SubPageLayout'
-import PageHeader from '@/components/common/PageHeader'
-import Image from 'next/image'
+/**
+ * TARGET 리팩터링: About/Faculty 교수진 페이지
+ * Figma node-id: 427:889 (ABOUT/Faculty/Desktop)
+ *
+ * ─ 변경 사항 ─────────────────────────────────────────
+ * Before: 임시 card-base 카드 (다크 테마, Supabase TODO)
+ * After : FacultySection BASE 컴포넌트 통합
+ *   - 디자인: Figma 교수 카드 (그린/노란 배경, 수직 이름, 호버 애니메이션)
+ *   - 라우팅: 카드 클릭 → /about/faculty/[id] 상세 페이지
+ *   - 히어로: ABOUT 타이틀 + 대형 NWCN 로고 (Department 동일 패턴)
+ *   - SubNav: FACULTY 탭 활성 (AboutSubNav 재사용)
+ *   - 교수진 3열 그리드 + 조교 섹션 유지
+ *   - 기존 FACULTY_DATA → FacultySection 내 FACULTY_LIST로 통합 이전
+ * ──────────────────────────────────────────────────────
+ */
 
-// TODO: Supabase fetch로 교체
-const FACULTY_DATA = [
-  {
-    id: '1', name: '이주헌', title: '교수', email: 'jhlee@dba.ac.kr',
-    education: ['홍익대학교 영상학과 박사'],
-    career: ['현) 동아방송예술대학교 뉴미디어콘텐츠과 교수'],
-    photo_url: null,
-  },
-  {
-    id: '2', name: '육심웅', title: '교수', email: 'swryuk@dba.ac.kr',
-    education: ['중앙대학교 첨단영상대학원 석사'],
-    career: ['현) 동아방송예술대학교 뉴미디어콘텐츠과 교수'],
-    photo_url: null,
-  },
-]
+import SubPageLayout from '@/components/layout/SubPageLayout'
+import FacultySection from '@/components/base/FacultySection'
+
+export const metadata = {
+  title: '교수진 — ABOUT | NWCN',
+  description: '뉴미디어콘텐츠과를 이끄는 교수진을 소개합니다.',
+}
 
 export default function FacultyPage() {
   return (
     <SubPageLayout>
-      <PageHeader
-        category="ABOUT — FACULTY"
-        title="교수진"
-        description="뉴미디어콘텐츠과를 이끄는 교수진을 소개합니다."
-      />
-      <section className="py-12">
-        <div className="page-container">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {FACULTY_DATA.map((faculty) => (
-              <div key={faculty.id} className="card-base p-8 flex gap-6">
-                {/* 프로필 사진 */}
-                <div className="flex-shrink-0 w-20 h-20 rounded-full bg-nwcn-dark-2 border border-white/10 overflow-hidden flex items-center justify-center">
-                  {faculty.photo_url ? (
-                    <Image src={faculty.photo_url} alt={faculty.name} width={80} height={80} className="object-cover" />
-                  ) : (
-                    <span className="font-brand text-2xl text-nwcn-green/30">{faculty.name[0]}</span>
-                  )}
-                </div>
-                {/* 정보 */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-body text-xl font-semibold text-white">{faculty.name}</h3>
-                  <p className="font-body text-sm text-nwcn-green mb-1">{faculty.title}</p>
-                  <a href={`mailto:${faculty.email}`} className="font-body text-xs text-white/30 hover:text-nwcn-green transition-colors mb-4 block">
-                    {faculty.email}
-                  </a>
-                  <div className="space-y-1">
-                    {faculty.education.map((edu, i) => (
-                      <p key={i} className="font-body text-xs text-white/50">{edu}</p>
-                    ))}
-                    {faculty.career.map((car, i) => (
-                      <p key={i} className="font-body text-xs text-white/50">{car}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FacultySection />
     </SubPageLayout>
   )
 }
