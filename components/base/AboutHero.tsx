@@ -22,9 +22,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-/* ─── Figma 에셋 URLs (2026-05-22 갱신, 7일 만료) ─── */
-const IMG_NWCN = 'https://www.figma.com/api/mcp/asset/912bdfe4-6ced-439c-9948-b39f5b217c9f'
-const IMG_LINE2 = 'https://www.figma.com/api/mcp/asset/1e8a82af-be12-4a90-a73e-adf63ac56316'
+/* ─── 에셋 경로 (/public/images/department/ 로컬 저장) ─── */
+const IMG_NWCN = '/images/department/nwcn-logo.png'
+const IMG_LINE2 = '/images/department/line2.png'
 
 /* ─── 탭 정의 ─── */
 const ABOUT_TABS = [

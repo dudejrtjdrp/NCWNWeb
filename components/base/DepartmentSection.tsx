@@ -23,19 +23,19 @@
  *   §A top=0 = Figma y=869 (SubNav top)
  */
 
-import { useRef, useCallback } from 'react'
+import CertCarousel from '@/components/base/CertCarousel'
 
-/* ─── Figma 에셋 URLs (2026-05-22 갱신, 7일 만료) ─── */
+/* ─── 에셋 경로 (/public/images/department/ 로컬 저장) ─── */
 const IMG = {
-  arrowVec:        'https://www.figma.com/api/mcp/asset/88be3654-800a-4b53-ad29-aaa0a2665004',
-  symbolCardBg:    'https://www.figma.com/api/mcp/asset/4b354aa9-bc4c-4b0c-8890-4f8e75fbbcc7',
-  symbolCardInner: 'https://www.figma.com/api/mcp/asset/633ec79a-ebb3-4165-82cf-483255b64192',
-  vecGoal:         'https://www.figma.com/api/mcp/asset/76167850-5b26-4918-80c3-eebcf78fdb72',
-  goalCard:        'https://www.figma.com/api/mcp/asset/24ab48cf-999d-4f5b-bdc7-ed0b071a4698',
-  policyImg1:      'https://www.figma.com/api/mcp/asset/e238a7cc-1033-42da-921b-71a3a8e67494',
-  policyImg2:      'https://www.figma.com/api/mcp/asset/65b8c955-7c49-4d82-a20b-887e2cc5b52c',
-  vecCareer:       'https://www.figma.com/api/mcp/asset/39fa9932-ca44-41a7-9069-5fb4029c24cc',
-  certBg:          'https://www.figma.com/api/mcp/asset/6532bcb9-c0c1-4f2f-82dd-03718303f07c',
+  arrowVec:        '/images/department/arrow-vec.png',
+  symbolCardBg:    '/images/department/symbol-card-bg.png',
+  symbolCardInner: '/images/department/symbol-card-inner.png',
+  vecGoal:         '/images/department/vec-goal.png',
+  goalCard:        '/images/department/goal-card.png',
+  policyImg1:      '/images/department/policy-img1.png',
+  policyImg2:      '/images/department/policy-img2.png',
+  vecCareer:       '/images/department/vec-career.png',
+  certBg:          '/images/department/cert-bg.png',
 }
 
 /* ─── SymbolCard ─── */
@@ -119,14 +119,6 @@ function GlassTag({ label, width }: { label: string; width: number }) {
   )
 }
 
-/* ─── 자격증 정적 카드 데이터 (Figma 초기 뷰 그대로) ─── */
-// Figma 절대 x 위치: -266, calc(8.33%+117px)=237, calc(50%+20px)=740, calc(83.33%+44px)=1244
-const CERT_STATIC = [
-  { name: '웹디자인기능사',          left: -266                    },
-  { name: '정보처리산업기사',         left: 'calc(8.33% + 117px)'  },
-  { name: '멀티미디어콘텐츠제작전문가', left: 'calc(50% + 20px)'     },
-  { name: 'GTQ',                    left: 'calc(83.33% + 44px)'  },
-]
 
 /* ══════════════════════════════════════════════════════
    메인 컴포넌트
@@ -421,69 +413,9 @@ export default function DepartmentSection() {
       </div>
 
       {/* ══════════════════════════════════════════
-          §F  자격증  h=801
-          Figma 정적 레이아웃 (기능 제외)
-          카드4장: left=-266 / calc(8.33%+117px) / calc(50%+20px) / calc(83.33%+44px)
-          카드: 461×582px, #d9d9d9
-          텍스트: 카드 세로 중앙 (top=50%), Pretendard Bold 24px
+          §F  자격증 — Swiper Coverflow Carousel
           ══════════════════════════════════════ */}
-      <div style={{ position: 'relative', height: 801, overflow: 'hidden', background: '#fff' }}>
-
-        {/* Group44 배경 */}
-        <div style={{
-          position: 'absolute', left: '50%', top: 0,
-          transform: 'translateX(-50%)',
-          width: 1460, height: 801, pointerEvents: 'none',
-        }} aria-hidden>
-          <img src={IMG.certBg} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
-        </div>
-
-        {/* "자격증" 라벨 — Figma center-y=100.5 */}
-        <p style={{
-          position: 'absolute', top: 100, left: '50%',
-          transform: 'translateX(-50%) translateY(-50%)',
-          margin: 0,
-          fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-          fontWeight: 700, fontSize: 24, color: '#444',
-          lineHeight: 'normal', whiteSpace: 'nowrap',
-        }}>
-          자격증
-        </p>
-
-        {/* 정적 카드 4장 — Figma 초기 뷰 그대로 */}
-        {CERT_STATIC.map((cert) => (
-          <div
-            key={cert.name}
-            style={{
-              position: 'absolute',
-              top: 110,
-              left: typeof cert.left === 'number' ? cert.left : cert.left,
-              width: 461,
-              height: 582,
-              background: '#d9d9d9',
-              flexShrink: 0,
-            }}
-          >
-            {/* 자격증명 — 카드 세로 중앙 */}
-            <div style={{
-              position: 'absolute', top: '50%', left: 0, right: 0,
-              transform: 'translateY(-50%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '0 20px',
-            }}>
-              <p style={{
-                margin: 0,
-                fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-                fontWeight: 700, fontSize: 24, color: '#000',
-                textAlign: 'center', lineHeight: 'normal',
-                wordBreak: 'keep-all',
-              }}>
-                {cert.name}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <CertCarousel />
 
     </div>
   )
