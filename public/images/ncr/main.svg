@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="445" viewBox="0 0 620 445" role="img" aria-label="NCR main placeholder">
+  <rect width="100%" height="100%" fill="#e8fef4"/>
+  <circle cx="310" cy="220" r="160" fill="#c8f3df"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="24" fill="#05a76b">Main Thumbnail</text>
+</svg>

@@ -19,11 +19,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import type { FacultyCardVariant } from '@/lib/faculty-data'
 
-// ──────────────────────────────────────────────────────
-// Types
-// ──────────────────────────────────────────────────────
-export type FacultyCardVariant = 'green-solid' | 'green-gradient' | 'yellow'
+// re-export for backward compat
+export type { FacultyCardVariant }
 
 export interface FacultyCardProps {
   /** 교수 고유 ID (상세 페이지 라우팅에 사용) */
@@ -133,7 +132,9 @@ export default function FacultyCard({
             alt={`${nameKo} ${role} 프로필 사진`}
             fill
             className="object-cover object-top rounded-[5px]"
-            unoptimized
+            // /api/faculty-photo 는 로컬 경로 → Next.js Image 최적화 사용
+            // 외부 URL이면 unoptimized 필요
+            unoptimized={photoUrl.startsWith('http')}
           />
         ) : (
           /* 사진 없을 때 플레이스홀더 */

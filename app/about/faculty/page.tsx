@@ -15,16 +15,18 @@
  */
 
 import SubPageLayout from '@/components/layout/SubPageLayout'
+import AboutHero from '@/components/base/AboutHero'
 import FacultySection from '@/components/base/FacultySection'
 
 export const metadata = {
-  title: '교수진 — ABOUT | NWCN',
+  title: 'FACULTY | ABOUT | NWCN',
   description: '뉴미디어콘텐츠과를 이끄는 교수진을 소개합니다.',
 }
 
 export default function FacultyPage() {
   return (
     <SubPageLayout>
+      <AboutHero />
       <FacultySection />
     </SubPageLayout>
   )
