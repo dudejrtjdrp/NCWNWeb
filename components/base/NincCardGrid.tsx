@@ -22,11 +22,10 @@
 import NincCardItem, { NincCardItemProps } from './NincCardItem'
 import NincPagination from './NincPagination'
 
-// Figma 에셋 URLs (7일 만료 → /public/images로 교체 필요)
 const ASSETS = {
-  trophy: 'https://www.figma.com/api/mcp/asset/66d649d2-89bc-4652-8068-68d5a938a10e',
-  leftDecor: 'https://www.figma.com/api/mcp/asset/6fea072c-33b3-43e2-97f8-25b03bc9ae18',
-  rightDecor: 'https://www.figma.com/api/mcp/asset/26854bba-1d49-4b49-a000-7ee7126e1c44',
+  trophy: '/images/ninc/trophy.svg',
+  leftDecor: '/images/ninc/left-decor.svg',
+  rightDecor: '/images/ninc/right-decor.svg',
 }
 
 export interface NincGridItem extends Omit<NincCardItemProps, 'trophyIconUrl'> {

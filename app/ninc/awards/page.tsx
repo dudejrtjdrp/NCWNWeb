@@ -21,8 +21,7 @@ import NincHeroBanner from '@/components/base/NincHeroBanner'
 import NincCardGrid from '@/components/base/NincCardGrid'
 import Badge from '@/components/ui/Badge'
 
-// TODO: 영구 에셋으로 교체 (Figma asset 7일 만료)
-const HERO_IMAGE_URL = 'https://www.figma.com/api/mcp/asset/f4740318-1c7d-403c-9ddf-feb9b84993c5'
+const HERO_IMAGE_URL = '/images/ninc/awards-hero.jpg'
 
 // ── 데이터 ────────────────────────────────────────────────
 const AWARDS_DATA = [

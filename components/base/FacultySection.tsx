@@ -19,11 +19,8 @@ import Image from 'next/image'
 import FacultyCard from '@/components/base/FacultyCard'
 import { FACULTY_LIST } from '@/lib/faculty-data'
 
-// ──────────────────────────────────────────────────────
-// Figma 에셋 URLs (7일 만료 → TODO: /public/images 교체)
-// ──────────────────────────────────────────────────────
 const ASSETS = {
-  arrowDown: 'https://www.figma.com/api/mcp/asset/13507bd5-afec-447d-94a7-0a19a08d633b',
+  arrowDown: '/images/common/arrow-down.svg',
 }
 
 // ──────────────────────────────────────────────────────

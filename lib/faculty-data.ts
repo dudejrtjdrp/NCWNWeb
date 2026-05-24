@@ -20,16 +20,11 @@ export interface FacultyData {
 }
 
 /**
- * photoUrl 우선순위:
- * 1순위: /images/faculty/[id].png (public 정적 파일 — node scripts/download-faculty-photos.mjs 실행 후)
- * 2순위: /api/faculty-photo?name=[id] (Next.js 서버가 Figma URL 프록시)
- *
- * 정적 파일이 존재하면 Next.js <Image>가 자동으로 최적화합니다.
- * 현재는 API Route fallback을 사용합니다.
+ * photoUrl: /public/images/faculty/[id].jpg 정적 파일 경로
+ * Figma에서 다운로드한 사진이 /public/images/faculty/ 에 저장되어 있음
  */
 function photoUrl(id: string): string {
-  // 정적 파일 우선 사용 (빌드 타임에는 알 수 없으므로 API Route 사용)
-  return `/api/faculty-photo?name=${id}`
+  return `/images/faculty/${id}.jpg`
 }
 
 export const FACULTY_LIST: FacultyData[] = [

@@ -21,8 +21,7 @@ import NincHeroBanner from '@/components/base/NincHeroBanner'
 import NincCardGrid from '@/components/base/NincCardGrid'
 import Tag from '@/components/base/Tag'
 
-// TODO: 영구 에셋으로 교체 (Figma asset 7일 만료)
-const HERO_IMAGE_URL = 'https://www.figma.com/api/mcp/asset/afe67ab8-99c5-4a1c-b7af-9d4ff9a81d23'
+const HERO_IMAGE_URL = '/images/ninc/project-hero.jpg'
 
 // ── 데이터 ────────────────────────────────────────────────
 const PROJECTS_DATA = [

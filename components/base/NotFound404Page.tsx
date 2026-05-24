@@ -41,14 +41,9 @@ import Image from 'next/image'
 import Link  from 'next/link'
 import Button from '@/components/ui/Button'
 
-// ── Figma MCP 에셋 (7일 만료 → /public/images 영구 에셋으로 교체 권장) ────
-// TODO: public/images/nwcn-logo-dark.png 로 교체
-const NWCN_LOGO_URL =
-  'https://www.figma.com/api/mcp/asset/b22c295e-66f9-47eb-aeab-24a33fd40d52'
-
-// TODO: public/images/404-text.png 로 교체
-const NOT_FOUND_404_URL =
-  'https://www.figma.com/api/mcp/asset/f35b8d6a-9f75-45ce-9d7c-251326347f6b'
+const NWCN_LOGO_URL = '/images/common/newcon-logo.png'
+// TODO: Figma 노드 376:1203 (Tiqui Taca 폰트 "404" PNG) 를 export 후 교체
+const NOT_FOUND_404_URL = '/images/common/404-text.png'
 
 // ── Props ──────────────────────────────────────────────────────────────────
 export interface NotFound404PageProps {

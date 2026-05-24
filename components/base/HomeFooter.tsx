@@ -15,13 +15,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
-// Figma 에셋 URLs (7일 만료 → /public/images로 교체 필요)
-// TODO: 영구 에셋으로 교체
 const ASSETS = {
-  logo: 'https://www.figma.com/api/mcp/asset/b069fdef-437a-4d24-9ea7-eec707623b23',
-  divider: 'https://www.figma.com/api/mcp/asset/9764d437-3782-4ef5-add5-bb0346226fe9',
-  youtube: 'https://www.figma.com/api/mcp/asset/60687bef-373e-45a6-bcaf-cbc507328558',
-  instagram: 'https://www.figma.com/api/mcp/asset/fe322bbc-9296-4503-82b0-8bcc6fd933d8',
+  logo: '/images/common/newcon-logo.png',
+  youtube: '/images/common/youtube.svg',
+  instagram: '/images/common/instagram.svg',
 }
 
 // 실제 연락처 정보 (Figma에서 확인)

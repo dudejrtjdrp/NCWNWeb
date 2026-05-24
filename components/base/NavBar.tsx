@@ -17,9 +17,7 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
-// Figma 에셋 (7일 만료 → 추후 /public/images로 교체 필요)
-// TODO: 영구 에셋으로 교체
-const NWCN_LOGO_URL = 'https://www.figma.com/api/mcp/asset/414b12ac-6cf1-4887-81c1-1241c6ac580f'
+const NWCN_LOGO_URL = '/images/common/newcon-logo.png'
 
 const NAV_ITEMS = [
   {
