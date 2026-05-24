@@ -1,4 +1,4 @@
-section {
+.section {
   width: 100vw;
   overflow: hidden;
   position: relative;
@@ -6,8 +6,8 @@ section {
   --curve-height: 120px;
 }
 
-section::before,
-section::after {
+.section::before,
+.section::after {
   content: "";
   display: block;
   background: white;
@@ -19,11 +19,11 @@ section::after {
   right: calc(-1 * var(--v-offset));
 }
 
-section::before {
+.section::before {
   top: calc(-0.6 * var(--curve-height));
 }
 
-section::after {
+.section::after {
   bottom: calc(-0.6 * var(--curve-height));
 }
 

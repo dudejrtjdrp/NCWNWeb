@@ -19,7 +19,7 @@ const CERTS = [
 
 export default function CertCarousel() {
   return (
-    <section>
+    <section className={styles.section}>
       <div className={styles.wrapper}>
         {CERTS.map((name) => (
           <div key={name}>
