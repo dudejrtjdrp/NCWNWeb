@@ -4,6 +4,8 @@
   position: relative;
   --v-offset: 60px;
   --curve-height: 120px;
+  background: #0a0a0a;
+  padding: calc(var(--curve-height) * 0.5) 0;
 }
 
 .section::before,
@@ -17,6 +19,7 @@
   border-radius: 50%;
   left: calc(-1 * var(--v-offset));
   right: calc(-1 * var(--v-offset));
+  z-index: 1;
 }
 
 .section::before {
@@ -32,10 +35,24 @@
   grid-template-rows: 300px;
   grid-auto-flow: column;
   grid-gap: 24px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: visible;
   scroll-snap-type: x mandatory;
+  padding: 0 40px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.wrapper > div {
+.wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.wrapper img {
   scroll-snap-align: center;
+  display: block;
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
