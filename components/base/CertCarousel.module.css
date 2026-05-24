@@ -1,0 +1,98 @@
+/* ── CSS Only Curved Carousel — 원본 코드 기반 ── */
+
+.section {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #e0e0e0;
+
+  /* CSS 변수: 원본 그대로 */
+  --v-offset: 60px;
+  --curve-height: 120px;
+}
+
+/* 상단 흰색 타원 아치 */
+.section::before,
+.section::after {
+  content: "";
+  display: block;
+  background: white;
+  width: calc(100% + 2 * var(--v-offset));
+  height: var(--curve-height);
+  position: absolute;
+  border-radius: 50%;
+  left: calc(-1 * var(--v-offset));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.section::before {
+  top: calc(-0.6 * var(--curve-height));
+}
+
+.section::after {
+  bottom: calc(-0.6 * var(--curve-height));
+}
+
+/* 스크롤 래퍼 — 원본 grid 방식 그대로 */
+.wrapper {
+  display: grid;
+  grid-template-rows: 582px;   /* 원본 300px → Figma 카드 높이 582px */
+  grid-auto-flow: column;
+  grid-auto-columns: 461px;    /* Figma 카드 너비 */
+  grid-gap: 42px;              /* 원본 24px → Figma 간격 42px */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: calc(var(--curve-height) * 0.4) 0; /* 곡면이 차지하는 공간(40%) 만큼 내부 여백 */
+}
+
+.wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* 카드 — 원본 img 역할 */
+.card {
+  scroll-snap-align: center;
+  background: #d9d9d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 화살표 버튼 */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrowPrev { left: 60px; }
+.arrowNext { right: 60px; }
+
+/* 라벨 */
+.label {
+  position: absolute;
+  top: calc(var(--curve-height) * 0.4 / 2);
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-weight: 700;
+  font-size: 24px;
+  color: #444;
+  white-space: nowrap;
+  z-index: 3;
+}
