@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
@@ -80,9 +81,17 @@ export default function Header() {
             {/* 로고 */}
             <Link
               href="/"
-              className="font-brand text-xl lg:text-2xl text-white hover:text-nwcn-green transition-colors duration-200"
+              className="flex items-center hover:opacity-80 transition-opacity duration-200"
+              aria-label="NWCN 홈으로"
             >
-              NWCN
+              <Image
+                src="/images/common/newcon-logo.png"
+                alt="NWCN"
+                width={36}
+                height={32}
+                priority
+                unoptimized
+              />
             </Link>
 
             {/* 데스크탑 네비게이션 */}

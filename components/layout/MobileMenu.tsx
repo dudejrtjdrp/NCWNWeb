@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -46,7 +47,15 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
         )}
       >
         <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <span className="font-brand text-xl text-white">NWCN</span>
+          <Link href="/" onClick={onClose} aria-label="NWCN 홈으로">
+            <Image
+              src="/images/common/newcon-logo.png"
+              alt="NWCN"
+              width={36}
+              height={32}
+              unoptimized
+            />
+          </Link>
           <button
             onClick={onClose}
             className="p-2 text-white/60 hover:text-white transition-colors"

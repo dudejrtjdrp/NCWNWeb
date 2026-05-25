@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * BASE 컴포넌트: NincHeroBanner
  * Figma node-id: 280:401 (Awards hero), 280:537 (Project hero)
@@ -14,8 +16,13 @@
  * - pageName: "AWARDS" | "PROJECT" 등
  * - heroImageUrl: 배경 사진 URL
  * - tagline: 복합 인라인 스타일 포함 ReactNode
+ *
+ * 이미지 폴백:
+ * - 이미지 로드 실패 or 빈 이미지(15×8px 수준) 대비
+ * - onError 시 그라디언트 배경으로 전환
  */
 
+import { useState } from 'react'
 import Image from 'next/image'
 
 export interface NincHeroBannerProps {
@@ -31,22 +38,33 @@ export default function NincHeroBanner({
   tagline,
   className = '',
 }: NincHeroBannerProps) {
+  const [imgError, setImgError] = useState(false)
+
   return (
     <div
-      className={`relative w-full overflow-hidden bg-[#f0f0f0] ${className}`}
-      style={{ height: '725px' }}
+      className={`relative w-full overflow-hidden ${className}`}
+      style={{
+        height: '725px',
+        // 이미지 없을 때 NWCN 다크 그린 그라디언트 배경
+        background: imgError
+          ? 'linear-gradient(160deg, #1a3d2b 0%, #0d2219 50%, #060f0c 100%)'
+          : '#1a1a1a',
+      }}
       data-node-id="280:401"
       aria-label={`${pageName} 히어로 배너`}
     >
-      {/* ── 배경 이미지 ── */}
-      <Image
-        src={heroImageUrl}
-        alt={pageName}
-        fill
-        className="object-cover"
-        unoptimized
-        priority
-      />
+      {/* ── 배경 이미지 (로드 실패 시 숨김) ── */}
+      {!imgError && (
+        <Image
+          src={heroImageUrl}
+          alt={pageName}
+          fill
+          className="object-cover"
+          unoptimized
+          priority
+          onError={() => setImgError(true)}
+        />
+      )}
 
       {/* ── 상단 그라디언트 (위쪽 어둡게) ── */}
       <div

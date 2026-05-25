@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 /**
  * BASE 컴포넌트: FacultyCard
  * Figma node-id: 427:1075 (교수진 카드) / 427:1254 (조교 카드)
@@ -107,6 +109,7 @@ export default function FacultyCard({
   className,
 }: FacultyCardProps) {
   const { bg, nameGradient } = VARIANT_STYLES[colorVariant]
+  const [imgError, setImgError] = useState(false)
 
   return (
     <Link
@@ -126,18 +129,17 @@ export default function FacultyCard({
 
       {/* ── 교수 사진 ─────────────────────────────── */}
       <div className="absolute inset-0 top-[9px]" aria-hidden="true">
-        {photoUrl ? (
+        {photoUrl && !imgError ? (
           <Image
             src={photoUrl}
             alt={`${nameKo} ${role} 프로필 사진`}
             fill
             className="object-cover object-top rounded-[5px]"
-            // /api/faculty-photo 는 로컬 경로 → Next.js Image 최적화 사용
-            // 외부 URL이면 unoptimized 필요
-            unoptimized={photoUrl.startsWith('http')}
+            unoptimized
+            onError={() => setImgError(true)}
           />
         ) : (
-          /* 사진 없을 때 플레이스홀더 */
+          /* 사진 없거나 로드 실패 시 이니셜 플레이스홀더 */
           <div className="absolute inset-0 flex items-end justify-center pb-8">
             <span
               className="font-body font-extrabold text-[72px] leading-none"

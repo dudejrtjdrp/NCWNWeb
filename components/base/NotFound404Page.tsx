@@ -65,14 +65,16 @@ export default function NotFound404Page({
     >
       {/* ── NWCN 로고 ─────────────────────────────────────────────────────
           Figma: x=678 y=98 w=85 h=24.33   centered(x=720)
-          paddingTop 98px → 로고 상단을 y=98 에 배치               ── */}
+          실제 PNG: 129×114px (정방형에 가까운 비율)
+          → 높이 고정 48px, 너비 auto로 비율 유지               ── */}
       <div style={{ paddingTop: 98 }} data-node-id="376:1208">
         <Link href={homeHref} aria-label="NWCN 홈으로">
           <Image
             src={NWCN_LOGO_URL}
             alt="NWCN"
-            width={85}
-            height={25}
+            width={54}
+            height={48}
+            style={{ width: 'auto', height: 48 }}
             unoptimized
             priority
           />
