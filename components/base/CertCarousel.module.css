@@ -1,58 +1,91 @@
+/* ══════════════════════════════════════════
+   섹션 전체 영역
+══════════════════════════════════════════ */
 .section {
-  width: 100vw;
-  overflow: hidden;
+  width: 100%;
   position: relative;
-  --v-offset: 60px;
-  --curve-height: 120px;
-  background: #0a0a0a;
-  padding: calc(var(--curve-height) * 0.5) 0;
+  height: 720px;
+  overflow: hidden;
+  cursor: grab;
 }
+.section:active { cursor: grabbing; }
 
-.section::before,
-.section::after {
-  content: "";
-  display: block;
-  background: white;
-  width: calc(100vw + 2 * var(--v-offset));
-  height: var(--curve-height);
+/* ══════════════════════════════════════════
+   퍼스펙티브 씬
+   perspective 값은 TSX의 PERSPECTIVE = 1000 과 반드시 동일하게 유지
+══════════════════════════════════════════ */
+.scene {
   position: absolute;
-  border-radius: 50%;
-  left: calc(-1 * var(--v-offset));
-  right: calc(-1 * var(--v-offset));
-  z-index: 1;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
 }
 
-.section::before {
-  top: calc(-0.6 * var(--curve-height));
+/* ══════════════════════════════════════════
+   트랙 — 카드들의 3D 부모
+══════════════════════════════════════════ */
+.track {
+  position: relative;
+  width: 0;
+  height: 500px;
+  transform-style: preserve-3d;
 }
 
-.section::after {
-  bottom: calc(-0.6 * var(--curve-height));
+/* ══════════════════════════════════════════
+   카드
+   width → TSX의 CARD_W = 380 과 반드시 동일하게 유지
+   ★ width = CARD_W, left = -CARD_W/2
+   height 는 CARD_W 와 무관하게 자유롭게 조정 가능
+══════════════════════════════════════════ */
+.card {
+  position: absolute;
+  width: 380px;
+  height: 500px;       /* 세로로 길쭉한 카드 */
+  left: -190px;        /* -CARD_W/2 */
+  top: 0;
+  will-change: transform;
+  transform-style: preserve-3d;
+  border-radius: 16px;
+  overflow: hidden;
+  backface-visibility: hidden;
 }
 
-.wrapper {
-  display: grid;
-  grid-template-rows: 300px;
-  grid-auto-flow: column;
-  grid-gap: 24px;
-  overflow-x: auto;
-  overflow-y: visible;
-  scroll-snap-type: x mandatory;
-  padding: 0 40px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.wrapper::-webkit-scrollbar {
-  display: none;
-}
-
-.wrapper img {
-  scroll-snap-align: center;
+.card img {
   display: block;
-  width: 300px;
-  height: 300px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 12px;
-  flex-shrink: 0;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 16px;
 }
+
+/* ══════════════════════════════════════════
+   위·아래 타원 마스크
+   — 흰색 반타원이 카드 상하를 가려
+     원통 개구부(터널) 효과 연출
+══════════════════════════════════════════ */
+.maskTop,
+.maskBottom {
+  position: absolute;
+  left: -15%;
+  width: 130%;
+  height: 540px;          /* 타원 높이 — 클수록 완만한 곡선 */
+  background: #fff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 999;           /* 카드 최대 z-index(≈360)보다 반드시 위 */
+}
+
+/*
+  섹션 720px, 카드 y=110~610px (트랙 500px 센터 기준)
+  maskTop  bottom edge → y=240px  (카드 상단 130px 덮음)
+  maskBottom top edge  → y=480px  (카드 하단 130px 덮음)
+  양쪽 대칭: top(-300)+height(540)=240,  bottom(-300)+720+540=960→top=960-540=420...
+  ↳ bottom: -300 → element top = 720+300-540 = 480 ✓
+*/
+.maskTop    { top:    -300px; }
+.maskBottom { bottom: -300px; }
