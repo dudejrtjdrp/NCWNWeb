@@ -12,12 +12,35 @@
  */
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
-const NWCN_LOGO_URL = '/images/common/newcon-logo.png'
+/** 인라인 SVG 로고 — 이미지 파일 의존 없이 렌더링 (Figma NavBar NWCN 텍스트 로고) */
+function NwcnLogo() {
+  return (
+    <svg
+      width="90"
+      height="24"
+      viewBox="0 0 90 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="NWCN"
+    >
+      <text
+        x="0"
+        y="20"
+        fontFamily="'A2z', 'Arial Black', sans-serif"
+        fontWeight="900"
+        fontSize="22"
+        fill="#09F593"
+        letterSpacing="-0.5"
+      >
+        NWCN
+      </text>
+    </svg>
+  )
+}
 
 const NAV_ITEMS = [
   {
@@ -104,16 +127,7 @@ export default function NavBar({ className, transparent = false }: NavBarProps) 
           {/* 로고 — Figma: 중앙 정렬 */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link href="/" aria-label="NWCN 홈">
-              <div className="relative w-[90px] h-[24px]">
-                <Image
-                  src={NWCN_LOGO_URL}
-                  alt="NWCN"
-                  fill
-                  className="object-contain"
-                  priority
-                  unoptimized
-                />
-              </div>
+              <NwcnLogo />
             </Link>
           </div>
 
