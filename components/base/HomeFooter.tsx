@@ -12,69 +12,8 @@
  * - Divider: 구분선 이미지
  */
 
+import Image from 'next/image'
 import Link from 'next/link'
-
-/** Footer 심볼 로고 (인라인 SVG — 이미지 파일 없이 렌더링) */
-function FooterLogo() {
-  return (
-    <svg
-      width="129"
-      height="114"
-      viewBox="0 0 129 114"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="NWCN NewCon 로고"
-    >
-      {/* 사슴 뿔 심볼 */}
-      <g opacity="0.9">
-        {/* 왼쪽 뿔 */}
-        <path d="M45 80 L35 55 L25 45 L20 30 L28 35 L32 50 L40 60 L50 72" stroke="#09F593" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-        <path d="M35 55 L22 50 L18 40" stroke="#09F593" strokeWidth="2" strokeLinecap="round" fill="none"/>
-        <path d="M32 50 L38 38 L42 28" stroke="#09F593" strokeWidth="2" strokeLinecap="round" fill="none"/>
-        {/* 오른쪽 뿔 */}
-        <path d="M84 80 L94 55 L104 45 L109 30 L101 35 L97 50 L89 60 L79 72" stroke="#09F593" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-        <path d="M94 55 L107 50 L111 40" stroke="#09F593" strokeWidth="2" strokeLinecap="round" fill="none"/>
-        <path d="M97 50 L91 38 L87 28" stroke="#09F593" strokeWidth="2" strokeLinecap="round" fill="none"/>
-        {/* 머리 */}
-        <ellipse cx="64.5" cy="78" rx="22" ry="18" stroke="#09F593" strokeWidth="2" fill="none"/>
-        {/* 눈 */}
-        <circle cx="56" cy="74" r="2.5" fill="#09F593"/>
-        <circle cx="73" cy="74" r="2.5" fill="#09F593"/>
-        {/* 코 */}
-        <ellipse cx="64.5" cy="84" rx="5" ry="3" stroke="#09F593" strokeWidth="1.5" fill="none"/>
-      </g>
-      {/* NWCN 텍스트 */}
-      <text
-        x="64.5"
-        y="108"
-        textAnchor="middle"
-        fontFamily="'A2z', 'Arial Black', sans-serif"
-        fontWeight="900"
-        fontSize="14"
-        fill="#09F593"
-        letterSpacing="2"
-      >
-        NWCN
-      </text>
-    </svg>
-  )
-}
-
-/** SNS 아이콘 — 인라인 SVG */
-const SNS_ICONS = {
-  youtube: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z"/>
-    </svg>
-  ),
-  instagram: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-      <circle cx="12" cy="12" r="4"/>
-      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
-    </svg>
-  ),
-}
 
 // 실제 연락처 정보 (Figma에서 확인)
 const CONTACT_INFO = [
@@ -84,20 +23,16 @@ const CONTACT_INFO = [
   { label: '학과 이메일', value: '02-000-0000' },
 ]
 
-const SNS_LINKS: Array<{
-  label: string
-  href: string
-  iconKey: keyof typeof SNS_ICONS
-}> = [
+const SNS_LINKS = [
   {
     label: '유튜브 바로가기',
     href: 'https://www.youtube.com/channel/UCo9nQUcZ8W1yvUVxApWRMQw',
-    iconKey: 'youtube',
+    icon: '/images/common/youtube.svg',
   },
   {
     label: '인스타그램 바로가기',
     href: 'https://www.instagram.com/2026newcon/',
-    iconKey: 'instagram',
+    icon: '/images/common/instagram.svg',
   },
 ]
 
@@ -122,7 +57,13 @@ export default function HomeFooter({ className = '' }: HomeFooterProps) {
             style={{ width: '129px', height: '114px' }}
             data-node-id="376:652"
           >
-            <FooterLogo />
+            <Image
+              src="/images/common/NewConLogo.svg"
+              alt="NewCon 로고"
+              width={129}
+              height={114}
+              unoptimized
+            />
           </div>
 
           {/* 연락처 정보 (우측) */}
@@ -191,17 +132,22 @@ export default function HomeFooter({ className = '' }: HomeFooterProps) {
             className="flex flex-col gap-[12px] items-start"
             data-node-id="452:264"
           >
-            {SNS_LINKS.map(({ label, href, iconKey }) => (
+            {SNS_LINKS.map(({ label, href, icon }) => (
               <a
                 key={label}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-[9px] text-white hover:text-nwcn-green transition-colors"
+                className="flex items-center gap-[9px] text-white hover:opacity-70 transition-opacity"
               >
-                <div className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center">
-                  {SNS_ICONS[iconKey]}
-                </div>
+                <Image
+                  src={icon}
+                  alt=""
+                  width={19}
+                  height={19}
+                  unoptimized
+                  aria-hidden="true"
+                />
                 <span
                   className="font-body font-medium whitespace-nowrap"
                   style={{ fontSize: '12.62px' }}

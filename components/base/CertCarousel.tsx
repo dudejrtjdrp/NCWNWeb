@@ -174,8 +174,12 @@ export default function CertCarousel() {
     const onUp = () => { dragging.current = false }
 
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      targetPos.current += e.deltaX / DRAG_PX
+      // deltaX가 조금이라도 있으면 preventDefault → 브라우저 뒤로/앞으로 제스처 차단
+      // 순수 세로 스크롤(deltaX === 0)은 통과시켜 페이지 위아래 이동 가능하게 함
+      if (e.deltaX !== 0) {
+        e.preventDefault()
+        targetPos.current += e.deltaX / DRAG_PX
+      }
     }
 
     section.addEventListener('pointerdown',   onDown)
