@@ -365,9 +365,52 @@ Props 인터페이스:
   → TODO: Supabase fetch로 교체 (faculty 테이블)
 ```
 
-### ABOUT/* (/about/curriculum, lab)
-- Curriculum: 학년별 학기별 과목 그리드
-- Lab: 시설 안내 이미지 + 설명
+### ABOUT/Curriculum (/about/curriculum) — Figma 450:219
+
+```
+UX 흐름:
+1. 진입 → SubPageLayout (NavBar fixed + HomeFooter)
+2. AboutHero: "ABOUT" 타이틀(우측) + NWCN 대형 로고 이미지
+3. AboutSubNav 서브 탭: DEPARTMENT | FACULTY | CURRICULLUM(활성) | LAB
+   - 탭 클릭 → 해당 페이지로 라우팅 (Link)
+4. CurriculumSection
+   4-a. 교육과정 아이콘(SVG 스타) + "교육 과정" 타이틀
+   4-b. 학년 탭 3개 (useState로 클라이언트 상태 관리)
+        - 활성: 브랜드 그린(#09F593) + 드롭섀도
+        - 비활성: 회색(#B9B8B6)
+   4-c. 선택된 학년의 커리큘럼 콘텐츠 표시
+        [교양필수(#848900)] - 1~2학기별 과목 목록
+        [전공필수(#007042)] - 학기별 과목 목록 + 과목 설명
+        [전공선택(#003F7D)] - 학기별 과목 목록 + 과목 설명
+        카테고리 간 구분선(#E8E8E8)
+
+학년별 콘텐츠:
+- 1학년: 교양필수(기초실용영어/프리젠테이션영어), 전공필수(취창업과진로설계), 전공선택(1학기 5과목 / 2학기 6과목)
+- 2학년: 교양필수(소통및협업), 전공필수(UI/UX기획/객체지향언어실습), 전공선택(1학기 3과목 / 2학기 5과목)
+- 3학년: 전공필수(프로젝트스튜디오/취창업실전코칭), 전공선택(1학기 6과목 / 2학기 3과목)
+
+컴포넌트 구조:
+  app/about/curriculum/page.tsx
+    └── SubPageLayout
+          ├── AboutHero   (공유 컴포넌트)
+          └── CurriculumSection  (components/base/CurriculumSection.tsx)
+                ├── CurriculumIcon (SVG)
+                ├── 학년 탭 (1~3학년 버튼)
+                └── 카테고리 목록
+                      └── CategorySection × N
+                            └── SemesterBlock × N
+                                  └── CourseItem × N
+
+Props 인터페이스:
+  CurriculumSection: className?
+  CourseItem: { name, description? }
+  Semester:   { label, courses[] }
+  CurriculumCategory: { title, color, semesters[] }
+  GradeData:  { grade, categories[] }
+```
+
+### ABOUT/Lab (/about/lab)
+- Lab: 시설 안내 이미지 + 설명 (미구현)
 
 ### NINC/Awards (/ninc/awards) — Figma 280:384
 ```
@@ -509,3 +552,4 @@ Ghost hover bg: #cacaca
 | 2026-05-21 | 404 Not Found 페이지 — Figma 376:1202 디자인 적용: NotFound404Page BASE 컴포넌트 생성, not-found.tsx 리팩터링 (이전으로/메인으로 버튼, #f0f0f0 배경, 로고 상단 배치) |
 | 2026-05-21 | About/Department 페이지 — Figma 291:76 디자인 전면 구현: DepartmentSection, AboutSubNav, CertificateSlider BASE 컴포넌트 신규 생성. ABOUT 히어로, 서브탭, 교육목표(01~05 지그재그), 세부교육목표(3카드), 교육방침(2 이미지), 졸업 후 진로(글래스모피즘 태그 14종), 자격증(가로형 슬라이드) 구현. department/page.tsx TARGET 리팩터링 완료. |
 | 2026-05-21 | About/Faculty 교수진 페이지 — Figma 427:889 디자인 구현: FacultyCard, FacultySection BASE 컴포넌트 신규 생성. 교수 카드 3종 colorVariant(green-solid/green-gradient/yellow), 호버 오버레이 애니메이션(scale+오버레이 "자세히 보기"), 교수 6인+조교 1인 그리드 레이아웃. /about/faculty/[id] 상세 페이지(사진+이름+한마디+학력/경력) 신규 추가. faculty/page.tsx TARGET 리팩터링 완료. |
+| 2026-05-26 | About/Curriculum 커리큘럼 페이지 — Figma 450:219 디자인 구현: CurriculumSection BASE 컴포넌트 신규 생성. 학년 탭(1~3학년) 클라이언트 상태 전환, 교양필수(#848900)/전공필수(#007042)/전공선택(#003F7D) 카테고리 섹션, 1~3학년 전 과목 데이터(총 29과목+설명) 포함. curriculum/page.tsx TARGET 리팩터링 완료 (placeholder → CurriculumSection 교체). docs/ux-flow.md 커리큘럼 섹션 추가. |

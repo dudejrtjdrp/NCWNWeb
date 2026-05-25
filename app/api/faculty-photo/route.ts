@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const VALID_NAMES = new Set([
-  'bae-yun-gyeong',
+  'bae-yung-yung',
   'lee-gwang-soo',
   'lee-seock-hee',
   'lee-ju-heon',
@@ -21,5 +21,5 @@ export async function GET(req: NextRequest) {
   if (!name || !VALID_NAMES.has(name)) {
     return new NextResponse('Not found', { status: 404 })
   }
-  return NextResponse.redirect(new URL(`/images/faculty/${name}.png`, req.url))
+  return NextResponse.redirect(new URL(`/images/faculty/${name}.jpg`, req.url))
 }

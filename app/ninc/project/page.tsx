@@ -21,7 +21,7 @@ import NincHeroBanner from '@/components/base/NincHeroBanner'
 import NincCardGrid from '@/components/base/NincCardGrid'
 import Tag from '@/components/base/Tag'
 
-const HERO_IMAGE_URL = '/images/ninc/project-hero.png'
+const HERO_IMAGE_URL = '/images/ninc/project-hero.jpg'
 
 // ── 데이터 ────────────────────────────────────────────────
 const PROJECTS_DATA = [

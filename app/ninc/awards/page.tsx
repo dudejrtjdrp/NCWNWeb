@@ -21,7 +21,7 @@ import NincHeroBanner from '@/components/base/NincHeroBanner'
 import NincCardGrid from '@/components/base/NincCardGrid'
 import Badge from '@/components/ui/Badge'
 
-const HERO_IMAGE_URL = '/images/ninc/awards-hero.png'
+const HERO_IMAGE_URL = '/images/ninc/awards-hero.jpg'
 
 // ── 데이터 ────────────────────────────────────────────────
 const AWARDS_DATA = [
