@@ -34,11 +34,13 @@ export interface NincSectionProps {
 export default function NincSection({ className = '' }: NincSectionProps) {
   return (
     <section
-      className={`relative overflow-hidden bg-white py-[80px] ${className}`}
+      className={`relative bg-white py-[80px] ${className}`}
+      style={{ overflowX: 'clip' }}
       data-node-id="376:1492"
       aria-label="Now In NewCon"
     >
       {/* 배경 유기적 형태 — Figma: blur 2px, -14.75deg */}
+      {/* overflow-x: clip 으로 수평만 클립 → 회전된 이미지 상하 잘림 방지 */}
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
         aria-hidden="true"
@@ -47,8 +49,8 @@ export default function NincSection({ className = '' }: NincSectionProps) {
           style={{
             transform: 'rotate(-14.75deg)',
             filter: 'blur(2px)',
-            width: '1296px',
-            height: '726px',
+            width: '1400px',
+            height: '900px',
             position: 'relative',
           }}
         >

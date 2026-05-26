@@ -24,17 +24,17 @@ export interface FacultyData {
  * Figma에서 다운로드한 사진이 /public/images/faculty/ 에 저장되어 있음
  */
 function photoUrl(id: string): string {
-  return `/images/faculty/${id}.jpg`
+  return `/images/faculty/${id}.png`
 }
 
 export const FACULTY_LIST: FacultyData[] = [
   /* ── 교수진 ── */
   {
-    id: 'bae-yung-yung',
-    nameEn: 'BAEYUNGYUNG',
-    nameKo: '배윤영',
+    id: 'bae-yun-gyeong',
+    nameEn: 'BAEYUNGYEONG',
+    nameKo: '배윤경',
     role: '교수',
-    photoUrl: photoUrl('bae-yung-yung'),
+    photoUrl: photoUrl('bae-yun-gyeong'),
     colorVariant: 'green-solid',
     quote: '창의성과 기술이 만나는 곳, 뉴미디어콘텐츠과에서 여러분의 꿈을 펼치세요.',
   },
