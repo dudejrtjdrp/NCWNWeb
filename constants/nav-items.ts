@@ -20,7 +20,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/work/showcase',
     children: [
       { label: 'SHOWCASE', href: '/work/showcase' },
-      { label: 'ARCHIVE', href: '/work/archive' },
+      { label: 'EXHIBITION', href: '/work/exhibition' },
     ],
   },
   {
@@ -79,7 +79,7 @@ export const NINC_NAV_ITEMS: NavChild[] = [
 /** WORK 서브탭 */
 export const WORK_NAV_ITEMS: NavChild[] = [
   { label: 'SHOWCASE', href: '/work/showcase' },
-  { label: 'ARCHIVE', href: '/work/archive' },
+  { label: 'EXHIBITION', href: '/work/exhibition' },
 ]
 
 /** NCR TREND 서브탭 */
