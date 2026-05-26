@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
 
@@ -26,7 +27,8 @@ export default function ShowcaseGrid({ activeFilter }: ShowcaseGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {filtered.map((work) => (
-        <article key={work.id} className="card-base group cursor-pointer">
+        <Link key={work.id} href={`/work/${work.id}`} className="block">
+        <article className="card-base group cursor-pointer h-full">
           {/* 썸네일 */}
           <div className="aspect-[4/3] bg-nwcn-dark-3 relative overflow-hidden">
             {work.thumbnail_url ? (
@@ -58,6 +60,7 @@ export default function ShowcaseGrid({ activeFilter }: ShowcaseGridProps) {
             </div>
           </div>
         </article>
+        </Link>
       ))}
     </div>
   )

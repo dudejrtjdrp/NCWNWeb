@@ -36,6 +36,8 @@ export interface NincGridItem extends Omit<NincCardItemProps, 'trophyIconUrl'> {
 export interface NincCardGridProps {
   /** 현재 페이지에 표시할 항목 (이미 페이지네이션 처리된 목록) */
   items: NincGridItem[]
+  /** 카드 클릭 시 이동할 href 생성 함수. 전달하면 호버 애니메이션 활성화 */
+  getHref?: (id: string) => string
   /** 검색창 현재 값 */
   searchValue: string
   /** 검색창 변경 콜백 (부모에서 state 관리) */
@@ -63,6 +65,7 @@ export default function NincCardGrid({
   onPageChange,
   sectionTitle,
   emptyMessage = '검색 결과가 없습니다',
+  getHref,
 }: NincCardGridProps) {
   return (
     <div className="bg-white">
@@ -133,6 +136,7 @@ export default function NincCardGrid({
                 subCaption={item.subCaption}
                 badge={item.badge}
                 trophyIconUrl={ASSETS.trophy}
+                href={getHref ? getHref(item.id) : undefined}
               />
             ))}
           </div>

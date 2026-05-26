@@ -173,6 +173,7 @@ export default function ProjectPage() {
         onPageChange={setPage}
         sectionTitle="PROJECT"
         emptyMessage="검색 결과가 없습니다"
+        getHref={(id) => `/ninc/project/${id}`}
       />
     </SubPageLayout>
   )

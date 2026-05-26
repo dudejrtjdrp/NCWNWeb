@@ -2,6 +2,7 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import Image from 'next/image'
 import Badge from '@/components/ui/Badge'
+import Link from 'next/link'
 
 const REPORTS = [
   { id: '1', title: 'AI가 바꾸는 미디어 콘텐츠 산업의 미래', type: 'editorial' as const, thumbnail_url: null, external_url: 'https://blog.naver.com/', published_at: '2025-05-10', season: 'Season 3' },
@@ -24,11 +25,9 @@ export default function LatestReportPage() {
         <div className="page-container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {REPORTS.map((report) => (
-              <a
+              <Link
                 key={report.id}
-                href={report.external_url}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`/ncr-trend/${report.id}`}
                 className="card-base group block"
               >
                 {/* 썸네일 */}
@@ -54,7 +53,7 @@ export default function LatestReportPage() {
                     {new Date(report.published_at).toLocaleDateString('ko-KR')}
                   </p>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

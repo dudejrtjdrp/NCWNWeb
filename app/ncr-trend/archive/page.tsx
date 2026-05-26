@@ -5,6 +5,7 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import PageHeader from '@/components/common/PageHeader'
 import FilterBar from '@/components/common/FilterBar'
 import Badge from '@/components/ui/Badge'
+import Link from 'next/link'
 
 const SEASONS = ['전체', 'Season 3', 'Season 2', 'Season 1']
 
@@ -36,11 +37,9 @@ export default function ArchivePage() {
           <FilterBar filters={SEASONS} activeFilter={activeSeason} onFilterChange={setActiveSeason} className="mb-10" />
           <div className="space-y-3">
             {filtered.map((report) => (
-              <a
+              <Link
                 key={report.id}
-                href={report.external_url}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`/ncr-trend/${report.id}`}
                 className="flex items-center gap-4 p-5 bg-nwcn-dark-3 border border-white/5 rounded-xl hover:border-nwcn-green/20 transition-all duration-200 group"
               >
                 <span className="font-body text-xs text-white/20 w-24 flex-shrink-0">
@@ -51,7 +50,7 @@ export default function ArchivePage() {
                   {report.title}
                 </p>
                 <span className="font-body text-xs text-white/20 flex-shrink-0">{report.season}</span>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

@@ -112,6 +112,7 @@ export default function AwardsPage() {
         onPageChange={setPage}
         sectionTitle="AWARDS"
         emptyMessage="검색 결과가 없습니다"
+        getHref={(id) => `/ninc/awards/${id}`}
       />
     </SubPageLayout>
   )
