@@ -1,90 +1,133 @@
+/**
+ * 글로벌 Footer 컴포넌트 (통합)
+ * Figma node-id: 376:637 (Footer)
+ *
+ * 디자인 스펙:
+ * - 배경: #151515, 높이 442px
+ * - 로고 (좌상단): NewCon 심볼 이미지
+ * - 주소: 경기도 안성시 삼죽면 동아예대길 47
+ * - Copyright: Copyright ⓒ NWCN All Rights Reserved.
+ * - 연락처 정보 (우측): 학교명, 학과 연락처, 학과명, 학과 이메일
+ * - SNS (우하단): YouTube, Instagram 링크
+ *
+ * 기존 HomeFooter와 Footer를 통합 — 이 파일이 단일 소스
+ */
+
+import Image from 'next/image'
 import Link from 'next/link'
 
-const SOCIAL_LINKS = [
+const CONTACT_INFO = [
+  { label: '학교명', value: '동아방송예술대학교' },
+  { label: '학과 연락처', value: '031-670-6680' },
+  { label: '학과명', value: '뉴미디어콘텐츠과' },
+  { label: '학과 이메일', value: '02-000-0000' },
+]
+
+const SNS_LINKS = [
   {
-    label: 'Instagram',
-    href: 'https://www.instagram.com/',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-      </svg>
-    ),
+    label: '유튜브 바로가기',
+    href: 'https://www.youtube.com/channel/UCo9nQUcZ8W1yvUVxApWRMQw',
+    icon: '/images/common/youtube.svg',
   },
   {
-    label: 'YouTube',
-    href: 'https://www.youtube.com/',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z" />
-      </svg>
-    ),
+    label: '인스타그램 바로가기',
+    href: 'https://www.instagram.com/2026newcon/',
+    icon: '/images/common/instagram.svg',
   },
 ]
 
-export default function Footer() {
+export interface FooterProps {
+  className?: string
+}
+
+export default function Footer({ className = '' }: FooterProps) {
   return (
-    <footer className="bg-nwcn-dark border-t border-white/10">
-      <div className="page-container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* 브랜드 */}
-          <div>
-            <p className="font-brand text-2xl text-white mb-3">NWCN</p>
-            <p className="font-body text-sm text-white/40 leading-relaxed">
-              동아방송예술대학교<br />
-              뉴미디어콘텐츠과
-            </p>
+    <footer
+      className={`relative overflow-hidden ${className}`}
+      style={{ background: '#151515', minHeight: '442px' }}
+      data-node-id="376:637"
+      aria-label="사이트 푸터"
+    >
+      <div className="max-w-[1440px] mx-auto px-[79px] py-[71px] relative h-full">
+
+        {/* ── 상단 영역 ── */}
+        <div className="flex justify-between items-start mb-0" style={{ height: '183px' }}>
+          {/* 로고 */}
+          <div style={{ width: '129px', height: '114px' }} data-node-id="376:652">
+            <Image
+              src="/images/common/NewConLogo.svg"
+              alt="NewCon 로고"
+              width={129}
+              height={114}
+              unoptimized
+            />
           </div>
 
-          {/* 연락처 */}
-          <div>
-            <p className="font-body text-xs font-semibold tracking-widest text-nwcn-green mb-4">CONTACT</p>
-            <div className="space-y-2">
-              <p className="font-body text-sm text-white/60">
-                Tel: 031-000-0000
-              </p>
-              <p className="font-body text-sm text-white/60">
-                Email: nwcn@dba.ac.kr
-              </p>
-              <p className="font-body text-sm text-white/60">
-                경기도 김포시 통진읍 서암리 산30
-              </p>
-            </div>
-          </div>
-
-          {/* 링크 & SNS */}
-          <div>
-            <p className="font-body text-xs font-semibold tracking-widest text-nwcn-green mb-4">FOLLOW US</p>
-            <div className="flex gap-3 mb-6">
-              {SOCIAL_LINKS.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={link.label}
-                  className="w-10 h-10 flex items-center justify-center rounded-full border border-white/10 text-white/60 hover:text-nwcn-green hover:border-nwcn-green/40 transition-all duration-200"
-                >
-                  {link.icon}
-                </a>
-              ))}
-            </div>
-            <Link
-              href="/info/privacy"
-              className="font-body text-xs text-white/30 hover:text-white/60 transition-colors"
-            >
-              개인정보처리방침
-            </Link>
+          {/* 연락처 정보 (우측) */}
+          <div
+            className="flex flex-wrap gap-x-[76px] gap-y-[23px] w-[242px]"
+            data-node-id="376:903"
+          >
+            {CONTACT_INFO.map(({ label, value }) => (
+              <div key={label} className="flex flex-col gap-[3px]" style={{ minWidth: '73px' }}>
+                <p className="font-body font-medium text-[#323131]" style={{ fontSize: '14px' }}>
+                  {label}
+                </p>
+                <p className="font-body font-normal text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
+                  {value}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-white/5">
-          <p className="font-body text-xs text-white/20 text-center">
-            Copyright ⓒ NWCN All Rights Reserved.
-          </p>
+        {/* ── Divider ── */}
+        <div className="relative w-full" style={{ height: '1px', marginTop: '183px' }} data-node-id="376:650">
+          <div className="absolute inset-0 border-t border-white/10" />
+        </div>
+
+        {/* ── 하단 영역 ── */}
+        <div className="flex justify-between items-start pt-[32px]">
+          {/* 주소 + Copyright */}
+          <div className="flex flex-col gap-[16px] w-[213px]" data-node-id="376:1616">
+            <p className="font-body font-medium text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
+              경기도 안성시 삼죽면 동아예대길 47
+            </p>
+            <p className="font-body font-medium text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
+              Copyright ⓒ NWCN All Rights Reserved.
+            </p>
+          </div>
+
+          {/* SNS 링크 */}
+          <div className="flex flex-col gap-[12px] items-start" data-node-id="452:264">
+            {SNS_LINKS.map(({ label, href, icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-[9px] text-white hover:opacity-70 transition-opacity"
+              >
+                <Image src={icon} alt="" width={19} height={19} unoptimized aria-hidden="true" />
+                <span className="font-body font-medium whitespace-nowrap" style={{ fontSize: '12.62px' }}>
+                  {label}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* 개인정보처리방침 링크 */}
+        <div className="absolute bottom-6 right-[79px]">
+          <Link
+            href="/info/privacy"
+            className="font-body text-[11px] text-white/30 hover:text-white/60 transition-colors"
+          >
+            개인정보처리방침
+          </Link>
         </div>
       </div>
     </footer>
   )
 }
+

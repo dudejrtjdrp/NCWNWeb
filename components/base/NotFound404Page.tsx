@@ -42,8 +42,7 @@ import Link  from 'next/link'
 import Button from '@/components/ui/Button'
 
 const NWCN_LOGO_URL = '/images/common/newcon-logo.png'
-// TODO: Figma 노드 376:1203 (Tiqui Taca 폰트 "404" PNG) 를 export 후 교체
-const NOT_FOUND_404_URL = '/images/common/404-text.png'
+const NOT_FOUND_404_URL = '/images/common/404-text.svg'
 
 // ── Props ──────────────────────────────────────────────────────────────────
 export interface NotFound404PageProps {

@@ -1,6 +1,8 @@
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import AboutHero from '@/components/base/AboutHero'
+import SubNav from '@/components/common/SubNav'
 import CurriculumSection from '@/components/base/CurriculumSection'
+import { ABOUT_NAV_ITEMS } from '@/constants/nav-items'
 
 export const metadata = {
   title: 'CURRICULLUM | ABOUT | NWCN',
@@ -10,10 +12,8 @@ export const metadata = {
 export default function CurriculumPage() {
   return (
     <SubPageLayout>
-      {/* [1] Hero + 서브탭 (AboutHero 공유 컴포넌트) */}
       <AboutHero />
-
-      {/* [2] 커리큘럼 본문 */}
+      <SubNav items={ABOUT_NAV_ITEMS} />
       <CurriculumSection />
     </SubPageLayout>
   )

@@ -15,11 +15,12 @@
 
 'use client'
 
-import { useState, useMemo } from 'react'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import NincHeroBanner from '@/components/base/NincHeroBanner'
 import NincCardGrid from '@/components/base/NincCardGrid'
 import Tag from '@/components/base/Tag'
+import { useFilter } from '@/hooks/useFilter'
+import { usePagination } from '@/hooks/usePagination'
 
 const HERO_IMAGE_URL = '/images/ninc/project-hero.png'
 
@@ -121,44 +122,36 @@ const ProjectTagline = (
 
 // ── 페이지 컴포넌트 ────────────────────────────────────────
 export default function ProjectPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
+  // 검색 필터링 — useFilter 훅
+  const { query, setQuery, filtered } = useFilter(
+    PROJECTS_DATA,
+    (p, q) =>
+      p.title.toLowerCase().includes(q) ||
+      p.partner.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      PROJECT_LABEL[p.type].includes(q)
+  )
 
-  // 필터링
-  const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase()
-    if (!q) return PROJECTS_DATA
-    return PROJECTS_DATA.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.partner.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        PROJECT_LABEL[p.type].includes(q)
-    )
-  }, [searchQuery])
+  // 페이지네이션 — usePagination 훅
+  const { page, setPage, totalPages, paged, reset } = usePagination(filtered, PAGE_SIZE)
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-
-  // 페이지네이션 슬라이스 → NincGridItem 형태로 변환
-  const pagedItems = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE
-    return filtered.slice(start, start + PAGE_SIZE).map((p) => ({
-      id: p.id,
-      caption: p.title,
-      subCaption: `${p.partner} · ${p.year}`,
-      badge: (
-        <Tag type={PROJECT_TAG[p.type]}>
-          {PROJECT_LABEL[p.type]}
-        </Tag>
-      ),
-    }))
-  }, [filtered, currentPage])
-
-  // 검색 변경 시 첫 페이지로 초기화
+  // 검색 변경 시 첫 페이지 리셋
   const handleSearchChange = (value: string) => {
-    setSearchQuery(value)
-    setCurrentPage(1)
+    setQuery(value)
+    reset()
   }
+
+  // NincGridItem 형태로 변환
+  const pagedItems = paged.map((p) => ({
+    id: p.id,
+    caption: p.title,
+    subCaption: `${p.partner} · ${p.year}`,
+    badge: (
+      <Tag type={PROJECT_TAG[p.type]}>
+        {PROJECT_LABEL[p.type]}
+      </Tag>
+    ),
+  }))
 
   return (
     <SubPageLayout>
@@ -172,12 +165,12 @@ export default function ProjectPage() {
       {/* 2. 섹션 타이틀 + 검색바 + 카드 그리드 + 페이지네이션 */}
       <NincCardGrid
         items={pagedItems}
-        searchValue={searchQuery}
+        searchValue={query}
         onSearchChange={handleSearchChange}
         searchPlaceholder="프로젝트명, 파트너, 유형 검색"
-        page={currentPage}
+        page={page}
         totalPages={totalPages}
-        onPageChange={setCurrentPage}
+        onPageChange={setPage}
         sectionTitle="PROJECT"
         emptyMessage="검색 결과가 없습니다"
       />

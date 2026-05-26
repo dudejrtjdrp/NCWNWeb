@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * BASE 컴포넌트: HeroSection
+ * 섹션 컴포넌트: HomeHeroSection (홈 전용)
  * Figma node-id: 376:635 (RivePlaceholder_hero-banner)
  *
  * 스크롤 UX:
@@ -14,20 +14,22 @@
  * - 300vh 높이 컨테이너로 스크롤 "캡처"
  * - 내부 시각 요소는 position: sticky, height: 100vh
  * - scrollProgress (0→1)로 패널 transform 제어
+ *
+ * ⚠️  주의: sections/HeroSection.tsx (텍스트 히어로)와 다른 컴포넌트
  */
 
 import { useRef, useEffect, useState, useCallback } from 'react'
 
-export interface HeroSectionProps {
+export interface HomeHeroSectionProps {
   /** 스크롤 캡처 길이 (기본 300vh) */
   scrollHeight?: string
   className?: string
 }
 
-export default function HeroSection({
+export default function HomeHeroSection({
   scrollHeight = '300vh',
   className = '',
-}: HeroSectionProps) {
+}: HomeHeroSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0) // 0 ~ 1
 

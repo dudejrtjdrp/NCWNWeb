@@ -1,5 +1,7 @@
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import AboutHero from '@/components/base/AboutHero'
+import SubNav from '@/components/common/SubNav'
+import { ABOUT_NAV_ITEMS } from '@/constants/nav-items'
 
 export const metadata = {
   title: 'LAB | ABOUT | NWCN',
@@ -10,10 +12,9 @@ export default function LabPage() {
   return (
     <SubPageLayout>
       <AboutHero />
-      <section style={{ background: '#fff', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif", fontSize: 20, color: '#888' }}>
-          준비 중입니다
-        </p>
+      <SubNav items={ABOUT_NAV_ITEMS} />
+      <section className="bg-white min-h-[400px] flex items-center justify-center">
+        <p className="font-body text-[20px] text-[#888]">준비 중입니다</p>
       </section>
     </SubPageLayout>
   )

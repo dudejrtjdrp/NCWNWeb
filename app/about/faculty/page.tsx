@@ -16,7 +16,9 @@
 
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import AboutHero from '@/components/base/AboutHero'
+import SubNav from '@/components/common/SubNav'
 import FacultySection from '@/components/base/FacultySection'
+import { ABOUT_NAV_ITEMS } from '@/constants/nav-items'
 
 export const metadata = {
   title: 'FACULTY | ABOUT | NWCN',
@@ -27,6 +29,7 @@ export default function FacultyPage() {
   return (
     <SubPageLayout>
       <AboutHero />
+      <SubNav items={ABOUT_NAV_ITEMS} />
       <FacultySection />
     </SubPageLayout>
   )

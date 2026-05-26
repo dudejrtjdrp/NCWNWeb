@@ -20,7 +20,8 @@
 'use client'
 
 import NincCardItem, { NincCardItemProps } from './NincCardItem'
-import NincPagination from './NincPagination'
+import Pagination from '@/components/ui/Pagination'
+import SearchBar from '@/components/common/SearchBar'
 
 const ASSETS = {
   trophy: '/images/ninc/trophy.svg',
@@ -72,15 +73,13 @@ export default function NincCardGrid({
         </p>
       </div>
 
-      {/* ── 검색바: 1011px pill ── */}
-      <div className="flex justify-center px-4 pb-[100px]" data-node-id="280:409">
-        <input
-          type="search"
+      {/* ── 검색바 ── */}
+      <div className="pb-[100px]" data-node-id="280:409">
+        <SearchBar
           value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={onSearchChange}
           placeholder={searchPlaceholder}
-          className="w-full max-w-[1011px] h-[47px] px-6 border border-black rounded-[229px] bg-white font-body text-[16px] text-nwcn-text-default placeholder:text-nwcn-text-sub outline-none focus:border-nwcn-green transition-colors"
-          aria-label={`${sectionTitle} 검색`}
+          label={`${sectionTitle} 검색`}
         />
       </div>
 
@@ -141,7 +140,7 @@ export default function NincCardGrid({
       </div>
 
       {/* ── 페이지네이션 ── */}
-      <NincPagination
+      <Pagination
         page={page}
         totalPages={totalPages}
         onPageChange={onPageChange}

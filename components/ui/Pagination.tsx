@@ -1,39 +1,42 @@
+'use client'
+
 /**
- * BASE 컴포넌트: NincPagination
- * Figma 명시적 디자인 없음 — NWCN 디자인 토큰 기반 구현
+ * UI 컴포넌트: Pagination
+ * NWCN 디자인 토큰 기반 범용 페이지네이션
  *
  * 디자인 스펙:
  * - 페이지 번호 버튼: 36×36px, rounded-full, border #050505
  * - 활성 페이지: bg-nwcn-text-default, text-white
- * - 비활성: bg-transparent, text-nwcn-text-default, hover: bg-nwcn-text-default text-white
- * - 이전/다음 버튼: 화살표 아이콘 포함, disabled 상태 opacity-30
+ * - 비활성: bg-transparent, text-nwcn-text-default, hover: bg → text-white
+ * - 이전/다음: 화살표, disabled 시 opacity-30
  *
- * 'use client' — onPageChange 이벤트 핸들러 전달
- * 기능 로직 없음 (순수 UI, state는 부모에서 관리)
+ * 순수 UI — state는 부모에서 관리 (usePagination 훅과 함께 사용)
+ *
+ * 사용처: ninc/awards, ninc/project, ninc/event, work/showcase, work/archive 등
  */
 
-'use client'
+import { cn } from '@/lib/utils'
 
-export interface NincPaginationProps {
+export interface PaginationProps {
   page: number
   totalPages: number
   onPageChange: (page: number) => void
   className?: string
 }
 
-export default function NincPagination({
+export default function Pagination({
   page,
   totalPages,
   onPageChange,
-  className = '',
-}: NincPaginationProps) {
+  className,
+}: PaginationProps) {
   if (totalPages <= 1) return null
 
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
 
   return (
     <nav
-      className={`flex items-center justify-center gap-2 py-12 ${className}`}
+      className={cn('flex items-center justify-center gap-2 py-12', className)}
       aria-label="페이지네이션"
     >
       {/* 이전 */}
@@ -53,11 +56,12 @@ export default function NincPagination({
           key={n}
           type="button"
           onClick={() => onPageChange(n)}
-          className={`w-9 h-9 flex items-center justify-center border rounded-full font-body text-[14px] transition-colors ${
+          className={cn(
+            'w-9 h-9 flex items-center justify-center border rounded-full font-body text-[14px] transition-colors',
             n === page
               ? 'bg-nwcn-text-default text-white border-nwcn-text-default'
               : 'border-nwcn-text-default text-nwcn-text-default hover:bg-nwcn-text-default hover:text-white'
-          }`}
+          )}
           aria-current={n === page ? 'page' : undefined}
           aria-label={`${n} 페이지`}
         >

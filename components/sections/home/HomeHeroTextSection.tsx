@@ -1,7 +1,15 @@
-import Link from 'next/link'
+/**
+ * 홈 히어로 텍스트 섹션 (대안 버전 / 초안)
+ *
+ * 스크롤 패널 애니메이션 대신 텍스트 위주의 정적 히어로가 필요할 때 사용.
+ * 현재 기본 히어로: HomeHeroSection (스크롤 애니메이션 버전)
+ *
+ * ⚠️  기존 sections/HeroSection.tsx → 이름 충돌 방지를 위해 이동됨
+ */
+
 import Button from '@/components/ui/Button'
 
-export default function HeroSection() {
+export default function HomeHeroTextSection() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* 배경 그라디언트 */}
