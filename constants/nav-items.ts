@@ -76,8 +76,21 @@ export const NINC_NAV_ITEMS: NavChild[] = [
   { label: 'EVENT', href: '/ninc/event' },
 ]
 
+/** WORK 서브탭 */
+export const WORK_NAV_ITEMS: NavChild[] = [
+  { label: 'SHOWCASE', href: '/work/showcase' },
+  { label: 'ARCHIVE', href: '/work/archive' },
+]
+
 /** NCR TREND 서브탭 */
 export const NCR_NAV_ITEMS: NavChild[] = [
   { label: 'LATEST REPORT', href: '/ncr-trend/latest' },
   { label: 'ARCHIVE', href: '/ncr-trend/archive' },
+]
+
+/** INFO 서브탭 */
+export const INFO_NAV_ITEMS: NavChild[] = [
+  { label: 'ADMISSION', href: '/info/admission' },
+  { label: 'CONTACT', href: '/info/contact' },
+  { label: 'PRIVACY', href: '/info/privacy' },
 ]
