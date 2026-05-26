@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import SmoothScroll from '@/components/providers/SmoothScroll'
 
 export const metadata: Metadata = {
   title: {
@@ -34,7 +35,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           홈 페이지는 HeroSection 스크롤 애니메이션 위에 NavBar가 fixed로 올라옴.
           서브 페이지는 SubPageLayout을 통해 공통 Header/Footer를 포함.
         */}
-        {children}
+        <SmoothScroll>
+          {children}
+        </SmoothScroll>
       </body>
     </html>
   )

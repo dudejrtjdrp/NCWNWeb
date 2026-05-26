@@ -1,14 +1,9 @@
 /**
  * BASE 컴포넌트: WorkHero
- * WORK 섹션 히어로 배너 (AboutHero 패턴 참고)
- *
- * 디자인:
- * - 배경: bg-white
- * - 높이: 680px
- * - "WORK" 대형 브랜드 타이틀 (A2z, 우측 정렬)
- * - 설명 텍스트 (좌하단)
- * - 그린 액센트 라인
+ * WORK 섹션 히어로 배너
  */
+
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 export default function WorkHero() {
   return (
@@ -43,38 +38,43 @@ export default function WorkHero() {
           className="absolute left-[79px] flex flex-col justify-center gap-6"
           style={{ top: '50%', transform: 'translateY(-50%)' }}
         >
-          {/* 카테고리 레이블 */}
-          <p className="font-body font-semibold text-[13px] tracking-[0.2em] text-nwcn-green pl-[18px]">
-            NWCN — STUDENT WORKS
-          </p>
+          <AnimateOnScroll variant="fade-up" delay={0}>
+            <p className="font-body font-semibold text-[13px] tracking-[0.2em] text-nwcn-green pl-[18px]">
+              NWCN — STUDENT WORKS
+            </p>
+          </AnimateOnScroll>
 
-          {/* 메인 타이틀 */}
-          <h1
-            className="font-brand font-bold text-nwcn-text-default pl-[18px]"
-            style={{ fontSize: 'clamp(48px, 7vw, 96px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
-          >
-            학생 작품
-            <br />
-            포트폴리오
-          </h1>
+          <AnimateOnScroll variant="fade-up" delay={80}>
+            <h1
+              className="font-brand font-bold text-nwcn-text-default pl-[18px]"
+              style={{ fontSize: 'clamp(48px, 7vw, 96px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
+            >
+              학생 작품
+              <br />
+              포트폴리오
+            </h1>
+          </AnimateOnScroll>
 
-          {/* 설명 */}
-          <p className="font-body text-[15px] text-[#888] leading-relaxed pl-[18px] max-w-[400px]">
-            뉴미디어콘텐츠과 재학생들의 크리에이티브한
-            <br />
-            작품과 졸업전시 기록을 만나보세요.
-          </p>
+          <AnimateOnScroll variant="fade-up" delay={160}>
+            <p className="font-body text-[15px] text-[#888] leading-relaxed pl-[18px] max-w-[400px]">
+              뉴미디어콘텐츠과 재학생들의 크리에이티브한
+              <br />
+              작품과 졸업전시 기록을 만나보세요.
+            </p>
+          </AnimateOnScroll>
         </div>
 
         {/* 우하단 장식 도트 패턴 */}
-        <div
+        <AnimateOnScroll
+          variant="fade"
+          delay={300}
           className="absolute right-[79px] bottom-[60px] grid grid-cols-5 gap-3 opacity-20 pointer-events-none select-none"
           aria-hidden="true"
         >
           {Array.from({ length: 25 }).map((_, i) => (
             <div key={i} className="w-2 h-2 rounded-full bg-nwcn-green" />
           ))}
-        </div>
+        </AnimateOnScroll>
       </div>
     </div>
   )

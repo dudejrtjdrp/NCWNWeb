@@ -3,27 +3,11 @@
 /**
  * BASE 컴포넌트: NincHeroBanner
  * Figma node-id: 280:401 (Awards hero), 280:537 (Project hero)
- *
- * 디자인 스펙:
- * - 전체 높이: 725px, 전체 너비
- * - 배경: #f0f0f0 + 히어로 이미지 (object-cover)
- * - 상단 그라디언트: rgba(40,76,61,0) → #303030 (위를 어둡게, 201px)
- * - 하단 그라디언트: rgba(40,76,61,0) → #303030 (아래를 어둡게, 640px)
- * - 페이지명 (좌상단): Pretendard Light 24px, white
- * - 태그라인 (좌하단): A2Z Regular 37px, white (JSX ReactNode)
- *
- * Props:
- * - pageName: "AWARDS" | "PROJECT" 등
- * - heroImageUrl: 배경 사진 URL
- * - tagline: 복합 인라인 스타일 포함 ReactNode
- *
- * 이미지 폴백:
- * - 이미지 로드 실패 or 빈 이미지(15×8px 수준) 대비
- * - onError 시 그라디언트 배경으로 전환
  */
 
 import { useState } from 'react'
 import Image from 'next/image'
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 export interface NincHeroBannerProps {
   pageName: string
@@ -45,7 +29,6 @@ export default function NincHeroBanner({
       className={`relative w-full overflow-hidden ${className}`}
       style={{
         height: '725px',
-        // 이미지 없을 때 NWCN 다크 그린 그라디언트 배경
         background: imgError
           ? 'linear-gradient(160deg, #1a3d2b 0%, #0d2219 50%, #060f0c 100%)'
           : '#1a1a1a',
@@ -53,7 +36,7 @@ export default function NincHeroBanner({
       data-node-id="280:401"
       aria-label={`${pageName} 히어로 배너`}
     >
-      {/* ── 배경 이미지 (로드 실패 시 숨김) ── */}
+      {/* ── 배경 이미지 ── */}
       {!imgError && (
         <Image
           src={heroImageUrl}
@@ -66,43 +49,37 @@ export default function NincHeroBanner({
         />
       )}
 
-      {/* ── 상단 그라디언트 (위쪽 어둡게) ── */}
+      {/* ── 그라디언트 오버레이들 ── */}
       <div
         className="absolute inset-x-0 top-0 h-[201px] pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(40,76,61,0), #303030)' }}
         aria-hidden="true"
-        data-node-id="280:404"
       />
-
-      {/* ── 하단 그라디언트 (아래쪽 어둡게) ── */}
       <div
         className="absolute inset-x-0 pointer-events-none"
-        style={{
-          top: '85px',
-          height: '640px',
-          background: 'linear-gradient(to bottom, rgba(40,76,61,0), #303030)',
-        }}
+        style={{ top: '85px', height: '640px', background: 'linear-gradient(to bottom, rgba(40,76,61,0), #303030)' }}
         aria-hidden="true"
-        data-node-id="280:403"
       />
 
-      {/* ── 콘텐츠 레이어: 페이지명(상단) + 태그라인(하단) ── */}
+      {/* ── 콘텐츠 ── */}
       <div className="absolute inset-0 flex flex-col justify-between px-[87px] pt-[75px] pb-[20px]">
-        {/* 페이지명 — Pretendard Light 24px */}
-        <p
-          className="font-body font-light text-[24px] text-white leading-normal whitespace-nowrap"
-          data-node-id="280:406"
-        >
-          {pageName}
-        </p>
+        <AnimateOnScroll variant="fade-up" delay={100} threshold={0}>
+          <p
+            className="font-body font-light text-[24px] text-white leading-normal whitespace-nowrap"
+            data-node-id="280:406"
+          >
+            {pageName}
+          </p>
+        </AnimateOnScroll>
 
-        {/* 태그라인 — A2Z Regular 37px (ReactNode: 그라디언트/컬러 인라인 가능) */}
-        <p
-          className="font-brand font-normal text-[37px] text-white leading-normal whitespace-nowrap"
-          data-node-id="543:397"
-        >
-          {tagline}
-        </p>
+        <AnimateOnScroll variant="fade-up" delay={200} threshold={0}>
+          <p
+            className="font-brand font-normal text-[37px] text-white leading-normal whitespace-nowrap"
+            data-node-id="543:397"
+          >
+            {tagline}
+          </p>
+        </AnimateOnScroll>
       </div>
     </div>
   )

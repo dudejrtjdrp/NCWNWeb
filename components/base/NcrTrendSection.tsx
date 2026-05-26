@@ -12,6 +12,7 @@
 
 import Link from 'next/link'
 import Tag from '@/components/base/Tag'
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 const ASSETS = {
   mainThumb: '/images/ncr/main.svg',
@@ -31,7 +32,7 @@ export default function NcrTrendSection({ className = '' }: NcrTrendSectionProps
     >
       <div className="max-w-[1266px] mx-auto">
         {/* 섹션 헤더 */}
-        <div className="mb-[29px]" data-node-id="376:1495">
+        <AnimateOnScroll variant="fade-up" className="mb-[29px]">
           <p
             className="font-brand text-[#050505]"
             style={{ fontSize: '23.077px' }}
@@ -39,7 +40,7 @@ export default function NcrTrendSection({ className = '' }: NcrTrendSectionProps
           >
             NCR Trend
           </p>
-        </div>
+        </AnimateOnScroll>
 
         {/* 카드 영역 */}
         <div
@@ -47,6 +48,7 @@ export default function NcrTrendSection({ className = '' }: NcrTrendSectionProps
           data-node-id="376:1607"
         >
           {/* ── 메인 카드 (좌) ── */}
+          <AnimateOnScroll variant="fade-right" delay={0} className="w-full lg:w-[620px] flex-shrink-0">
           <Link
             href="/ncr-trend/latest"
             className="flex flex-col gap-[22.589px] w-full lg:w-[620px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
@@ -94,8 +96,10 @@ export default function NcrTrendSection({ className = '' }: NcrTrendSectionProps
               Aug 25 2025
             </p>
           </Link>
+          </AnimateOnScroll>
 
           {/* ── 서브 카드 (우) ── */}
+          <AnimateOnScroll variant="fade-left" delay={150} className="w-full lg:w-[430px] flex-shrink-0">
           <Link
             href="/ncr-trend/latest"
             className="flex flex-col gap-[26.375px] items-end w-full lg:w-[430px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
@@ -140,6 +144,7 @@ export default function NcrTrendSection({ className = '' }: NcrTrendSectionProps
               />
             </div>
           </Link>
+          </AnimateOnScroll>
         </div>
       </div>
     </section>

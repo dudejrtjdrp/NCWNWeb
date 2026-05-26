@@ -9,7 +9,9 @@
  * - 카드 크기: 512×310 / 282×389 / 287×268 / 390×354
  */
 
+import React from 'react'
 import Image from 'next/image'
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 // 로컬 목데이터로 대체
 const ASSETS = {
@@ -65,10 +67,7 @@ export default function NincSection({ className = '' }: NincSectionProps) {
       </div>
 
       {/* 섹션 헤더 */}
-      <div
-        className="relative z-10 flex items-center justify-center pb-[52px]"
-        data-node-id="376:1491"
-      >
+      <AnimateOnScroll variant="fade-up" className="relative z-10 flex items-center justify-center pb-[52px]">
         <p
           className="font-brand text-[#050505] text-center"
           style={{ fontSize: '23px' }}
@@ -76,7 +75,7 @@ export default function NincSection({ className = '' }: NincSectionProps) {
         >
           Now In NewCon
         </p>
-      </div>
+      </AnimateOnScroll>
 
       {/* 슬라이드 카드 — Figma: 가로 나열, gap 78px */}
       <div
@@ -89,11 +88,12 @@ export default function NincSection({ className = '' }: NincSectionProps) {
           data-node-id="376:1488"
         >
           {SLIDE_CARDS.map((card, i) => (
-            <div
+            <AnimateOnScroll
               key={i}
+              variant="fade-up"
+              delay={i * 100}
               className="relative flex-shrink-0 py-2"
-              style={{ width: card.width, height: card.height }}
-              data-node-id={`452:${200 + i * 20}`}
+              style={{ width: card.width, height: card.height } as React.CSSProperties}
             >
               <div
                 role="button"
@@ -110,7 +110,7 @@ export default function NincSection({ className = '' }: NincSectionProps) {
                   />
                 </div>
               </div>
-            </div>
+            </AnimateOnScroll>
           ))}
         </div>
       </div>

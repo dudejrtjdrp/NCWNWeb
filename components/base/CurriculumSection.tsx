@@ -29,6 +29,7 @@
  */
 
 import { useState } from 'react'
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 /* ─── 타입 정의 ─── */
 interface Course {
@@ -535,40 +536,39 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
     >
       {/* ══════════════════════════════════════════
           [1] 교육과정 아이콘 + 타이틀
-          Figma: center-x=50%, icon top=1074.5→(from subnav) approx top=205
           ══════════════════════════════════════ */}
-      <div
-        style={{
-          paddingTop: 100,
-          paddingBottom: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 10,
-        }}
-      >
-        <CurriculumIcon />
-        <p
+      <AnimateOnScroll variant="fade-up">
+        <div
           style={{
-            margin: 0,
-            fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-            fontWeight: 700,
-            fontSize: 24,
-            lineHeight: 'normal',
-            color: '#444',
-            textAlign: 'center',
+            paddingTop: 100,
+            paddingBottom: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
           }}
         >
-          교육 과정
-        </p>
-      </div>
+          <CurriculumIcon />
+          <p
+            style={{
+              margin: 0,
+              fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
+              fontWeight: 700,
+              fontSize: 24,
+              lineHeight: 'normal',
+              color: '#444',
+              textAlign: 'center',
+            }}
+          >
+            교육 과정
+          </p>
+        </div>
+      </AnimateOnScroll>
 
       {/* ══════════════════════════════════════════
           [2] 학년 탭
-          Figma: center-x=50%, top=1269px
-          - 1학년: green (#09F593) + shadow
-          - 2학년, 3학년: gray (#B9B8B6)
           ══════════════════════════════════════ */}
+      <AnimateOnScroll variant="fade-up" delay={80}>
       <div
         style={{
           display: 'flex',
@@ -612,19 +612,19 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
           )
         })}
       </div>
+      </AnimateOnScroll>
 
       {/* ══════════════════════════════════════════
           [3] 커리큘럼 콘텐츠
-          첫 번째 카테고리는 구분선 없이 바로 시작
           ══════════════════════════════════════ */}
       <div
         id={`curriculum-panel-${activeGrade}`}
         role="tabpanel"
         aria-label={`${activeGrade}학년 커리큘럼`}
       >
-        {/* 첫 번째 카테고리 — 상단 구분선 포함 */}
         {currentData.categories.map((category, idx) => (
-          <div key={`${activeGrade}-${category.title}`}>
+          <AnimateOnScroll key={`${activeGrade}-${category.title}`} variant="fade-up" delay={idx * 60} threshold={0.05}>
+          <div>
             {idx > 0 && (
               /* 카테고리 간 구분선 */
               <div
@@ -670,6 +670,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
               </div>
             </div>
           </div>
+          </AnimateOnScroll>
         ))}
       </div>
 

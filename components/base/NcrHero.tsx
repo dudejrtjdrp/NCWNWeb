@@ -1,13 +1,9 @@
 /**
  * BASE 컴포넌트: NcrHero
  * NCR TREND 섹션 히어로 배너
- *
- * 디자인:
- * - 배경: 다크(#151515) + 그린 그라디언트 오버레이
- * - 높이: 500px
- * - "NCR TREND" 브랜드 타이틀
- * - 리포트/트렌드 느낌의 타이포그래피
  */
+
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 export default function NcrHero() {
   return (
@@ -58,33 +54,37 @@ export default function NcrHero() {
 
       {/* 콘텐츠 */}
       <div className="absolute inset-0 flex flex-col justify-center px-[79px]">
-        {/* 상단 레이블 */}
-        <p className="font-body font-semibold text-[12px] tracking-[0.25em] text-nwcn-green mb-6">
-          NWCN — MEDIA TREND REPORT
-        </p>
+        <AnimateOnScroll variant="fade-up" delay={0}>
+          <p className="font-body font-semibold text-[12px] tracking-[0.25em] text-nwcn-green mb-6">
+            NWCN — MEDIA TREND REPORT
+          </p>
+        </AnimateOnScroll>
 
-        {/* 메인 타이틀 */}
-        <h1
-          className="font-brand font-bold text-white mb-5"
-          style={{ fontSize: 'clamp(40px, 6vw, 80px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
-        >
-          NCR TREND
-        </h1>
+        <AnimateOnScroll variant="fade-up" delay={80}>
+          <h1
+            className="font-brand font-bold text-white mb-5"
+            style={{ fontSize: 'clamp(40px, 6vw, 80px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
+          >
+            NCR TREND
+          </h1>
+        </AnimateOnScroll>
 
-        {/* 서브 타이틀 */}
-        <p className="font-body text-[15px] text-white/50 leading-relaxed max-w-[480px]">
-          뉴미디어콘텐츠과 기자단 NCR이 직접 발굴하고 분석한
-          <br />
-          미디어 트렌드 리포트를 확인하세요.
-        </p>
+        <AnimateOnScroll variant="fade-up" delay={160}>
+          <p className="font-body text-[15px] text-white/50 leading-relaxed max-w-[480px]">
+            뉴미디어콘텐츠과 기자단 NCR이 직접 발굴하고 분석한
+            <br />
+            미디어 트렌드 리포트를 확인하세요.
+          </p>
+        </AnimateOnScroll>
 
-        {/* 구분선 */}
-        <div className="mt-8 flex items-center gap-4">
-          <div className="w-12 h-[2px] bg-nwcn-green" />
-          <span className="font-body text-[12px] text-white/30 tracking-widest">
-            TREND · EDITORIAL · CARD NEWS
-          </span>
-        </div>
+        <AnimateOnScroll variant="fade-up" delay={220}>
+          <div className="mt-8 flex items-center gap-4">
+            <div className="w-12 h-[2px] bg-nwcn-green" />
+            <span className="font-body text-[12px] text-white/30 tracking-widest">
+              TREND · EDITORIAL · CARD NEWS
+            </span>
+          </div>
+        </AnimateOnScroll>
       </div>
     </div>
   )

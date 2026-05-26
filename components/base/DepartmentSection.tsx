@@ -24,6 +24,7 @@
  */
 
 import CertCarousel from '@/components/base/CertCarousel'
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 /* ─── 에셋 경로 (/public/images/department/ 로컬 저장) ─── */
 const IMG = {
@@ -138,9 +139,8 @@ export default function DepartmentSection() {
 
       {/* ══════════════════════════════════════════
           §A  학과소개 인트로  h=1308
-          Figma §2 전체 (SubNav 포함 구조 그대로 유지)
-          내부 y: 0=SubNav 위치, 실제 콘텐츠는 아래
           ══════════════════════════════════════ */}
+      <AnimateOnScroll variant="fade-up" threshold={0.05}>
       <div style={{ position: 'relative', height: 1308, background: '#fff' }}>
 
         {/* 하향 화살표 — Figma: center-y=1074.5(Figma)=205(§2 내부) */}
@@ -201,12 +201,12 @@ export default function DepartmentSection() {
           </p>
         </div>
       </div>
+      </AnimateOnScroll>
 
       {/* ══════════════════════════════════════════
           §B  교육 목표  h=1744
-          Figma: container left=calc(16.67%+57px), w=847
-          grid top = label(24px) + gap(153px) = 177px
           ══════════════════════════════════════ */}
+      <AnimateOnScroll variant="fade-up" threshold={0.05}>
       <div style={{ position: 'relative', height: 1744, overflow: 'hidden', background: '#fff' }}>
 
         {/* 배경 벡터 좌 */}
@@ -261,11 +261,12 @@ export default function DepartmentSection() {
           ))}
         </div>
       </div>
+      </AnimateOnScroll>
 
       {/* ══════════════════════════════════════════
           §C  세부 교육 목표  h=841
-          Figma: left=106, w=1218, flex-col gap=75
           ══════════════════════════════════════ */}
+      <AnimateOnScroll variant="fade-up" threshold={0.05}>
       <div style={{
         position: 'relative', height: 841, background: '#fff',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -288,11 +289,12 @@ export default function DepartmentSection() {
           ))}
         </div>
       </div>
+      </AnimateOnScroll>
 
       {/* ══════════════════════════════════════════
           §D  교육방침  h=1093
-          Figma: left=98, w=1244, flex-col gap=111(label→images), images gap=41
           ══════════════════════════════════════ */}
+      <AnimateOnScroll variant="fade-up" threshold={0.05}>
       <div style={{ position: 'relative', height: 1093, background: '#fff' }}>
         <div style={{ position: 'absolute', left: 98, top: 0, width: 1244 }}>
           <p style={{
@@ -361,11 +363,12 @@ export default function DepartmentSection() {
           </div>
         </div>
       </div>
+      </AnimateOnScroll>
 
       {/* ══════════════════════════════════════════
           §E  졸업 후 진로  h=1792
-          Figma: Vector3 배경, 글래스 태그 14개
           ══════════════════════════════════════ */}
+      <AnimateOnScroll variant="fade-up" threshold={0.05}>
       <div style={{ position: 'relative', height: 1792, overflow: 'hidden', background: '#fff' }}>
 
         {/* 네트워크 배경 */}
@@ -411,11 +414,14 @@ export default function DepartmentSection() {
           </div>
         ))}
       </div>
+      </AnimateOnScroll>
 
       {/* ══════════════════════════════════════════
           §F  자격증 — Swiper Coverflow Carousel
           ══════════════════════════════════════ */}
-      <CertCarousel />
+      <AnimateOnScroll variant="fade-up" threshold={0.05}>
+        <CertCarousel />
+      </AnimateOnScroll>
 
     </div>
   )
