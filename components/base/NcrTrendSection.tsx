@@ -67,13 +67,16 @@ export interface NcrTrendSectionProps {
 }
 
 export default async function NcrTrendSection({ className = '' }: NcrTrendSectionProps) {
-  // Supabase fetch → 실패하거나 데이터 없으면 목데이터 사용
-  const reports = await getHomeNcrReports()
+  const { items: reports, featuredCount } = await getHomeNcrReports()
+
+  // 홈 고정이 정확히 1개면 왼쪽만, 그 외(0개 fallback or 2개)는 양쪽 모두 표시
+  const singleFeatured = featuredCount === 1
+
   const mainCard = reports[0] ?? MOCK_MAIN
-  const subCard  = reports[1] ?? MOCK_SUB
+  const subCard  = singleFeatured ? null : (reports[1] ?? MOCK_SUB)
 
   const mainHref = getArticleHref(mainCard.id)
-  const subHref  = getArticleHref(subCard.id)
+  const subHref  = subCard ? getArticleHref(subCard.id) : ''
 
   return (
     <section
@@ -95,14 +98,18 @@ export default async function NcrTrendSection({ className = '' }: NcrTrendSectio
 
         {/* 카드 영역 */}
         <div
-          className="flex flex-col lg:flex-row gap-[49px] items-start lg:justify-between"
+          className={`flex flex-col lg:flex-row gap-[49px] items-start ${subCard ? 'lg:justify-between' : ''}`}
           data-node-id="376:1607"
         >
           {/* ── 메인 카드 (좌) ── */}
-          <AnimateOnScroll variant="fade-right" delay={0} className="w-full lg:w-[620px] flex-shrink-0">
+          <AnimateOnScroll
+            variant="fade-right"
+            delay={0}
+            className={`w-full flex-shrink-0 ${subCard ? 'lg:w-[620px]' : 'lg:w-[720px]'}`}
+          >
             <Link
               href={mainHref}
-              className="flex flex-col gap-[22.589px] w-full lg:w-[620px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
+              className={`flex flex-col gap-[22.589px] w-full flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5 ${subCard ? 'lg:w-[620px]' : 'lg:w-[720px]'}`}
               data-node-id="376:1574"
             >
               {/* 썸네일 */}
@@ -157,59 +164,61 @@ export default async function NcrTrendSection({ className = '' }: NcrTrendSectio
             </Link>
           </AnimateOnScroll>
 
-          {/* ── 서브 카드 (우) ── */}
-          <AnimateOnScroll variant="fade-left" delay={150} className="w-full lg:w-[430px] flex-shrink-0">
-            <Link
-              href={subHref}
-              className="flex flex-col gap-[26.375px] items-end w-full lg:w-[430px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
-              data-node-id="376:1606"
-            >
-              {/* 태그 */}
-              <div data-node-id="376:1592">
-                <Tag type="contents">Contents</Tag>
-              </div>
-
-              {/* 제목 + 날짜 */}
-              <div
-                className="flex flex-col gap-[5.275px] w-full text-right"
-                data-node-id="376:1615"
+          {/* ── 서브 카드 (우) — 홈 고정 2개일 때만 표시 ── */}
+          {subCard && (
+            <AnimateOnScroll variant="fade-left" delay={150} className="w-full lg:w-[430px] flex-shrink-0">
+              <Link
+                href={subHref}
+                className="flex flex-col gap-[26.375px] items-end w-full lg:w-[430px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
+                data-node-id="376:1606"
               >
-                <p
-                  className="font-body font-semibold w-full"
-                  style={{ fontSize: '17.583px', color: '#323131' }}
-                  data-node-id="376:1600"
-                >
-                  {subCard.title}
-                </p>
-                <p
-                  className="font-body font-normal"
-                  style={{ fontSize: '14.946px', color: '#B9B8B6' }}
-                  data-node-id="376:1603"
-                >
-                  {formatDate(subCard.published_at)}
-                </p>
-              </div>
+                {/* 태그 */}
+                <div data-node-id="376:1592">
+                  <Tag type="contents">Contents</Tag>
+                </div>
 
-              {/* 서브 썸네일 */}
-              <div
-                className="relative w-full rounded-[7.912px] overflow-hidden"
-                style={{ height: '430px' }}
-                data-node-id="376:669"
-              >
-                {subCard.thumbnail_url ? (
-                  <img
-                    src={subCard.thumbnail_url}
-                    alt={subCard.title}
-                    className="object-cover w-full h-full"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#151515] flex items-center justify-center">
-                    <span className="font-brand font-black text-[40px] text-nwcn-green/[0.1] leading-none">NCR</span>
-                  </div>
-                )}
-              </div>
-            </Link>
-          </AnimateOnScroll>
+                {/* 제목 + 날짜 */}
+                <div
+                  className="flex flex-col gap-[5.275px] w-full text-right"
+                  data-node-id="376:1615"
+                >
+                  <p
+                    className="font-body font-semibold w-full"
+                    style={{ fontSize: '17.583px', color: '#323131' }}
+                    data-node-id="376:1600"
+                  >
+                    {subCard.title}
+                  </p>
+                  <p
+                    className="font-body font-normal"
+                    style={{ fontSize: '14.946px', color: '#B9B8B6' }}
+                    data-node-id="376:1603"
+                  >
+                    {formatDate(subCard.published_at)}
+                  </p>
+                </div>
+
+                {/* 서브 썸네일 */}
+                <div
+                  className="relative w-full rounded-[7.912px] overflow-hidden"
+                  style={{ height: '430px' }}
+                  data-node-id="376:669"
+                >
+                  {subCard.thumbnail_url ? (
+                    <img
+                      src={subCard.thumbnail_url}
+                      alt={subCard.title}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#151515] flex items-center justify-center">
+                      <span className="font-brand font-black text-[40px] text-nwcn-green/[0.1] leading-none">NCR</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            </AnimateOnScroll>
+          )}
         </div>
       </div>
     </section>

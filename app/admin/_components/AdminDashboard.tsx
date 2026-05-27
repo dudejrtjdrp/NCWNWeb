@@ -17,7 +17,7 @@ import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   saveWork, updateWork, deleteWork,
-  saveArticle, updateArticle, deleteArticle, setHomeFeaturedArticle,
+  saveArticle, updateArticle, deleteArticle,
   saveAward, updateAward, deleteAward,
   saveProject, updateProject, deleteProject,
   saveEvent, updateEvent, deleteEvent,
@@ -416,7 +416,7 @@ function ArticleTab() {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('ncr_reports')
-      .select('id, title, type, season, published_at, author, excerpt, content, tags, related_ids, thumbnail_url')
+      .select('id, title, type, season, published_at, is_home_featured, author, excerpt, content, tags, related_ids, thumbnail_url')
       .order('published_at', { ascending: false })
       .limit(50)
     if (error) {
@@ -499,6 +499,41 @@ function ArticleForm({
   const [relatedSearch, setRelatedSearch] = useState('')
   const thumbnailRef = useRef<File | null>(null)
 
+  // ── 홈 고정 토글 (수정 모드에서만) ──
+  const [isFeatured, setIsFeatured] = useState<boolean>(article?.is_home_featured ?? false)
+  const [featuredPending, setFeaturedPending] = useState(false)
+  const [featuredErr, setFeaturedErr] = useState<string | null>(null)
+
+  const handleToggleFeatured = async () => {
+    if (!article) return
+    setFeaturedErr(null)
+    setFeaturedPending(true)
+    try {
+      const supabase = createClient()
+      const next = !isFeatured
+      if (next) {
+        const { data: current, error: countErr } = await supabase
+          .from('ncr_reports')
+          .select('id')
+          .eq('is_home_featured', true)
+          .neq('id', article.id)
+        if (countErr) { setFeaturedErr(`조회 실패: ${countErr.message}`); return }
+        if (current && current.length >= 2) {
+          setFeaturedErr('홈에는 최대 2개의 아티클만 고정할 수 있습니다.')
+          return
+        }
+      }
+      const { error } = await supabase
+        .from('ncr_reports')
+        .update({ is_home_featured: next })
+        .eq('id', article.id)
+      if (error) { setFeaturedErr(`설정 실패: ${error.message}`); return }
+      setIsFeatured(next)
+    } finally {
+      setFeaturedPending(false)
+    }
+  }
+
   const toggleRelated = (id: string) => {
     setSelectedRelated((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id)
@@ -531,7 +566,38 @@ function ArticleForm({
 
   return (
     <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
-      <h4 className="font-body font-semibold text-sm text-white">{article ? '아티클 수정' : '새 아티클 추가'}</h4>
+      <div className="flex items-center justify-between">
+        <h4 className="font-body font-semibold text-sm text-white">{article ? '아티클 수정' : '새 아티클 추가'}</h4>
+        {/* 홈 고정 토글 — 수정 모드에서만 표시 */}
+        {article && (
+          <div className="flex flex-col items-end gap-1">
+            <button
+              type="button"
+              onClick={handleToggleFeatured}
+              disabled={featuredPending}
+              title={isFeatured ? '홈 고정 해제' : '홈에 고정 (최대 2개)'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-body text-xs font-medium transition-all disabled:opacity-50 ${
+                isFeatured
+                  ? 'bg-nwcn-green/20 border border-nwcn-green/40 text-nwcn-green'
+                  : 'bg-white/5 border border-white/10 text-white/40 hover:text-nwcn-green hover:border-nwcn-green/30'
+              }`}
+            >
+              {featuredPending ? (
+                <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill={isFeatured ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              )}
+              홈 고정
+            </button>
+            {featuredErr && <p className="font-body text-[10px] text-red-400 max-w-[180px] text-right">{featuredErr}</p>}
+          </div>
+        )}
+      </div>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><Label>제목 *</Label><Input name="title" defaultValue={article?.title ?? ''} placeholder="아티클 제목" required /></div>
@@ -647,16 +713,40 @@ function ArticleForm({
 }
 
 function ArticleRow({ article, onRefresh, onEdit }: { article: ArticleListItem; onRefresh: () => void; onEdit: () => void }) {
-  const [featuredPending, startFeaturedTransition] = useTransition()
+  const [featuredPending, setFeaturedPending] = useState(false)
   const [featuredErr, setFeaturedErr] = useState<string | null>(null)
 
-  const handleToggleFeatured = () => {
+  const handleToggleFeatured = async () => {
     setFeaturedErr(null)
-    startFeaturedTransition(async () => {
-      const res = await setHomeFeaturedArticle(article.id, !article.is_home_featured)
-      if ('error' in res) setFeaturedErr(res.error)
-      else onRefresh()
-    })
+    setFeaturedPending(true)
+    try {
+      const supabase = createClient()
+      const next = !article.is_home_featured
+
+      // 고정 ON 시 현재 고정 수 확인 (최대 2개)
+      if (next) {
+        const { data: current, error: countErr } = await supabase
+          .from('ncr_reports')
+          .select('id')
+          .eq('is_home_featured', true)
+          .neq('id', article.id)
+        if (countErr) { setFeaturedErr(`조회 실패: ${countErr.message}`); return }
+        if (current && current.length >= 2) {
+          setFeaturedErr('홈에는 최대 2개의 아티클만 고정할 수 있습니다. 먼저 다른 아티클의 고정을 해제해주세요.')
+          return
+        }
+      }
+
+      const { error } = await supabase
+        .from('ncr_reports')
+        .update({ is_home_featured: next })
+        .eq('id', article.id)
+
+      if (error) { setFeaturedErr(`설정 실패: ${error.message}`); return }
+      onRefresh()
+    } finally {
+      setFeaturedPending(false)
+    }
   }
 
   return (

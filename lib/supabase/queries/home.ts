@@ -31,6 +31,12 @@ export interface HomeNcrReport {
   excerpt: string | null
 }
 
+export interface HomeNcrReportsResult {
+  items: HomeNcrReport[]
+  /** is_home_featured=true 인 아티클 수 (0이면 최신순 fallback) */
+  featuredCount: number
+}
+
 /**
  * 홈 NincSection용 슬라이드 카드 조회
  * ninc_home_cards 테이블 → is_active=true, sort_order ASC
@@ -62,11 +68,11 @@ export async function getHomeNincCards(): Promise<HomeNincCard[]> {
  * 1순위: is_home_featured=true 이고 is_published=true 인 아티클 (최대 2개)
  * 2순위: featured 없으면 published_at DESC 최신 2개로 fallback
  */
-export async function getHomeNcrReports(): Promise<HomeNcrReport[]> {
+export async function getHomeNcrReports(): Promise<HomeNcrReportsResult> {
   try {
     const supabase = createClient()
 
-    // is_home_featured 컬럼이 존재하는 경우 우선 조회
+    // 1순위: is_home_featured=true 아티클 (최대 2개)
     const { data: featured, error: featuredError } = await supabase
       .from('ncr_reports')
       .select('id, title, type, thumbnail_url, published_at, season, excerpt')
@@ -75,12 +81,11 @@ export async function getHomeNcrReports(): Promise<HomeNcrReport[]> {
       .order('published_at', { ascending: false })
       .limit(2)
 
-    // featured 아티클이 1개 이상이면 그대로 반환
     if (!featuredError && featured && featured.length > 0) {
-      return featured as HomeNcrReport[]
+      return { items: featured as HomeNcrReport[], featuredCount: featured.length }
     }
 
-    // fallback: 최신 2개
+    // 2순위 fallback: 최신 2개
     const { data, error } = await supabase
       .from('ncr_reports')
       .select('id, title, type, thumbnail_url, published_at, season, excerpt')
@@ -90,12 +95,12 @@ export async function getHomeNcrReports(): Promise<HomeNcrReport[]> {
 
     if (error) {
       console.error('[getHomeNcrReports] Supabase error:', error.message)
-      return []
+      return { items: [], featuredCount: 0 }
     }
 
-    return (data ?? []) as HomeNcrReport[]
+    return { items: (data ?? []) as HomeNcrReport[], featuredCount: 0 }
   } catch (err) {
     console.error('[getHomeNcrReports] Unexpected error:', err)
-    return []
+    return { items: [], featuredCount: 0 }
   }
 }
