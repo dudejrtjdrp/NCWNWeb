@@ -16,10 +16,10 @@
 import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  saveWork, deleteWork,
-  saveArticle, deleteArticle, setHomeFeaturedArticle,
-  saveAward, deleteAward,
-  saveProject, deleteProject,
+  saveWork, updateWork, deleteWork,
+  saveArticle, updateArticle, deleteArticle, setHomeFeaturedArticle,
+  saveAward, updateAward, deleteAward,
+  saveProject, updateProject, deleteProject,
   saveEvent, updateEvent, deleteEvent,
   saveExhibition, updateExhibition, deleteExhibition,
   saveArticleTypes, saveProjectTypes,
@@ -251,23 +251,22 @@ interface WorkItem {
   year: number
   tech_stack: string[]
   thumbnail_url: string | null
+  description: string | null
   created_at: string
 }
 
 function WorkTab() {
-  const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
   const [works, setWorks] = useState<WorkItem[]>([])
   const [loadingList, setLoadingList] = useState(true)
-  const thumbnailRef = useRef<File | null>(null)
-  const formRef = useRef<HTMLFormElement>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   const fetchWorks = useCallback(async () => {
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
       .from('showcase_works')
-      .select('id, title, author, year, tech_stack, thumbnail_url, created_at')
+      .select('id, title, author, year, tech_stack, thumbnail_url, description, created_at')
       .order('created_at', { ascending: false })
       .limit(30)
     setWorks((data ?? []) as WorkItem[])
@@ -276,67 +275,105 @@ function WorkTab() {
 
   useEffect(() => { fetchWorks() }, [fetchWorks])
 
+  const editingWork = editingId ? works.find((w) => w.id === editingId) ?? null : null
+  const handleClose = () => { setShowForm(false); setEditingId(null) }
+  const handleSuccess = () => { handleClose(); fetchWorks() }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider">작업물 관리</h3>
+        <button
+          onClick={() => { setEditingId(null); setShowForm((v) => !v) }}
+          className="flex items-center gap-2 px-4 py-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-xs rounded-xl hover:brightness-110 transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          새 작업물 추가
+        </button>
+      </div>
+
+      {(showForm || editingId) && (
+        <WorkForm work={editingWork} onSuccess={handleSuccess} onCancel={handleClose} />
+      )}
+
+      {loadingList ? <LoadingSpinner /> : works.length === 0 ? (
+        <p className="font-body text-sm text-white/20 text-center py-8">등록된 작업물이 없습니다.</p>
+      ) : (
+        <div className="space-y-2">
+          {works.map((w) => (
+            <div key={w.id} className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
+              {w.thumbnail_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={w.thumbnail_url} alt={w.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm font-semibold text-white truncate">{w.title}</p>
+                <p className="font-body text-xs text-white/30">{w.author} · {w.year} · {w.tech_stack.join(', ')}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => { setShowForm(false); setEditingId(w.id) }}
+                  className="px-3 py-1.5 bg-white/5 border border-white/10 text-white/40 rounded-lg font-body text-xs hover:text-white hover:border-white/20 transition-colors"
+                >
+                  수정
+                </button>
+                <DeleteButton onDelete={async () => { await deleteWork(w.id); fetchWorks() }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WorkForm({ work, onSuccess, onCancel }: { work: WorkItem | null; onSuccess: () => void; onCancel: () => void }) {
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const thumbnailRef = useRef<File | null>(null)
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
     setResult(null)
     startTransition(async () => {
-      const res = await saveWork(null, formData)
+      const res = work
+        ? await updateWork(work.id, formData)
+        : await saveWork(null, formData)
       setResult(res)
-      if ('success' in res) {
-        formRef.current?.reset()
-        thumbnailRef.current = null
-        fetchWorks()
-      }
+      if ('success' in res) onSuccess()
     })
   }
 
   return (
-    <div className="space-y-8">
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+    <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
+      <h4 className="font-body font-semibold text-sm text-white">{work ? '작업물 수정' : '새 작업물 추가'}</h4>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>작품명 *</Label><Input name="title" placeholder="작품 제목을 입력하세요" required /></div>
-          <div><Label>작가명 *</Label><Input name="author" placeholder="작가/학생 이름" required /></div>
+          <div><Label>작품명 *</Label><Input name="title" defaultValue={work?.title ?? ''} placeholder="작품 제목을 입력하세요" required /></div>
+          <div><Label>작가명 *</Label><Input name="author" defaultValue={work?.author ?? ''} placeholder="작가/학생 이름" required /></div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>제작 연도 *</Label><Input name="year" type="number" placeholder="2025" defaultValue={new Date().getFullYear()} required /></div>
-          <div><Label>기술 스택 (쉼표 구분)</Label><Input name="tech_stack" placeholder="Video, Motion, AI" /></div>
+          <div><Label>제작 연도 *</Label><Input name="year" type="number" defaultValue={work?.year ?? new Date().getFullYear()} required /></div>
+          <div><Label>기술 스택 (쉼표 구분)</Label><Input name="tech_stack" defaultValue={work?.tech_stack?.join(', ') ?? ''} placeholder="Video, Motion, AI" /></div>
         </div>
-        <div><Label>작품 설명</Label><Textarea name="description" placeholder="작품에 대한 설명..." rows={4} /></div>
+        <div><Label>작품 설명</Label><Textarea name="description" defaultValue={work?.description ?? ''} placeholder="작품에 대한 설명..." rows={4} /></div>
         <div>
-          <Label>썸네일 이미지</Label>
+          <Label>썸네일 이미지{work ? ' (새 파일 선택 시 교체)' : ''}</Label>
           <FileDropZone accept="image/*" label="대표 썸네일 이미지 (권장: 4:3)" onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
-        <SubmitButton loading={isPending} />
+        <div className="flex gap-3">
+          <button type="button" onClick={onCancel}
+            className="flex-1 py-3 rounded-xl border border-white/10 font-body text-sm text-white/40 hover:text-white hover:border-white/20 transition-colors">
+            취소
+          </button>
+          <div className="flex-1"><SubmitButton loading={isPending} label={work ? '수정 저장' : '추가하기'} /></div>
+        </div>
       </form>
-
-      {/* 목록 */}
-      <div>
-        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider mb-4">
-          등록된 작업물 ({works.length})
-        </h3>
-        {loadingList ? <LoadingSpinner /> : works.length === 0 ? (
-          <p className="font-body text-sm text-white/20 text-center py-8">등록된 작업물이 없습니다.</p>
-        ) : (
-          <div className="space-y-2">
-            {works.map((w) => (
-              <div key={w.id} className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
-                {w.thumbnail_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={w.thumbnail_url} alt={w.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-body text-sm font-semibold text-white truncate">{w.title}</p>
-                  <p className="font-body text-xs text-white/30">{w.author} · {w.year} · {w.tech_stack.join(', ')}</p>
-                </div>
-                <DeleteButton onDelete={async () => { await deleteWork(w.id); fetchWorks() }} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 }
@@ -352,6 +389,12 @@ interface ArticleListItem {
   season: string | null
   published_at: string
   is_home_featured?: boolean
+  author: string | null
+  excerpt: string | null
+  content: string | null
+  tags: string[]
+  related_ids: string[]
+  thumbnail_url: string | null
 }
 
 const ARTICLE_TYPE_LABEL: Record<string, string> = {
@@ -361,46 +404,100 @@ const ARTICLE_TYPE_LABEL: Record<string, string> = {
 }
 
 function ArticleTab() {
-  const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
   const [articles, setArticles] = useState<ArticleListItem[]>([])
   const [loadingList, setLoadingList] = useState(true)
-  const [selectedRelated, setSelectedRelated] = useState<string[]>([])
-  const [relatedSearch, setRelatedSearch] = useState('')
-  const thumbnailRef = useRef<File | null>(null)
-  const formRef = useRef<HTMLFormElement>(null)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   const fetchArticles = useCallback(async () => {
     setLoadingList(true)
+    setFetchError(null)
     const supabase = createClient()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('ncr_reports')
-      .select('id, title, type, season, published_at, is_home_featured')
+      .select('id, title, type, season, published_at, is_home_featured, author, excerpt, content, tags, related_ids, thumbnail_url')
       .order('published_at', { ascending: false })
       .limit(50)
+    if (error) {
+      console.error('[ArticleTab] fetch error:', error)
+      setFetchError(`데이터 조회 오류: ${error.message}`)
+    }
     setArticles((data ?? []) as ArticleListItem[])
     setLoadingList(false)
   }, [])
 
   useEffect(() => { fetchArticles() }, [fetchArticles])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
-    formData.set('related_ids', selectedRelated.join(','))
-    setResult(null)
-    startTransition(async () => {
-      const res = await saveArticle(null, formData)
-      setResult(res)
-      if ('success' in res) {
-        formRef.current?.reset()
-        thumbnailRef.current = null
-        setSelectedRelated([])
-        fetchArticles()
-      }
-    })
-  }
+  const editingArticle = editingId ? articles.find((a) => a.id === editingId) ?? null : null
+  const handleClose = () => { setShowForm(false); setEditingId(null) }
+  const handleSuccess = () => { handleClose(); fetchArticles() }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider">
+          NCR 아티클 관리
+          <span className="ml-2 normal-case font-normal text-white/20">— 홈 고정 최대 2개</span>
+        </h3>
+        <button
+          onClick={() => { setEditingId(null); setShowForm((v) => !v) }}
+          className="flex items-center gap-2 px-4 py-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-xs rounded-xl hover:brightness-110 transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          새 아티클 추가
+        </button>
+      </div>
+
+      {(showForm || editingId) && (
+        <ArticleForm article={editingArticle} allArticles={articles} onSuccess={handleSuccess} onCancel={handleClose} />
+      )}
+
+      {fetchError && (
+        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <p className="font-body text-sm text-red-400">{fetchError}</p>
+        </div>
+      )}
+
+      {loadingList ? <LoadingSpinner /> : articles.length === 0 && !fetchError ? (
+        <p className="font-body text-sm text-white/20 text-center py-8">등록된 아티클이 없습니다.</p>
+      ) : (
+        <div className="space-y-2">
+          {articles.map((a) => (
+            <ArticleRow
+              key={a.id}
+              article={a}
+              onRefresh={fetchArticles}
+              onEdit={() => { setShowForm(false); setEditingId(a.id) }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ArticleForm({
+  article,
+  allArticles,
+  onSuccess,
+  onCancel,
+}: {
+  article: ArticleListItem | null
+  allArticles: ArticleListItem[]
+  onSuccess: () => void
+  onCancel: () => void
+}) {
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const [selectedRelated, setSelectedRelated] = useState<string[]>(article?.related_ids ?? [])
+  const [relatedSearch, setRelatedSearch] = useState('')
+  const thumbnailRef = useRef<File | null>(null)
 
   const toggleRelated = (id: string) => {
     setSelectedRelated((prev) => {
@@ -410,35 +507,54 @@ function ArticleTab() {
     })
   }
 
-  const filteredForRelated = articles.filter((a) =>
-    a.title.toLowerCase().includes(relatedSearch.toLowerCase())
+  const filteredForRelated = allArticles.filter(
+    (a) => a.id !== article?.id && a.title.toLowerCase().includes(relatedSearch.toLowerCase())
   )
 
+  const toDateVal = (iso: string | null | undefined) =>
+    iso ? iso.split('T')[0] : ''
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
+    formData.set('related_ids', selectedRelated.join(','))
+    setResult(null)
+    startTransition(async () => {
+      const res = article
+        ? await updateArticle(article.id, formData)
+        : await saveArticle(null, formData)
+      setResult(res)
+      if ('success' in res) onSuccess()
+    })
+  }
+
   return (
-    <div className="space-y-8">
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+    <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
+      <h4 className="font-body font-semibold text-sm text-white">{article ? '아티클 수정' : '새 아티클 추가'}</h4>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>제목 *</Label><Input name="title" placeholder="아티클 제목" required /></div>
-          <div><Label>작성자</Label><Input name="author" placeholder="NCR 에디터팀" /></div>
+          <div><Label>제목 *</Label><Input name="title" defaultValue={article?.title ?? ''} placeholder="아티클 제목" required /></div>
+          <div><Label>작성자</Label><Input name="author" defaultValue={article?.author ?? ''} placeholder="NCR 에디터팀" /></div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label>아티클 유형 *</Label>
-            <Sel name="type" required>
+            <Sel name="type" defaultValue={article?.type ?? 'editorial'} required>
               <option value="editorial">에디토리얼</option>
               <option value="trend">트렌드</option>
               <option value="card_news">카드뉴스</option>
             </Sel>
           </div>
-          <div><Label>시즌</Label><Input name="season" placeholder="Season 3" /></div>
-          <div><Label>발행일 *</Label><Input name="published_at" type="date" required /></div>
+          <div><Label>시즌</Label><Input name="season" defaultValue={article?.season ?? ''} placeholder="Season 3" /></div>
+          <div><Label>발행일 *</Label><Input name="published_at" type="date" defaultValue={toDateVal(article?.published_at)} required /></div>
         </div>
-        <div><Label>요약 설명</Label><Input name="excerpt" placeholder="한 줄 요약 (목록에 표시)" /></div>
+        <div><Label>요약 설명</Label><Input name="excerpt" defaultValue={article?.excerpt ?? ''} placeholder="한 줄 요약 (목록에 표시)" /></div>
         <div>
           <Label>본문 내용 (마크다운 지원)</Label>
-          <Textarea name="content" placeholder={"## 소제목\n\n본문 내용을 입력하세요..."} rows={10} />
+          <Textarea name="content" defaultValue={article?.content ?? ''} placeholder={"## 소제목\n\n본문 내용을 입력하세요..."} rows={10} />
         </div>
-        <div><Label>태그 (쉼표 구분)</Label><Input name="tags" placeholder="AI, 미디어, 콘텐츠산업" /></div>
+        <div><Label>태그 (쉼표 구분)</Label><Input name="tags" defaultValue={article?.tags?.join(', ') ?? ''} placeholder="AI, 미디어, 콘텐츠산업" /></div>
 
         {/* 관련 아티클 선택 */}
         <div>
@@ -454,11 +570,9 @@ function ArticleTab() {
               />
             </div>
             <div className="max-h-48 overflow-y-auto p-2 space-y-1">
-              {loadingList ? (
-                <p className="font-body text-xs text-white/20 text-center py-4">불러오는 중...</p>
-              ) : filteredForRelated.length === 0 ? (
+              {filteredForRelated.length === 0 ? (
                 <p className="font-body text-xs text-white/20 text-center py-4">
-                  {articles.length === 0 ? '아직 아티클이 없습니다' : '검색 결과가 없습니다'}
+                  {allArticles.length === 0 ? '아직 아티클이 없습니다' : '검색 결과가 없습니다'}
                 </p>
               ) : (
                 filteredForRelated.map((a) => {
@@ -502,7 +616,7 @@ function ArticleTab() {
           {selectedRelated.length > 0 && (
             <div className="mt-2 flex gap-2 flex-wrap">
               {selectedRelated.map((id) => {
-                const a = articles.find((x) => x.id === id)
+                const a = allArticles.find((x) => x.id === id)
                 if (!a) return null
                 return (
                   <span key={id} className="inline-flex items-center gap-1.5 px-3 py-1 bg-nwcn-green/10 border border-nwcn-green/30 rounded-full font-body text-xs text-nwcn-green">
@@ -516,34 +630,23 @@ function ArticleTab() {
         </div>
 
         <div>
-          <Label>썸네일 이미지</Label>
+          <Label>썸네일 이미지{article ? ' (새 파일 선택 시 교체)' : ''}</Label>
           <FileDropZone accept="image/*" label="아티클 썸네일" onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
-        <SubmitButton loading={isPending} />
+        <div className="flex gap-3">
+          <button type="button" onClick={onCancel}
+            className="flex-1 py-3 rounded-xl border border-white/10 font-body text-sm text-white/40 hover:text-white hover:border-white/20 transition-colors">
+            취소
+          </button>
+          <div className="flex-1"><SubmitButton loading={isPending} label={article ? '수정 저장' : '추가하기'} /></div>
+        </div>
       </form>
-
-      {/* 아티클 목록 */}
-      <div>
-        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider mb-4">
-          등록된 아티클 ({articles.length})
-          <span className="ml-2 normal-case font-normal text-white/20">— 🏠 아이콘으로 홈 노출 고정 (최대 2개)</span>
-        </h3>
-        {loadingList ? <LoadingSpinner /> : articles.length === 0 ? (
-          <p className="font-body text-sm text-white/20 text-center py-8">등록된 아티클이 없습니다.</p>
-        ) : (
-          <div className="space-y-2">
-            {articles.map((a) => (
-              <ArticleRow key={a.id} article={a} onRefresh={fetchArticles} />
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 }
 
-function ArticleRow({ article, onRefresh }: { article: ArticleListItem; onRefresh: () => void }) {
+function ArticleRow({ article, onRefresh, onEdit }: { article: ArticleListItem; onRefresh: () => void; onEdit: () => void }) {
   const [featuredPending, startFeaturedTransition] = useTransition()
   const [featuredErr, setFeaturedErr] = useState<string | null>(null)
 
@@ -583,6 +686,12 @@ function ArticleRow({ article, onRefresh }: { article: ArticleListItem; onRefres
             </svg>
             홈 고정
           </button>
+          <button
+            onClick={onEdit}
+            className="px-3 py-1.5 bg-white/5 border border-white/10 text-white/40 rounded-lg font-body text-xs hover:text-white hover:border-white/20 transition-colors"
+          >
+            수정
+          </button>
           <DeleteButton onDelete={async () => { await deleteArticle(article.id); onRefresh() }} />
         </div>
       </div>
@@ -601,22 +710,23 @@ interface AwardItem {
   award_name: string
   year: number
   winner: string | null
+  team_members: string[]
+  description: string | null
+  thumbnail_url: string | null
 }
 
 function AwardsTab() {
-  const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
   const [awards, setAwards] = useState<AwardItem[]>([])
   const [loadingList, setLoadingList] = useState(true)
-  const thumbnailRef = useRef<File | null>(null)
-  const formRef = useRef<HTMLFormElement>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   const fetchAwards = useCallback(async () => {
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
       .from('awards')
-      .select('id, competition, award_name, year, winner')
+      .select('id, competition, award_name, year, winner, team_members, description, thumbnail_url')
       .order('year', { ascending: false })
       .limit(30)
     setAwards((data ?? []) as AwardItem[])
@@ -625,65 +735,110 @@ function AwardsTab() {
 
   useEffect(() => { fetchAwards() }, [fetchAwards])
 
+  const editingAward = editingId ? awards.find((a) => a.id === editingId) ?? null : null
+  const handleClose = () => { setShowForm(false); setEditingId(null) }
+  const handleSuccess = () => { handleClose(); fetchAwards() }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider">수상 관리</h3>
+        <button
+          onClick={() => { setEditingId(null); setShowForm((v) => !v) }}
+          className="flex items-center gap-2 px-4 py-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-xs rounded-xl hover:brightness-110 transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          새 수상 추가
+        </button>
+      </div>
+
+      {(showForm || editingId) && (
+        <AwardForm award={editingAward} onSuccess={handleSuccess} onCancel={handleClose} />
+      )}
+
+      {loadingList ? <LoadingSpinner /> : awards.length === 0 ? (
+        <p className="font-body text-sm text-white/20 text-center py-8">등록된 수상 내역이 없습니다.</p>
+      ) : (
+        <div className="space-y-2">
+          {awards.map((a) => (
+            <div key={a.id} className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm font-semibold text-white truncate">{a.competition}</p>
+                <p className="font-body text-xs text-white/30">{a.award_name} · {a.winner ?? '팀 수상'} · {a.year}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => { setShowForm(false); setEditingId(a.id) }}
+                  className="px-3 py-1.5 bg-white/5 border border-white/10 text-white/40 rounded-lg font-body text-xs hover:text-white hover:border-white/20 transition-colors"
+                >
+                  수정
+                </button>
+                <DeleteButton onDelete={async () => { await deleteAward(a.id); fetchAwards() }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AwardForm({ award, onSuccess, onCancel }: { award: AwardItem | null; onSuccess: () => void; onCancel: () => void }) {
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const thumbnailRef = useRef<File | null>(null)
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
     setResult(null)
     startTransition(async () => {
-      const res = await saveAward(null, formData)
+      const res = award
+        ? await updateAward(award.id, formData)
+        : await saveAward(null, formData)
       setResult(res)
-      if ('success' in res) { formRef.current?.reset(); thumbnailRef.current = null; fetchAwards() }
+      if ('success' in res) onSuccess()
     })
   }
 
+  const AWARD_GRADES = ['대상','금상','은상','동상','장려상','우수상','본선 진출','Winner','Special Prize','기타']
+
   return (
-    <div className="space-y-8">
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+    <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
+      <h4 className="font-body font-semibold text-sm text-white">{award ? '수상 수정' : '새 수상 추가'}</h4>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>대회명 *</Label><Input name="competition" placeholder="레드닷 디자인 어워드" required /></div>
+          <div><Label>대회명 *</Label><Input name="competition" defaultValue={award?.competition ?? ''} placeholder="레드닷 디자인 어워드" required /></div>
           <div>
             <Label>수상 등급 *</Label>
-            <Sel name="award_name" required>
+            <Sel name="award_name" defaultValue={award?.award_name ?? ''} required>
               <option value="">선택하세요</option>
-              {['대상','금상','은상','동상','장려상','우수상','본선 진출','Winner','Special Prize','기타'].map((v) => (
-                <option key={v} value={v}>{v}</option>
-              ))}
+              {AWARD_GRADES.map((v) => <option key={v} value={v}>{v}</option>)}
             </Sel>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><Label>수상자</Label><Input name="winner" placeholder="홍길동" /></div>
-          <div><Label>팀원 (쉼표 구분)</Label><Input name="team_members" placeholder="홍길동, 김철수" /></div>
-          <div><Label>연도 *</Label><Input name="year" type="number" defaultValue={new Date().getFullYear()} required /></div>
+          <div><Label>수상자</Label><Input name="winner" defaultValue={award?.winner ?? ''} placeholder="홍길동" /></div>
+          <div><Label>팀원 (쉼표 구분)</Label><Input name="team_members" defaultValue={award?.team_members?.join(', ') ?? ''} placeholder="홍길동, 김철수" /></div>
+          <div><Label>연도 *</Label><Input name="year" type="number" defaultValue={award?.year ?? new Date().getFullYear()} required /></div>
         </div>
-        <div><Label>수상 설명</Label><Textarea name="description" placeholder="수상 내용 및 작품 설명..." rows={4} /></div>
+        <div><Label>수상 설명</Label><Textarea name="description" defaultValue={award?.description ?? ''} placeholder="수상 내용 및 작품 설명..." rows={4} /></div>
         <div>
-          <Label>수상 이미지</Label>
+          <Label>수상 이미지{award ? ' (새 파일 선택 시 교체)' : ''}</Label>
           <FileDropZone accept="image/*" label="수상 관련 이미지" onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
-        <SubmitButton loading={isPending} />
+        <div className="flex gap-3">
+          <button type="button" onClick={onCancel}
+            className="flex-1 py-3 rounded-xl border border-white/10 font-body text-sm text-white/40 hover:text-white hover:border-white/20 transition-colors">
+            취소
+          </button>
+          <div className="flex-1"><SubmitButton loading={isPending} label={award ? '수정 저장' : '추가하기'} /></div>
+        </div>
       </form>
-
-      <div>
-        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider mb-4">등록된 수상 ({awards.length})</h3>
-        {loadingList ? <LoadingSpinner /> : awards.length === 0 ? (
-          <p className="font-body text-sm text-white/20 text-center py-8">등록된 수상 내역이 없습니다.</p>
-        ) : (
-          <div className="space-y-2">
-            {awards.map((a) => (
-              <div key={a.id} className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-body text-sm font-semibold text-white truncate">{a.competition}</p>
-                  <p className="font-body text-xs text-white/30">{a.award_name} · {a.winner ?? '팀 수상'} · {a.year}</p>
-                </div>
-                <DeleteButton onDelete={async () => { await deleteAward(a.id); fetchAwards() }} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 }
@@ -698,22 +853,25 @@ interface ProjectItem {
   type: string
   partner: string | null
   year: number
+  duration: string | null
+  description: string | null
+  thumbnail_url: string | null
 }
 
+const PROJECT_TYPE_LABEL: Record<string, string> = { industry: '산학협력', international: '해외교류' }
+
 function ProjectTab() {
-  const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
   const [projects, setProjects] = useState<ProjectItem[]>([])
   const [loadingList, setLoadingList] = useState(true)
-  const thumbnailRef = useRef<File | null>(null)
-  const formRef = useRef<HTMLFormElement>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   const fetchProjects = useCallback(async () => {
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
       .from('projects')
-      .select('id, title, type, partner, year')
+      .select('id, title, type, partner, year, duration, description, thumbnail_url')
       .order('year', { ascending: false })
       .limit(30)
     setProjects((data ?? []) as ProjectItem[])
@@ -722,65 +880,108 @@ function ProjectTab() {
 
   useEffect(() => { fetchProjects() }, [fetchProjects])
 
+  const editingProject = editingId ? projects.find((p) => p.id === editingId) ?? null : null
+  const handleClose = () => { setShowForm(false); setEditingId(null) }
+  const handleSuccess = () => { handleClose(); fetchProjects() }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider">프로젝트 관리</h3>
+        <button
+          onClick={() => { setEditingId(null); setShowForm((v) => !v) }}
+          className="flex items-center gap-2 px-4 py-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-xs rounded-xl hover:brightness-110 transition-all"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          새 프로젝트 추가
+        </button>
+      </div>
+
+      {(showForm || editingId) && (
+        <ProjectForm project={editingProject} onSuccess={handleSuccess} onCancel={handleClose} />
+      )}
+
+      {loadingList ? <LoadingSpinner /> : projects.length === 0 ? (
+        <p className="font-body text-sm text-white/20 text-center py-8">등록된 프로젝트가 없습니다.</p>
+      ) : (
+        <div className="space-y-2">
+          {projects.map((p) => (
+            <div key={p.id} className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-sm font-semibold text-white truncate">{p.title}</p>
+                <p className="font-body text-xs text-white/30">{PROJECT_TYPE_LABEL[p.type] ?? p.type} · {p.partner ?? '—'} · {p.year}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => { setShowForm(false); setEditingId(p.id) }}
+                  className="px-3 py-1.5 bg-white/5 border border-white/10 text-white/40 rounded-lg font-body text-xs hover:text-white hover:border-white/20 transition-colors"
+                >
+                  수정
+                </button>
+                <DeleteButton onDelete={async () => { await deleteProject(p.id); fetchProjects() }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ProjectForm({ project, onSuccess, onCancel }: { project: ProjectItem | null; onSuccess: () => void; onCancel: () => void }) {
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const thumbnailRef = useRef<File | null>(null)
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
     setResult(null)
     startTransition(async () => {
-      const res = await saveProject(null, formData)
+      const res = project
+        ? await updateProject(project.id, formData)
+        : await saveProject(null, formData)
       setResult(res)
-      if ('success' in res) { formRef.current?.reset(); thumbnailRef.current = null; fetchProjects() }
+      if ('success' in res) onSuccess()
     })
   }
 
-  const TYPE_LABEL: Record<string, string> = { industry: '산학협력', international: '해외교류' }
-
   return (
-    <div className="space-y-8">
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+    <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
+      <h4 className="font-body font-semibold text-sm text-white">{project ? '프로젝트 수정' : '새 프로젝트 추가'}</h4>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>프로젝트명 *</Label><Input name="title" placeholder="○○ 기업 브랜드 영상 제작" required /></div>
+          <div><Label>프로젝트명 *</Label><Input name="title" defaultValue={project?.title ?? ''} placeholder="○○ 기업 브랜드 영상 제작" required /></div>
           <div>
             <Label>유형 *</Label>
-            <Sel name="type" required>
+            <Sel name="type" defaultValue={project?.type ?? 'industry'} required>
               <option value="industry">산학협력</option>
               <option value="international">해외교류</option>
             </Sel>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div><Label>파트너 기관</Label><Input name="partner" placeholder="○○ 주식회사" /></div>
-          <div><Label>연도 *</Label><Input name="year" type="number" defaultValue={new Date().getFullYear()} required /></div>
-          <div><Label>기간</Label><Input name="duration" placeholder="2025.03 – 2025.06" /></div>
+          <div><Label>파트너 기관</Label><Input name="partner" defaultValue={project?.partner ?? ''} placeholder="○○ 주식회사" /></div>
+          <div><Label>연도 *</Label><Input name="year" type="number" defaultValue={project?.year ?? new Date().getFullYear()} required /></div>
+          <div><Label>기간</Label><Input name="duration" defaultValue={project?.duration ?? ''} placeholder="2025.03 – 2025.06" /></div>
         </div>
-        <div><Label>프로젝트 설명</Label><Textarea name="description" placeholder="프로젝트 배경 및 진행 내용..." rows={5} /></div>
+        <div><Label>프로젝트 설명</Label><Textarea name="description" defaultValue={project?.description ?? ''} placeholder="프로젝트 배경 및 진행 내용..." rows={5} /></div>
         <div>
-          <Label>프로젝트 이미지</Label>
+          <Label>프로젝트 이미지{project ? ' (새 파일 선택 시 교체)' : ''}</Label>
           <FileDropZone accept="image/*" label="프로젝트 관련 사진" onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
-        <SubmitButton loading={isPending} />
+        <div className="flex gap-3">
+          <button type="button" onClick={onCancel}
+            className="flex-1 py-3 rounded-xl border border-white/10 font-body text-sm text-white/40 hover:text-white hover:border-white/20 transition-colors">
+            취소
+          </button>
+          <div className="flex-1"><SubmitButton loading={isPending} label={project ? '수정 저장' : '추가하기'} /></div>
+        </div>
       </form>
-
-      <div>
-        <h3 className="font-body font-bold text-[13px] text-white/40 uppercase tracking-wider mb-4">등록된 프로젝트 ({projects.length})</h3>
-        {loadingList ? <LoadingSpinner /> : projects.length === 0 ? (
-          <p className="font-body text-sm text-white/20 text-center py-8">등록된 프로젝트가 없습니다.</p>
-        ) : (
-          <div className="space-y-2">
-            {projects.map((p) => (
-              <div key={p.id} className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-body text-sm font-semibold text-white truncate">{p.title}</p>
-                  <p className="font-body text-xs text-white/30">{TYPE_LABEL[p.type] ?? p.type} · {p.partner ?? '—'} · {p.year}</p>
-                </div>
-                <DeleteButton onDelete={async () => { await deleteProject(p.id); fetchProjects() }} />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

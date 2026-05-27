@@ -131,6 +131,43 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
   return { success: true }
 }
 
+export async function updateWork(id: string, formData: FormData): Promise<ActionResult> {
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const title       = (formData.get('title')       as string)?.trim()
+  const author      = (formData.get('author')      as string)?.trim()
+  const yearStr     = formData.get('year')          as string
+  const description = (formData.get('description') as string)?.trim()
+  const techRaw     = (formData.get('tech_stack')  as string)?.trim()
+  const thumbnail   = formData.get('thumbnail')    as File | null
+
+  if (!title)  return { error: '작품명은 필수입니다.' }
+  if (!author) return { error: '작가명은 필수입니다.' }
+  const year = parseInt(yearStr)
+  if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
+  const tech_stack = techRaw
+    ? techRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : []
+
+  const updateData: Record<string, unknown> = { title, author, year, tech_stack, description: description || null }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const path = `${year}/${crypto.randomUUID()}.${ext}`
+    const url = await uploadToStorage(supabase, 'work-thumbnails', path, thumbnail)
+    if (url) updateData.thumbnail_url = url
+  }
+
+  const { error } = await supabase.from('showcase_works').update(updateData).eq('id', id)
+  if (error) return { error: `수정 실패: ${error.message}` }
+
+  revalidatePath('/work/showcase')
+  return { success: true }
+}
+
 export async function deleteWork(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const authError = await requireAuth(supabase)
@@ -199,6 +236,63 @@ export async function saveArticle(_: unknown, formData: FormData): Promise<Actio
   })
 
   if (error) return { error: `저장 실패: ${error.message}` }
+
+  revalidatePath('/ncr-trend/latest')
+  revalidatePath('/')
+  return { success: true }
+}
+
+export async function updateArticle(id: string, formData: FormData): Promise<ActionResult> {
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const title        = (formData.get('title')        as string)?.trim()
+  const author       = (formData.get('author')       as string)?.trim()
+  const type         = formData.get('type')           as string
+  const season       = (formData.get('season')       as string)?.trim()
+  const published_at = formData.get('published_at')  as string
+  const excerpt      = (formData.get('excerpt')      as string)?.trim()
+  const content      = (formData.get('content')      as string)?.trim()
+  const tagsRaw      = (formData.get('tags')         as string)?.trim()
+  const relatedRaw   = (formData.get('related_ids')  as string)?.trim()
+  const thumbnail    = formData.get('thumbnail')     as File | null
+
+  if (!title)        return { error: '제목은 필수입니다.' }
+  if (!published_at) return { error: '발행일은 필수입니다.' }
+
+  const tags = tagsRaw
+    ? tagsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : []
+
+  const related_ids = relatedRaw
+    ? relatedRaw.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 2)
+    : []
+
+  const updateData: Record<string, unknown> = {
+    title,
+    author:       author || null,
+    type:         type || 'editorial',
+    season:       season || null,
+    published_at: new Date(published_at).toISOString(),
+    excerpt:      excerpt || null,
+    content:      content || null,
+    tags,
+    related_ids,
+  }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const seasonSlug = season
+      ? season.replace(/\s+/g, '-').toLowerCase()
+      : 'etc'
+    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const path = `${seasonSlug}/${crypto.randomUUID()}.${ext}`
+    const url = await uploadToStorage(supabase, 'ncr-thumbnails', path, thumbnail)
+    if (url) updateData.thumbnail_url = url
+  }
+
+  const { error } = await supabase.from('ncr_reports').update(updateData).eq('id', id)
+  if (error) return { error: `수정 실패: ${error.message}` }
 
   revalidatePath('/ncr-trend/latest')
   revalidatePath('/')
@@ -297,6 +391,51 @@ export async function saveAward(_: unknown, formData: FormData): Promise<ActionR
   return { success: true }
 }
 
+export async function updateAward(id: string, formData: FormData): Promise<ActionResult> {
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const competition  = (formData.get('competition')  as string)?.trim()
+  const award_name   = (formData.get('award_name')   as string)?.trim()
+  const winner       = (formData.get('winner')       as string)?.trim()
+  const teamRaw      = (formData.get('team_members') as string)?.trim()
+  const yearStr      = formData.get('year')           as string
+  const description  = (formData.get('description')  as string)?.trim()
+  const thumbnail    = formData.get('thumbnail')     as File | null
+
+  if (!competition) return { error: '대회명은 필수입니다.' }
+  if (!award_name)  return { error: '수상 등급을 선택해주세요.' }
+  const year = parseInt(yearStr)
+  if (!year) return { error: '수상 연도를 입력해주세요.' }
+
+  const team_members = teamRaw
+    ? teamRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : winner ? [winner] : []
+
+  const updateData: Record<string, unknown> = {
+    competition,
+    award_name,
+    winner:       winner || null,
+    team_members,
+    year,
+    description:  description || null,
+  }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const path = `awards/${crypto.randomUUID()}.${ext}`
+    const url = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
+    if (url) updateData.thumbnail_url = url
+  }
+
+  const { error } = await supabase.from('awards').update(updateData).eq('id', id)
+  if (error) return { error: `수정 실패: ${error.message}` }
+
+  revalidatePath('/ninc/awards')
+  return { success: true }
+}
+
 export async function deleteAward(id: string): Promise<ActionResult> {
   const supabase = createClient()
   const authError = await requireAuth(supabase)
@@ -346,6 +485,47 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
   })
 
   if (error) return { error: `저장 실패: ${error.message}` }
+
+  revalidatePath('/ninc/project')
+  revalidatePath('/')
+  return { success: true }
+}
+
+export async function updateProject(id: string, formData: FormData): Promise<ActionResult> {
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const title       = (formData.get('title')       as string)?.trim()
+  const type        = formData.get('type')          as string
+  const partner     = (formData.get('partner')     as string)?.trim()
+  const yearStr     = formData.get('year')          as string
+  const duration    = (formData.get('duration')    as string)?.trim()
+  const description = (formData.get('description') as string)?.trim()
+  const thumbnail   = formData.get('thumbnail')    as File | null
+
+  if (!title) return { error: '프로젝트명은 필수입니다.' }
+  const year = parseInt(yearStr)
+  if (!year) return { error: '연도를 입력해주세요.' }
+
+  const updateData: Record<string, unknown> = {
+    title,
+    type:         type || 'industry',
+    partner:      partner || null,
+    year,
+    duration:     duration || null,
+    description:  description || null,
+  }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const path = `projects/${crypto.randomUUID()}.${ext}`
+    const url = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
+    if (url) updateData.thumbnail_url = url
+  }
+
+  const { error } = await supabase.from('projects').update(updateData).eq('id', id)
+  if (error) return { error: `수정 실패: ${error.message}` }
 
   revalidatePath('/ninc/project')
   revalidatePath('/')
