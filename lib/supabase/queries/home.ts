@@ -1,7 +1,9 @@
 /**
  * Home 페이지 전용 Supabase 쿼리
  * - getHomeNincCards: ninc_home_cards 테이블에서 활성 카드 조회
- * - getHomeNcrReports: ncr_reports 최신 2개 조회
+ * - getHomeNcrReports: ncr_reports 조회
+ *   → is_home_featured=true 인 아티클을 우선 노출 (최대 2개)
+ *   → featured 아티클이 없으면 최신 2개로 fallback
  *
  * 두 함수 모두 빈 배열을 반환할 수 있으며,
  * 각 컴포넌트에서 빈 배열일 경우 목데이터로 fallback 처리함.
@@ -56,13 +58,29 @@ export async function getHomeNincCards(): Promise<HomeNincCard[]> {
 }
 
 /**
- * 홈 NcrTrendSection용 최신 아티클 2개 조회
- * ncr_reports → is_published=true, published_at DESC, LIMIT 2
- * 레코드 없으면 [] 반환 → 컴포넌트에서 목데이터로 fallback
+ * 홈 NcrTrendSection용 아티클 2개 조회
+ * 1순위: is_home_featured=true 이고 is_published=true 인 아티클 (최대 2개)
+ * 2순위: featured 없으면 published_at DESC 최신 2개로 fallback
  */
 export async function getHomeNcrReports(): Promise<HomeNcrReport[]> {
   try {
     const supabase = createClient()
+
+    // is_home_featured 컬럼이 존재하는 경우 우선 조회
+    const { data: featured, error: featuredError } = await supabase
+      .from('ncr_reports')
+      .select('id, title, type, thumbnail_url, published_at, season, excerpt')
+      .eq('is_published', true)
+      .eq('is_home_featured', true)
+      .order('published_at', { ascending: false })
+      .limit(2)
+
+    // featured 아티클이 1개 이상이면 그대로 반환
+    if (!featuredError && featured && featured.length > 0) {
+      return featured as HomeNcrReport[]
+    }
+
+    // fallback: 최신 2개
     const { data, error } = await supabase
       .from('ncr_reports')
       .select('id, title, type, thumbnail_url, published_at, season, excerpt')

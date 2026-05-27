@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import SmoothScroll from '@/components/providers/SmoothScroll'
+import ScrollToTopOnNavigate from '@/components/providers/ScrollToTopOnNavigate'
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           서브 페이지는 SubPageLayout을 통해 공통 Header/Footer를 포함.
         */}
         <SmoothScroll>
+          <ScrollToTopOnNavigate />
           {children}
         </SmoothScroll>
       </body>
