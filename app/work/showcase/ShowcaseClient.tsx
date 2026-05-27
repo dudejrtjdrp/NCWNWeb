@@ -7,7 +7,7 @@ import Pagination from '@/components/ui/Pagination'
 import Badge from '@/components/ui/Badge'
 import { useFilter } from '@/hooks/useFilter'
 import { usePagination } from '@/hooks/usePagination'
-import type { WorkItem } from '@/lib/supabase/queries/works'
+import type { WorkListItem as WorkItem } from '@/lib/supabase/queries/works'
 
 const TECH_FILTERS = ['전체', 'Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
 

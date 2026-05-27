@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Badge from '@/components/ui/Badge'
 import Link from 'next/link'
-import type { NcrReportItem } from '@/lib/supabase/queries/ncr'
+import type { NcrReportListItem as NcrReportItem } from '@/lib/supabase/queries/ncr'
 
 const TYPE_LABELS: Record<string, string> = {
   editorial: '에디토리얼',

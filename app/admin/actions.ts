@@ -4,13 +4,25 @@
  * Admin Server Actions
  * 인증 + 각 탭(Work / Article / Award / Project / Event / Exhibition / Types) CRUD
  *
- * 모든 액션은 인증된 사용자만 호출 가능.
- * 파일 업로드 → Supabase Storage → public URL → DB 저장
+ * 보안 강화 내역:
+ * - requireAuth: getSession() → getUser() 교체 (JWT 서버 검증)
+ * - ID 파라미터 UUID 형식 검증
+ * - 파일 업로드: 크기(10MB)·MIME·확장자 검증
+ * - 텍스트 필드 최대 길이 제한
+ * - update 시 기존 스토리지 파일 삭제 (스토리지 비용 절감)
+ * - Supabase 내부 오류 메시지 외부 노출 방지
+ * - 뮤테이션 후 revalidateTag로 캐시 무효화
  */
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
+import {
+  assertValidUUID,
+  validateFileUpload,
+  checkTextLength,
+} from '@/lib/server/validation'
+import { logError } from '@/lib/server/logger'
 
 // ── 반환 타입 ─────────────────────────────────────────────
 export type ActionResult = { success: true; redirectTo?: string } | { error: string }
@@ -33,7 +45,9 @@ export async function signIn(_: unknown, formData: FormData): Promise<ActionResu
     if (error.message.includes('Email not confirmed')) {
       return { error: '이메일 인증이 완료되지 않았습니다.' }
     }
-    return { error: `로그인 실패: ${error.message}` }
+    // Supabase 내부 메시지는 로그에만 남기고 사용자에게는 일반 메시지 반환
+    logError('[signIn] 로그인 실패', error.message)
+    return { error: '로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
   }
 
   return { success: true, redirectTo: '/admin' }
@@ -45,45 +59,80 @@ export async function signOut() {
   redirect('/admin/login')
 }
 
+// ── 인증 체크 헬퍼 ────────────────────────────────────────
+
+/**
+ * getUser()는 Supabase Auth 서버에 네트워크 요청을 보내 JWT를 직접 검증합니다.
+ * getSession()은 쿠키 값을 그대로 신뢰하므로 변조된 세션을 걸러내지 못합니다.
+ * Server Action에서 관리자 권한이 필요한 모든 작업은 반드시 getUser()를 사용합니다.
+ */
+async function requireAuth(supabase: ReturnType<typeof createClient>): Promise<{ error: string } | null> {
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return { error: '인증이 필요합니다.' }
+  return null
+}
+
 // ── Storage 업로드 헬퍼 ────────────────────────────────────
 
+/**
+ * Supabase Storage에 파일을 업로드하고 public URL을 반환합니다.
+ * 실패 시 null을 반환합니다 (호출부에서 처리).
+ */
 async function uploadToStorage(
   supabase: ReturnType<typeof createClient>,
   bucket: string,
   path: string,
   file: File
 ): Promise<string | null> {
-  const arrayBuffer = await file.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
+  try {
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
 
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .upload(path, buffer, {
-      upsert: true,
-      contentType: file.type || 'image/webp',
-    })
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, buffer, {
+        upsert: true,
+        contentType: file.type || 'image/webp',
+      })
 
-  if (error) {
-    console.error(`[Storage] ${bucket}/${path} 업로드 실패:`, error.message)
+    if (error) {
+      logError(`[Storage] ${bucket}/${path} 업로드 실패:`, error.message)
+      return null
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path)
+    return publicUrl
+  } catch (err) {
+    logError(`[Storage] ${bucket}/${path} 예외:`, err)
     return null
   }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(data.path)
-
-  return publicUrl
 }
 
-// ── 인증 체크 헬퍼 ────────────────────────────────────────
+/**
+ * Supabase Storage에서 public URL로부터 경로를 추출해 파일을 삭제합니다.
+ * update 시 기존 파일 정리에 사용 (스토리지 비용 절감).
+ */
+async function deleteFromStorage(
+  supabase: ReturnType<typeof createClient>,
+  bucket: string,
+  publicUrl: string
+): Promise<void> {
+  try {
+    const marker = `/storage/v1/object/public/${bucket}/`
+    const idx = publicUrl.indexOf(marker)
+    if (idx === -1) return
+    const filePath = decodeURIComponent(publicUrl.slice(idx + marker.length))
+    await supabase.storage.from(bucket).remove([filePath])
+  } catch (err) {
+    // 삭제 실패는 치명적이지 않으므로 경고만 기록
+    logError(`[Storage] 기존 파일 삭제 실패 (bucket: ${bucket})`, err)
+  }
+}
 
-async function requireAuth(supabase: ReturnType<typeof createClient>): Promise<{ error: string } | null> {
-  // getUser()는 Supabase Auth 서버에 네트워크 요청을 보내 JWT 검증 →
-  // Server Action 컨텍스트에서는 타이밍/토큰 갱신 문제로 null이 될 수 있음.
-  // getSession()은 쿠키에서 직접 읽으므로 Server Action에서 더 안정적.
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session) return { error: '인증이 필요합니다.' }
-  return null
+// ── 공통 파일 검증 ────────────────────────────────────────
+
+function validateImage(file: File): string | null {
+  return validateFileUpload(file, { maxSizeBytes: 10 * 1024 * 1024 })
 }
 
 // ════════════════════════════════════════════════════════
@@ -104,8 +153,21 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
+
+  const titleErr = checkTextLength(title, 'title', '작품명')
+  if (titleErr) return { error: titleErr }
+  const authorErr = checkTextLength(author, 'author', '작가명')
+  if (authorErr) return { error: authorErr }
+  const descErr = checkTextLength(description, 'description', '설명')
+  if (descErr) return { error: descErr }
+
   const year = parseInt(yearStr)
   if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
 
   const tech_stack = techRaw
     ? techRaw.split(',').map((s) => s.trim()).filter(Boolean)
@@ -113,28 +175,32 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
 
   let thumbnail_url: string | null = null
   if (thumbnail && thumbnail.size > 0) {
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `${year}/${crypto.randomUUID()}.${ext}`
     thumbnail_url = await uploadToStorage(supabase, 'work-thumbnails', path, thumbnail)
   }
 
   const { error } = await supabase.from('showcase_works').insert({
-    title,
-    author,
-    year,
+    title, author, year,
     description:   description || null,
     tech_stack,
     thumbnail_url,
     view_count: 0,
   })
 
-  if (error) return { error: `저장 실패: ${error.message}` }
+  if (error) {
+    logError('[saveWork] DB 저장 실패', error.message)
+    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/work/showcase')
+  revalidateTag('works')
   return { success: true }
 }
 
 export async function updateWork(id: string, formData: FormData): Promise<ActionResult> {
+  assertValidUUID(id, '작품 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
@@ -148,38 +214,76 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
+
+  const titleErr = checkTextLength(title, 'title', '작품명')
+  if (titleErr) return { error: titleErr }
+  const descErr = checkTextLength(description, 'description', '설명')
+  if (descErr) return { error: descErr }
+
   const year = parseInt(yearStr)
   if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
 
   const tech_stack = techRaw
     ? techRaw.split(',').map((s) => s.trim()).filter(Boolean)
     : []
 
-  const updateData: Record<string, unknown> = { title, author, year, tech_stack, description: description || null }
+  const updateData: Record<string, unknown> = {
+    title, author, year, tech_stack,
+    description: description || null,
+  }
 
   if (thumbnail && thumbnail.size > 0) {
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    // 기존 썸네일 조회 후 삭제
+    const { data: existing } = await supabase
+      .from('showcase_works').select('thumbnail_url').eq('id', id).single()
+    if (existing?.thumbnail_url) {
+      await deleteFromStorage(supabase, 'work-thumbnails', existing.thumbnail_url)
+    }
+
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `${year}/${crypto.randomUUID()}.${ext}`
-    const url = await uploadToStorage(supabase, 'work-thumbnails', path, thumbnail)
+    const url  = await uploadToStorage(supabase, 'work-thumbnails', path, thumbnail)
     if (url) updateData.thumbnail_url = url
   }
 
   const { error } = await supabase.from('showcase_works').update(updateData).eq('id', id)
-  if (error) return { error: `수정 실패: ${error.message}` }
+  if (error) {
+    logError('[updateWork] DB 수정 실패', error.message)
+    return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/work/showcase')
+  revalidateTag('works')
   return { success: true }
 }
 
 export async function deleteWork(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '작품 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
+  // 스토리지 파일도 함께 삭제
+  const { data: existing } = await supabase
+    .from('showcase_works').select('thumbnail_url').eq('id', id).single()
+  if (existing?.thumbnail_url) {
+    await deleteFromStorage(supabase, 'work-thumbnails', existing.thumbnail_url)
+  }
+
   const { error } = await supabase.from('showcase_works').delete().eq('id', id)
-  if (error) return { error: `삭제 실패: ${error.message}` }
+  if (error) {
+    logError('[deleteWork] DB 삭제 실패', error.message)
+    return { error: '삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/work/showcase')
+  revalidateTag('works')
   return { success: true }
 }
 
@@ -206,20 +310,33 @@ export async function saveArticle(_: unknown, formData: FormData): Promise<Actio
   if (!title)        return { error: '제목은 필수입니다.' }
   if (!published_at) return { error: '발행일은 필수입니다.' }
 
+  const titleErr   = checkTextLength(title,   'title',       '제목')
+  if (titleErr)   return { error: titleErr }
+  const excerptErr = checkTextLength(excerpt, 'excerpt',     '요약')
+  if (excerptErr) return { error: excerptErr }
+  const contentErr = checkTextLength(content, 'content',     '본문')
+  if (contentErr) return { error: contentErr }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
+
+  // 날짜 파싱 검증
+  const publishedDate = new Date(published_at)
+  if (isNaN(publishedDate.getTime())) return { error: '발행일 형식이 올바르지 않습니다.' }
+
   const tags = tagsRaw
     ? tagsRaw.split(',').map((s) => s.trim()).filter(Boolean)
     : []
-
   const related_ids = relatedRaw
     ? relatedRaw.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 2)
     : []
 
   let thumbnail_url: string | null = null
   if (thumbnail && thumbnail.size > 0) {
-    const seasonSlug = season
-      ? season.replace(/\s+/g, '-').toLowerCase()
-      : 'etc'
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const seasonSlug = season ? season.replace(/\s+/g, '-').toLowerCase() : 'etc'
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `${seasonSlug}/${crypto.randomUUID()}.${ext}`
     thumbnail_url = await uploadToStorage(supabase, 'ncr-thumbnails', path, thumbnail)
   }
@@ -229,7 +346,7 @@ export async function saveArticle(_: unknown, formData: FormData): Promise<Actio
     author:       author || null,
     type:         type || 'editorial',
     season:       season || null,
-    published_at: new Date(published_at).toISOString(),
+    published_at: publishedDate.toISOString(),
     excerpt:      excerpt || null,
     content:      content || null,
     tags,
@@ -238,14 +355,21 @@ export async function saveArticle(_: unknown, formData: FormData): Promise<Actio
     is_published: true,
   })
 
-  if (error) return { error: `저장 실패: ${error.message}` }
+  if (error) {
+    logError('[saveArticle] DB 저장 실패', error.message)
+    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ncr-trend/latest')
   revalidatePath('/')
+  revalidateTag('ncr')
+  revalidateTag('home')
   return { success: true }
 }
 
 export async function updateArticle(id: string, formData: FormData): Promise<ActionResult> {
+  assertValidUUID(id, '아티클 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
@@ -264,10 +388,24 @@ export async function updateArticle(id: string, formData: FormData): Promise<Act
   if (!title)        return { error: '제목은 필수입니다.' }
   if (!published_at) return { error: '발행일은 필수입니다.' }
 
+  const titleErr   = checkTextLength(title,   'title',   '제목')
+  if (titleErr)   return { error: titleErr }
+  const excerptErr = checkTextLength(excerpt, 'excerpt', '요약')
+  if (excerptErr) return { error: excerptErr }
+  const contentErr = checkTextLength(content, 'content', '본문')
+  if (contentErr) return { error: contentErr }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
+
+  const publishedDate = new Date(published_at)
+  if (isNaN(publishedDate.getTime())) return { error: '발행일 형식이 올바르지 않습니다.' }
+
   const tags = tagsRaw
     ? tagsRaw.split(',').map((s) => s.trim()).filter(Boolean)
     : []
-
   const related_ids = relatedRaw
     ? relatedRaw.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 2)
     : []
@@ -277,7 +415,7 @@ export async function updateArticle(id: string, formData: FormData): Promise<Act
     author:       author || null,
     type:         type || 'editorial',
     season:       season || null,
-    published_at: new Date(published_at).toISOString(),
+    published_at: publishedDate.toISOString(),
     excerpt:      excerpt || null,
     content:      content || null,
     tags,
@@ -285,46 +423,66 @@ export async function updateArticle(id: string, formData: FormData): Promise<Act
   }
 
   if (thumbnail && thumbnail.size > 0) {
-    const seasonSlug = season
-      ? season.replace(/\s+/g, '-').toLowerCase()
-      : 'etc'
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const { data: existing } = await supabase
+      .from('ncr_reports').select('thumbnail_url').eq('id', id).single()
+    if (existing?.thumbnail_url) {
+      await deleteFromStorage(supabase, 'ncr-thumbnails', existing.thumbnail_url)
+    }
+
+    const seasonSlug = season ? season.replace(/\s+/g, '-').toLowerCase() : 'etc'
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `${seasonSlug}/${crypto.randomUUID()}.${ext}`
-    const url = await uploadToStorage(supabase, 'ncr-thumbnails', path, thumbnail)
+    const url  = await uploadToStorage(supabase, 'ncr-thumbnails', path, thumbnail)
     if (url) updateData.thumbnail_url = url
   }
 
   const { error } = await supabase.from('ncr_reports').update(updateData).eq('id', id)
-  if (error) return { error: `수정 실패: ${error.message}` }
+  if (error) {
+    logError('[updateArticle] DB 수정 실패', error.message)
+    return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ncr-trend/latest')
   revalidatePath('/')
+  revalidateTag('ncr')
+  revalidateTag('home')
   return { success: true }
 }
 
 export async function deleteArticle(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '아티클 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
+  const { data: existing } = await supabase
+    .from('ncr_reports').select('thumbnail_url').eq('id', id).single()
+  if (existing?.thumbnail_url) {
+    await deleteFromStorage(supabase, 'ncr-thumbnails', existing.thumbnail_url)
+  }
+
   const { error } = await supabase.from('ncr_reports').delete().eq('id', id)
-  if (error) return { error: `삭제 실패: ${error.message}` }
+  if (error) {
+    logError('[deleteArticle] DB 삭제 실패', error.message)
+    return { error: '삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ncr-trend/latest')
   revalidatePath('/')
+  revalidateTag('ncr')
+  revalidateTag('home')
   return { success: true }
 }
 
-/** 홈 노출 아티클 설정 — is_home_featured 플래그 토글
- *  ⚠️  사용 전 Supabase에서 마이그레이션 실행 필요:
- *      ALTER TABLE ncr_reports ADD COLUMN IF NOT EXISTS is_home_featured BOOLEAN NOT NULL DEFAULT false;
- */
+/** 홈 노출 아티클 설정 — is_home_featured 플래그 토글 */
 export async function setHomeFeaturedArticle(id: string, featured: boolean): Promise<ActionResult> {
+  assertValidUUID(id, '아티클 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  // featured=true로 설정 시, 기존 featured 2개 초과 방지를 위해 현재 개수 확인
   if (featured) {
     const { data: current, error: countError } = await supabase
       .from('ncr_reports')
@@ -334,9 +492,10 @@ export async function setHomeFeaturedArticle(id: string, featured: boolean): Pro
 
     if (countError) {
       if (countError.message.includes('does not exist')) {
-        return { error: 'is_home_featured 컬럼이 없습니다. Supabase SQL Editor에서 마이그레이션을 먼저 실행해주세요. (docs/migration-add-is_home_featured.sql 참조)' }
+        return { error: 'is_home_featured 컬럼이 없습니다. Supabase SQL Editor에서 마이그레이션을 먼저 실행해주세요.' }
       }
-      return { error: `조회 실패: ${countError.message}` }
+      logError('[setHomeFeaturedArticle] 조회 실패', countError.message)
+      return { error: '처리 중 오류가 발생했습니다.' }
     }
 
     if (current && current.length >= 2) {
@@ -351,12 +510,14 @@ export async function setHomeFeaturedArticle(id: string, featured: boolean): Pro
 
   if (error) {
     if (error.message.includes('does not exist')) {
-      return { error: 'is_home_featured 컬럼이 없습니다. Supabase SQL Editor에서 마이그레이션을 먼저 실행해주세요. (docs/migration-add-is_home_featured.sql 참조)' }
+      return { error: 'is_home_featured 컬럼이 없습니다. Supabase SQL Editor에서 마이그레이션을 먼저 실행해주세요.' }
     }
-    return { error: `설정 실패: ${error.message}` }
+    logError('[setHomeFeaturedArticle] 설정 실패', error.message)
+    return { error: '설정 중 오류가 발생했습니다.' }
   }
 
   revalidatePath('/')
+  revalidateTag('home')
   return { success: true }
 }
 
@@ -379,8 +540,19 @@ export async function saveAward(_: unknown, formData: FormData): Promise<ActionR
 
   if (!competition) return { error: '대회명은 필수입니다.' }
   if (!award_name)  return { error: '수상 등급을 선택해주세요.' }
+
+  const compErr = checkTextLength(competition, 'competition', '대회명')
+  if (compErr) return { error: compErr }
+  const descErr = checkTextLength(description, 'description', '설명')
+  if (descErr) return { error: descErr }
+
   const year = parseInt(yearStr)
-  if (!year) return { error: '수상 연도를 입력해주세요.' }
+  if (!year || year < 2000 || year > 2100) return { error: '수상 연도를 올바르게 입력해주세요.' }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
 
   const team_members = teamRaw
     ? teamRaw.split(',').map((s) => s.trim()).filter(Boolean)
@@ -388,28 +560,32 @@ export async function saveAward(_: unknown, formData: FormData): Promise<ActionR
 
   let thumbnail_url: string | null = null
   if (thumbnail && thumbnail.size > 0) {
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `awards/${crypto.randomUUID()}.${ext}`
     thumbnail_url = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
   }
 
   const { error } = await supabase.from('awards').insert({
-    competition,
-    award_name,
+    competition, award_name,
     winner:       winner || null,
-    team_members,
-    year,
+    team_members, year,
     description:  description || null,
     thumbnail_url,
   })
 
-  if (error) return { error: `저장 실패: ${error.message}` }
+  if (error) {
+    logError('[saveAward] DB 저장 실패', error.message)
+    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/awards')
+  revalidateTag('awards')
   return { success: true }
 }
 
 export async function updateAward(id: string, formData: FormData): Promise<ActionResult> {
+  assertValidUUID(id, '수상 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
@@ -424,45 +600,75 @@ export async function updateAward(id: string, formData: FormData): Promise<Actio
 
   if (!competition) return { error: '대회명은 필수입니다.' }
   if (!award_name)  return { error: '수상 등급을 선택해주세요.' }
+
+  const compErr = checkTextLength(competition, 'competition', '대회명')
+  if (compErr) return { error: compErr }
+  const descErr = checkTextLength(description, 'description', '설명')
+  if (descErr) return { error: descErr }
+
   const year = parseInt(yearStr)
-  if (!year) return { error: '수상 연도를 입력해주세요.' }
+  if (!year || year < 2000 || year > 2100) return { error: '수상 연도를 올바르게 입력해주세요.' }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
 
   const team_members = teamRaw
     ? teamRaw.split(',').map((s) => s.trim()).filter(Boolean)
     : winner ? [winner] : []
 
   const updateData: Record<string, unknown> = {
-    competition,
-    award_name,
+    competition, award_name,
     winner:       winner || null,
-    team_members,
-    year,
+    team_members, year,
     description:  description || null,
   }
 
   if (thumbnail && thumbnail.size > 0) {
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const { data: existing } = await supabase
+      .from('awards').select('thumbnail_url').eq('id', id).single()
+    if (existing?.thumbnail_url) {
+      await deleteFromStorage(supabase, 'ninc-images', existing.thumbnail_url)
+    }
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `awards/${crypto.randomUUID()}.${ext}`
-    const url = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
+    const url  = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
     if (url) updateData.thumbnail_url = url
   }
 
   const { error } = await supabase.from('awards').update(updateData).eq('id', id)
-  if (error) return { error: `수정 실패: ${error.message}` }
+  if (error) {
+    logError('[updateAward] DB 수정 실패', error.message)
+    return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/awards')
+  revalidateTag('awards')
   return { success: true }
 }
 
 export async function deleteAward(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '수상 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
+  const { data: existing } = await supabase
+    .from('awards').select('thumbnail_url').eq('id', id).single()
+  if (existing?.thumbnail_url) {
+    await deleteFromStorage(supabase, 'ninc-images', existing.thumbnail_url)
+  }
+
   const { error } = await supabase.from('awards').delete().eq('id', id)
-  if (error) return { error: `삭제 실패: ${error.message}` }
+  if (error) {
+    logError('[deleteAward] DB 삭제 실패', error.message)
+    return { error: '삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/awards')
+  revalidateTag('awards')
   return { success: true }
 }
 
@@ -483,12 +689,23 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
   const thumbnail   = formData.get('thumbnail')    as File | null
 
   if (!title) return { error: '프로젝트명은 필수입니다.' }
+
+  const titleErr = checkTextLength(title, 'title', '프로젝트명')
+  if (titleErr) return { error: titleErr }
+  const descErr  = checkTextLength(description, 'description', '설명')
+  if (descErr)  return { error: descErr }
+
   const year = parseInt(yearStr)
-  if (!year) return { error: '연도를 입력해주세요.' }
+  if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
 
   let thumbnail_url: string | null = null
   if (thumbnail && thumbnail.size > 0) {
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `projects/${crypto.randomUUID()}.${ext}`
     thumbnail_url = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
   }
@@ -502,14 +719,20 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
     thumbnail_url,
   })
 
-  if (error) return { error: `저장 실패: ${error.message}` }
+  if (error) {
+    logError('[saveProject] DB 저장 실패', error.message)
+    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/project')
   revalidatePath('/')
+  revalidateTag('projects')
   return { success: true }
 }
 
 export async function updateProject(id: string, formData: FormData): Promise<ActionResult> {
+  assertValidUUID(id, '프로젝트 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
@@ -523,8 +746,19 @@ export async function updateProject(id: string, formData: FormData): Promise<Act
   const thumbnail   = formData.get('thumbnail')    as File | null
 
   if (!title) return { error: '프로젝트명은 필수입니다.' }
+
+  const titleErr = checkTextLength(title, 'title', '프로젝트명')
+  if (titleErr) return { error: titleErr }
+  const descErr  = checkTextLength(description, 'description', '설명')
+  if (descErr)  return { error: descErr }
+
   const year = parseInt(yearStr)
-  if (!year) return { error: '연도를 입력해주세요.' }
+  if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
+  if (thumbnail && thumbnail.size > 0) {
+    const fileErr = validateImage(thumbnail)
+    if (fileErr) return { error: fileErr }
+  }
 
   const updateData: Record<string, unknown> = {
     title,
@@ -536,30 +770,51 @@ export async function updateProject(id: string, formData: FormData): Promise<Act
   }
 
   if (thumbnail && thumbnail.size > 0) {
-    const ext  = thumbnail.name.split('.').pop() ?? 'webp'
+    const { data: existing } = await supabase
+      .from('projects').select('thumbnail_url').eq('id', id).single()
+    if (existing?.thumbnail_url) {
+      await deleteFromStorage(supabase, 'ninc-images', existing.thumbnail_url)
+    }
+    const ext  = thumbnail.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `projects/${crypto.randomUUID()}.${ext}`
-    const url = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
+    const url  = await uploadToStorage(supabase, 'ninc-images', path, thumbnail)
     if (url) updateData.thumbnail_url = url
   }
 
   const { error } = await supabase.from('projects').update(updateData).eq('id', id)
-  if (error) return { error: `수정 실패: ${error.message}` }
+  if (error) {
+    logError('[updateProject] DB 수정 실패', error.message)
+    return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/project')
   revalidatePath('/')
+  revalidateTag('projects')
   return { success: true }
 }
 
 export async function deleteProject(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '프로젝트 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
+  const { data: existing } = await supabase
+    .from('projects').select('thumbnail_url').eq('id', id).single()
+  if (existing?.thumbnail_url) {
+    await deleteFromStorage(supabase, 'ninc-images', existing.thumbnail_url)
+  }
+
   const { error } = await supabase.from('projects').delete().eq('id', id)
-  if (error) return { error: `삭제 실패: ${error.message}` }
+  if (error) {
+    logError('[deleteProject] DB 삭제 실패', error.message)
+    return { error: '삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/project')
   revalidatePath('/')
+  revalidateTag('projects')
   return { success: true }
 }
 
@@ -568,37 +823,6 @@ export async function deleteProject(id: string): Promise<ActionResult> {
 // ════════════════════════════════════════════════════════
 
 export async function saveEvent(_: unknown, formData: FormData): Promise<ActionResult> {
-  const supabase = createClient()
-  const authError = await requireAuth(supabase)
-  if (authError) return authError
-
-  const title      = (formData.get('title')      as string)?.trim()
-  const type       = formData.get('type')         as string
-  const start_date = formData.get('start_date')  as string
-  const end_date   = formData.get('end_date')    as string
-  const location   = (formData.get('location')   as string)?.trim()
-  const description = (formData.get('description') as string)?.trim()
-
-  if (!title)      return { error: '이벤트 제목은 필수입니다.' }
-  if (!start_date) return { error: '시작일은 필수입니다.' }
-
-  const { error } = await supabase.from('events').insert({
-    title,
-    type:        type || '기타',
-    start_date:  new Date(start_date).toISOString(),
-    end_date:    end_date ? new Date(end_date).toISOString() : null,
-    location:    location || null,
-    description: description || null,
-    is_published: true,
-  })
-
-  if (error) return { error: `저장 실패: ${error.message}` }
-
-  revalidatePath('/ninc/event')
-  return { success: true }
-}
-
-export async function updateEvent(id: string, formData: FormData): Promise<ActionResult> {
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
@@ -613,30 +837,107 @@ export async function updateEvent(id: string, formData: FormData): Promise<Actio
   if (!title)      return { error: '이벤트 제목은 필수입니다.' }
   if (!start_date) return { error: '시작일은 필수입니다.' }
 
+  const titleErr = checkTextLength(title, 'title', '제목')
+  if (titleErr) return { error: titleErr }
+  const descErr  = checkTextLength(description, 'description', '설명')
+  if (descErr)  return { error: descErr }
+
+  const startDateObj = new Date(start_date)
+  if (isNaN(startDateObj.getTime())) return { error: '시작일 형식이 올바르지 않습니다.' }
+
+  let endDateISO: string | null = null
+  if (end_date) {
+    const endDateObj = new Date(end_date)
+    if (isNaN(endDateObj.getTime())) return { error: '종료일 형식이 올바르지 않습니다.' }
+    endDateISO = endDateObj.toISOString()
+  }
+
+  const { error } = await supabase.from('events').insert({
+    title,
+    type:        type || '기타',
+    start_date:  startDateObj.toISOString(),
+    end_date:    endDateISO,
+    location:    location || null,
+    description: description || null,
+    is_published: true,
+  })
+
+  if (error) {
+    logError('[saveEvent] DB 저장 실패', error.message)
+    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
+
+  revalidatePath('/ninc/event')
+  revalidateTag('events')
+  return { success: true }
+}
+
+export async function updateEvent(id: string, formData: FormData): Promise<ActionResult> {
+  assertValidUUID(id, '이벤트 ID')
+
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const title       = (formData.get('title')       as string)?.trim()
+  const type        = formData.get('type')          as string
+  const start_date  = formData.get('start_date')   as string
+  const end_date    = formData.get('end_date')     as string
+  const location    = (formData.get('location')    as string)?.trim()
+  const description = (formData.get('description') as string)?.trim()
+
+  if (!title)      return { error: '이벤트 제목은 필수입니다.' }
+  if (!start_date) return { error: '시작일은 필수입니다.' }
+
+  const titleErr = checkTextLength(title, 'title', '제목')
+  if (titleErr) return { error: titleErr }
+  const descErr  = checkTextLength(description, 'description', '설명')
+  if (descErr)  return { error: descErr }
+
+  const startDateObj = new Date(start_date)
+  if (isNaN(startDateObj.getTime())) return { error: '시작일 형식이 올바르지 않습니다.' }
+
+  let endDateISO: string | null = null
+  if (end_date) {
+    const endDateObj = new Date(end_date)
+    if (isNaN(endDateObj.getTime())) return { error: '종료일 형식이 올바르지 않습니다.' }
+    endDateISO = endDateObj.toISOString()
+  }
+
   const { error } = await supabase.from('events').update({
     title,
     type:        type || '기타',
-    start_date:  new Date(start_date).toISOString(),
-    end_date:    end_date ? new Date(end_date).toISOString() : null,
+    start_date:  startDateObj.toISOString(),
+    end_date:    endDateISO,
     location:    location || null,
     description: description || null,
   }).eq('id', id)
 
-  if (error) return { error: `수정 실패: ${error.message}` }
+  if (error) {
+    logError('[updateEvent] DB 수정 실패', error.message)
+    return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/event')
+  revalidateTag('events')
   return { success: true }
 }
 
 export async function deleteEvent(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '이벤트 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
   const { error } = await supabase.from('events').delete().eq('id', id)
-  if (error) return { error: `삭제 실패: ${error.message}` }
+  if (error) {
+    logError('[deleteEvent] DB 삭제 실패', error.message)
+    return { error: '삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/ninc/event')
+  revalidateTag('events')
   return { success: true }
 }
 
@@ -656,31 +957,47 @@ export async function saveExhibition(_: unknown, formData: FormData): Promise<Ac
   const poster      = formData.get('poster')       as File | null
 
   if (!title) return { error: '전시 제목은 필수입니다.' }
+
+  const titleErr = checkTextLength(title, 'title', '제목')
+  if (titleErr) return { error: titleErr }
+  const descErr  = checkTextLength(description, 'description', '설명')
+  if (descErr)  return { error: descErr }
+
   const year = parseInt(yearStr)
-  if (!year) return { error: '연도를 입력해주세요.' }
+  if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
+  if (poster && poster.size > 0) {
+    const fileErr = validateImage(poster)
+    if (fileErr) return { error: fileErr }
+  }
 
   let poster_url: string | null = null
   if (poster && poster.size > 0) {
-    const ext  = poster.name.split('.').pop() ?? 'webp'
+    const ext  = poster.name.split('.').pop()?.toLowerCase() ?? 'webp'
     const path = `exhibitions/${year}/${crypto.randomUUID()}.${ext}`
     poster_url = await uploadToStorage(supabase, 'ninc-images', path, poster)
   }
 
   const { error } = await supabase.from('exhibitions').insert({
-    title,
-    year,
+    title, year,
     description: description || null,
     theme:       theme || null,
     poster_url,
   })
 
-  if (error) return { error: `저장 실패: ${error.message}` }
+  if (error) {
+    logError('[saveExhibition] DB 저장 실패', error.message)
+    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/work/exhibition')
+  revalidateTag('exhibitions')
   return { success: true }
 }
 
 export async function updateExhibition(id: string, formData: FormData): Promise<ActionResult> {
+  assertValidUUID(id, '전시 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
@@ -692,49 +1009,77 @@ export async function updateExhibition(id: string, formData: FormData): Promise<
   const poster      = formData.get('poster')       as File | null
 
   if (!title) return { error: '전시 제목은 필수입니다.' }
-  const year = parseInt(yearStr)
-  if (!year) return { error: '연도를 입력해주세요.' }
 
-  let poster_url: string | undefined = undefined
+  const titleErr = checkTextLength(title, 'title', '제목')
+  if (titleErr) return { error: titleErr }
+  const descErr  = checkTextLength(description, 'description', '설명')
+  if (descErr)  return { error: descErr }
+
+  const year = parseInt(yearStr)
+  if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
   if (poster && poster.size > 0) {
-    const ext  = poster.name.split('.').pop() ?? 'webp'
-    const path = `exhibitions/${year}/${crypto.randomUUID()}.${ext}`
-    const url = await uploadToStorage(supabase, 'ninc-images', path, poster)
-    if (url) poster_url = url
+    const fileErr = validateImage(poster)
+    if (fileErr) return { error: fileErr }
   }
 
   const updateData: Record<string, unknown> = {
-    title,
-    year,
+    title, year,
     description: description || null,
     theme:       theme || null,
   }
-  if (poster_url !== undefined) updateData.poster_url = poster_url
+
+  if (poster && poster.size > 0) {
+    const { data: existing } = await supabase
+      .from('exhibitions').select('poster_url').eq('id', id).single()
+    if (existing?.poster_url) {
+      await deleteFromStorage(supabase, 'ninc-images', existing.poster_url)
+    }
+    const ext  = poster.name.split('.').pop()?.toLowerCase() ?? 'webp'
+    const path = `exhibitions/${year}/${crypto.randomUUID()}.${ext}`
+    const url  = await uploadToStorage(supabase, 'ninc-images', path, poster)
+    if (url) updateData.poster_url = url
+  }
 
   const { error } = await supabase.from('exhibitions').update(updateData).eq('id', id)
-  if (error) return { error: `수정 실패: ${error.message}` }
+  if (error) {
+    logError('[updateExhibition] DB 수정 실패', error.message)
+    return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/work/exhibition')
+  revalidateTag('exhibitions')
   return { success: true }
 }
 
 export async function deleteExhibition(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '전시 ID')
+
   const supabase = createClient()
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
+  const { data: existing } = await supabase
+    .from('exhibitions').select('poster_url').eq('id', id).single()
+  if (existing?.poster_url) {
+    await deleteFromStorage(supabase, 'ninc-images', existing.poster_url)
+  }
+
   const { error } = await supabase.from('exhibitions').delete().eq('id', id)
-  if (error) return { error: `삭제 실패: ${error.message}` }
+  if (error) {
+    logError('[deleteExhibition] DB 삭제 실패', error.message)
+    return { error: '삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+  }
 
   revalidatePath('/work/exhibition')
+  revalidateTag('exhibitions')
   return { success: true }
 }
 
 // ════════════════════════════════════════════════════════
-// 유형 관리 (content_types 테이블 또는 settings JSON)
+// 설정 (settings 테이블)
 // ════════════════════════════════════════════════════════
 
-/** settings 테이블에서 JSON 설정값 조회 */
 export async function getSettings(key: string): Promise<unknown> {
   const supabase = createClient()
   const { data } = await supabase
@@ -745,7 +1090,6 @@ export async function getSettings(key: string): Promise<unknown> {
   return data?.value ?? null
 }
 
-/** settings 테이블에 JSON 설정값 upsert */
 export async function upsertSettings(key: string, value: unknown): Promise<ActionResult> {
   const supabase = createClient()
   const authError = await requireAuth(supabase)
@@ -755,19 +1099,20 @@ export async function upsertSettings(key: string, value: unknown): Promise<Actio
     .from('settings')
     .upsert({ key, value }, { onConflict: 'key' })
 
-  if (error) return { error: `설정 저장 실패: ${error.message}` }
+  if (error) {
+    logError('[upsertSettings] 설정 저장 실패', error.message)
+    return { error: '설정 저장 중 오류가 발생했습니다.' }
+  }
 
   revalidatePath('/')
   revalidatePath('/admin')
   return { success: true }
 }
 
-/** 아티클 유형 목록 저장 */
 export async function saveArticleTypes(types: { value: string; label: string }[]): Promise<ActionResult> {
   return upsertSettings('article_types', types)
 }
 
-/** 프로젝트 유형 목록 저장 */
 export async function saveProjectTypes(types: { value: string; label: string }[]): Promise<ActionResult> {
   return upsertSettings('project_types', types)
 }
