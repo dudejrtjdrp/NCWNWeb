@@ -78,8 +78,11 @@ async function uploadToStorage(
 // ── 인증 체크 헬퍼 ────────────────────────────────────────
 
 async function requireAuth(supabase: ReturnType<typeof createClient>): Promise<{ error: string } | null> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: '인증이 필요합니다.' }
+  // getUser()는 Supabase Auth 서버에 네트워크 요청을 보내 JWT 검증 →
+  // Server Action 컨텍스트에서는 타이밍/토큰 갱신 문제로 null이 될 수 있음.
+  // getSession()은 쿠키에서 직접 읽으므로 Server Action에서 더 안정적.
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return { error: '인증이 필요합니다.' }
   return null
 }
 
@@ -312,7 +315,10 @@ export async function deleteArticle(id: string): Promise<ActionResult> {
   return { success: true }
 }
 
-/** 홈 노출 아티클 설정 — is_home_featured 플래그 토글 */
+/** 홈 노출 아티클 설정 — is_home_featured 플래그 토글
+ *  ⚠️  사용 전 Supabase에서 마이그레이션 실행 필요:
+ *      ALTER TABLE ncr_reports ADD COLUMN IF NOT EXISTS is_home_featured BOOLEAN NOT NULL DEFAULT false;
+ */
 export async function setHomeFeaturedArticle(id: string, featured: boolean): Promise<ActionResult> {
   const supabase = createClient()
   const authError = await requireAuth(supabase)
@@ -320,11 +326,18 @@ export async function setHomeFeaturedArticle(id: string, featured: boolean): Pro
 
   // featured=true로 설정 시, 기존 featured 2개 초과 방지를 위해 현재 개수 확인
   if (featured) {
-    const { data: current } = await supabase
+    const { data: current, error: countError } = await supabase
       .from('ncr_reports')
       .select('id')
       .eq('is_home_featured', true)
       .neq('id', id)
+
+    if (countError) {
+      if (countError.message.includes('does not exist')) {
+        return { error: 'is_home_featured 컬럼이 없습니다. Supabase SQL Editor에서 마이그레이션을 먼저 실행해주세요. (docs/migration-add-is_home_featured.sql 참조)' }
+      }
+      return { error: `조회 실패: ${countError.message}` }
+    }
 
     if (current && current.length >= 2) {
       return { error: '홈에는 최대 2개의 아티클만 고정할 수 있습니다. 먼저 다른 아티클의 고정을 해제해주세요.' }
@@ -336,7 +349,12 @@ export async function setHomeFeaturedArticle(id: string, featured: boolean): Pro
     .update({ is_home_featured: featured })
     .eq('id', id)
 
-  if (error) return { error: `설정 실패: ${error.message}` }
+  if (error) {
+    if (error.message.includes('does not exist')) {
+      return { error: 'is_home_featured 컬럼이 없습니다. Supabase SQL Editor에서 마이그레이션을 먼저 실행해주세요. (docs/migration-add-is_home_featured.sql 참조)' }
+    }
+    return { error: `설정 실패: ${error.message}` }
+  }
 
   revalidatePath('/')
   return { success: true }
