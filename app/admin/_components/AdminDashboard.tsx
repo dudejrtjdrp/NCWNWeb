@@ -416,7 +416,7 @@ function ArticleTab() {
     const supabase = createClient()
     const { data, error } = await supabase
       .from('ncr_reports')
-      .select('id, title, type, season, published_at, is_home_featured, author, excerpt, content, tags, related_ids, thumbnail_url')
+      .select('id, title, type, season, published_at, author, excerpt, content, tags, related_ids, thumbnail_url')
       .order('published_at', { ascending: false })
       .limit(50)
     if (error) {
