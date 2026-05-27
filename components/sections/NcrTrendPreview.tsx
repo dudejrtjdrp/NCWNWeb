@@ -1,31 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import Badge from '@/components/ui/Badge'
-
-// TODO: Supabase에서 실제 데이터 fetch로 교체
-const PLACEHOLDER_REPORTS = [
-  {
-    id: '1',
-    title: 'AI가 바꾸는 미디어 콘텐츠 산업의 미래',
-    type: 'editorial' as const,
-    thumbnail_url: null,
-    published_at: '2025-05-10',
-  },
-  {
-    id: '2',
-    title: '쇼츠 시대의 스토리텔링 전략',
-    type: 'trend' as const,
-    thumbnail_url: null,
-    published_at: '2025-04-22',
-  },
-  {
-    id: '3',
-    title: '메타버스 콘텐츠 창작자가 되는 법',
-    type: 'card_news' as const,
-    thumbnail_url: null,
-    published_at: '2025-04-05',
-  },
-]
+import { getNcrReports } from '@/lib/supabase/queries/ncr'
 
 const TYPE_LABELS = {
   editorial: '에디토리얼',
@@ -33,7 +9,10 @@ const TYPE_LABELS = {
   card_news: '카드뉴스',
 }
 
-export default function NcrTrendPreview() {
+export default async function NcrTrendPreview() {
+  const reports = await getNcrReports()
+  const preview = reports.slice(0, 3)
+
   return (
     <section className="py-24 border-t border-white/5">
       <div className="page-container">
@@ -60,11 +39,8 @@ export default function NcrTrendPreview() {
 
         {/* 리포트 카드 그리드 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {PLACEHOLDER_REPORTS.map((report) => (
-            <div
-              key={report.id}
-              className="card-base group cursor-pointer"
-            >
+          {preview.map((report) => (
+            <Link key={report.id} href={`/ncr-trend/${report.id}`} className="card-base group cursor-pointer">
               {/* 썸네일 */}
               <div className="aspect-[16/9] bg-nwcn-dark-3 relative overflow-hidden">
                 {report.thumbnail_url ? (
@@ -93,7 +69,7 @@ export default function NcrTrendPreview() {
                   {new Date(report.published_at).toLocaleDateString('ko-KR')}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

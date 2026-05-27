@@ -9,7 +9,26 @@
  *   SUPABASE_SERVICE_ROLE_KEY
  */
 
-import 'dotenv/config'
+import { config } from 'dotenv'
+import { resolve } from 'path'
+
+// .env.local 우선 로드 (Next.js 관례)
+config({ path: resolve(process.cwd(), '.env.local') })
+config({ path: resolve(process.cwd(), '.env') })
+
+// Node.js 18 WebSocket 폴리필 (realtime 클라이언트 초기화 오류 방지)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+if (typeof (globalThis as any).WebSocket === 'undefined') {
+  // 더미 WebSocket — seed 스크립트는 realtime 기능을 사용하지 않음
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(globalThis as any).WebSocket = class DummyWS {
+    constructor() {}
+    addEventListener() {}
+    removeEventListener() {}
+    close() {}
+  }
+}
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -23,6 +42,8 @@ if (!supabaseUrl || !serviceRoleKey) {
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
+  // seed 스크립트에서 realtime 채널은 불필요
+  realtime: { timeout: 0 } as never,
 })
 
 // ── 유틸 ──────────────────────────────────────────────────
@@ -285,42 +306,66 @@ async function seedProjects() {
       type: 'industry',
       partner: '○○ 주식회사',
       year: 2025,
-      description: '산학협력을 통한 기업 홍보 영상 제작 프로젝트',
+      description: '산학협력을 통한 기업 홍보 영상 제작 프로젝트입니다. 브랜드 아이덴티티를 영상으로 표현하는 과정에서 학생들이 실무 경험을 쌓았습니다.',
+      participants: ['홍길동', '이영희', '김민수'],
+      duration: '2025.03 – 2025.06',
+      outcome: '기업 공식 유튜브 채널 업로드 및 사내 행사 활용',
+      skills: ['영상 기획', '촬영', '편집', '모션그래픽'],
     },
     {
       title: '해외 미디어아트 교류전',
       type: 'international',
       partner: '일본 ○○대학교',
       year: 2024,
-      description: '일본 자매결연 대학과의 공동 미디어아트 전시',
+      description: '일본 자매결연 대학과의 공동 미디어아트 전시 프로젝트입니다. 양교 학생들이 공동으로 작품을 기획·제작하여 양국의 문화적 감수성을 담은 미디어아트를 선보였습니다.',
+      participants: ['박나연', '최지우', '정은서'],
+      duration: '2024.08 – 2024.11',
+      outcome: '도쿄 갤러리 전시 및 온라인 아카이브 공개',
+      skills: ['미디어아트', '설치미술', '인터랙션 디자인'],
     },
     {
       title: '지역 문화콘텐츠 제작 지원',
       type: 'industry',
       partner: '○○ 시청',
       year: 2024,
-      description: '지역 문화 홍보 콘텐츠 기획 및 제작',
+      description: '지역 문화 홍보 콘텐츠 기획 및 제작 프로젝트입니다. 지역의 역사·문화 자원을 발굴하고 이를 영상·그래픽 콘텐츠로 제작하여 시민들과 소통하였습니다.',
+      participants: ['한서윤', '이준호'],
+      duration: '2024.04 – 2024.07',
+      outcome: '시청 공식 SNS 채널 콘텐츠 시리즈 제작 완료',
+      skills: ['콘텐츠 기획', '영상 제작', '그래픽 디자인', 'SNS 마케팅'],
     },
     {
       title: '베트남 RMIT 글로벌 워크숍',
       type: 'international',
       partner: 'RMIT Vietnam',
       year: 2024,
-      description: 'M-NODE: DIMA KR × RMIT VN 글로벌 워크숍 참가',
+      description: 'M-NODE: DIMA KR × RMIT VN 글로벌 워크숍 참가 프로젝트입니다. 한국과 베트남 학생들이 함께 디지털 미디어 아트 작품을 기획·제작하는 집중 워크숍에 참여하였습니다.',
+      participants: ['박서연', '김도현', '오현석'],
+      duration: '2024.07 (2주)',
+      outcome: '합동 전시회 및 결과 보고서 발표',
+      skills: ['국제 협업', '디지털 미디어', '프로젝트 매니지먼트'],
     },
     {
       title: '보성 미디어파사드 워크숍',
       type: 'industry',
       partner: '보성군',
       year: 2025,
-      description: '지자체 연계 미디어파사드 콘텐츠 제작 실습',
+      description: '지자체 연계 미디어파사드 콘텐츠 제작 실습 프로젝트입니다. 보성의 자연경관과 차(茶) 문화를 모티프로 한 대형 미디어파사드 콘텐츠를 기획·제작하였습니다.',
+      participants: ['노지연', '황민서', '강민준'],
+      duration: '2025.05 – 2025.06',
+      outcome: '보성 녹차밭 야간 미디어파사드 행사 운영',
+      skills: ['미디어파사드', '모션그래픽', '공간연출'],
     },
     {
       title: '○○ 공공기관 홍보영상',
       type: 'industry',
       partner: '○○ 공단',
       year: 2023,
-      description: '공공기관 대상 홍보 영상 기획 및 제작',
+      description: '공공기관 대상 홍보 영상 기획 및 제작 프로젝트입니다. 공공 서비스의 가치를 시민들에게 친근하게 전달하기 위한 스토리텔링 방식을 연구하고 적용하였습니다.',
+      participants: ['임지민', '윤채원'],
+      duration: '2023.09 – 2023.12',
+      outcome: '공단 공식 채널 및 TV 홍보 영상 납품',
+      skills: ['영상 기획', '인터뷰 촬영', '후반 제작'],
     },
   ]
 

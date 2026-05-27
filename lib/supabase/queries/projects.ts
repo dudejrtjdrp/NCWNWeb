@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createDbClient as createClient } from '@/lib/supabase/db'
 
 export interface ProjectItem {
   id: string
@@ -8,6 +8,10 @@ export interface ProjectItem {
   year: number
   description: string | null
   thumbnail_url: string | null
+  participants: string[] | null
+  duration: string | null
+  outcome: string | null
+  skills: string[] | null
   created_at: string
 }
 

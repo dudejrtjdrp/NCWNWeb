@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createDbClient as createClient } from '@/lib/supabase/db'
 
 export interface AwardItem {
   id: string

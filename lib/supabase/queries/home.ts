@@ -7,7 +7,7 @@
  * 각 컴포넌트에서 빈 배열일 경우 목데이터로 fallback 처리함.
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createDbClient as createClient } from '@/lib/supabase/db'
 
 export interface HomeNincCard {
   id: string

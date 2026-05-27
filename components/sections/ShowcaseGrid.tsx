@@ -4,25 +4,17 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
-
-// TODO: Supabase fetch로 교체
-const PLACEHOLDER_WORKS = [
-  { id: '1', title: '빛의 도시', author: '김민준', tech_stack: ['Video', 'Motion'], view_count: 342, year: 2025, thumbnail_url: null },
-  { id: '2', title: 'Digital Fragments', author: '이서연', tech_stack: ['Graphic', 'AI'], view_count: 218, year: 2025, thumbnail_url: null },
-  { id: '3', title: '도시의 소리', author: '박태양', tech_stack: ['Web', 'Video'], view_count: 189, year: 2025, thumbnail_url: null },
-  { id: '4', title: 'Metamorphosis', author: '최지우', tech_stack: ['Motion', 'Graphic'], view_count: 156, year: 2024, thumbnail_url: null },
-  { id: '5', title: '연결의 언어', author: '정하늘', tech_stack: ['Web', 'AI'], view_count: 134, year: 2024, thumbnail_url: null },
-  { id: '6', title: 'Still Life 2024', author: '윤채원', tech_stack: ['Photo'], view_count: 98, year: 2024, thumbnail_url: null },
-]
+import type { WorkItem } from '@/lib/supabase/queries/works'
 
 interface ShowcaseGridProps {
+  works: WorkItem[]
   activeFilter: string
 }
 
-export default function ShowcaseGrid({ activeFilter }: ShowcaseGridProps) {
+export default function ShowcaseGrid({ works, activeFilter }: ShowcaseGridProps) {
   const filtered = activeFilter === '전체'
-    ? PLACEHOLDER_WORKS
-    : PLACEHOLDER_WORKS.filter((w) => w.tech_stack.includes(activeFilter))
+    ? works
+    : works.filter((w) => w.tech_stack.includes(activeFilter))
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
