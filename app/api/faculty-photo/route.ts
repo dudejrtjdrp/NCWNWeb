@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { logError, logInfo } from '../../../lib/server/logger'
 
 const VALID_NAMES = new Set([
   'bae-yun-gyeong',
@@ -17,9 +18,20 @@ const VALID_NAMES = new Set([
 ])
 
 export async function GET(req: NextRequest) {
-  const name = req.nextUrl.searchParams.get('name')
-  if (!name || !VALID_NAMES.has(name)) {
-    return new NextResponse('Not found', { status: 404 })
+  try {
+    const name = req.nextUrl.searchParams.get('name')
+    if (!name || !VALID_NAMES.has(name)) {
+      return new NextResponse(JSON.stringify({ error: 'Not found' }), { status: 404, headers: { 'content-type': 'application/json' } })
+    }
+
+    // 정적 자원으로 리다이렉트 — CDN 캐시를 적극 활용하도록 Cache-Control 설정
+    const target = new URL(`/images/faculty/${name}.png`, req.url)
+    const resp = NextResponse.redirect(target)
+    resp.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+    logInfo('faculty-photo redirect', name)
+    return resp
+  } catch (err) {
+    logError('faculty-photo GET failed', err)
+    return new NextResponse(JSON.stringify({ error: 'Internal Server Error' }), { status: 500, headers: { 'content-type': 'application/json' } })
   }
-  return NextResponse.redirect(new URL(`/images/faculty/${name}.png`, req.url))
 }

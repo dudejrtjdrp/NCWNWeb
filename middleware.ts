@@ -40,9 +40,22 @@ export async function middleware(request: NextRequest) {
     // 세션 갱신 트리거 (반환값 불필요)
     await supabase.auth.getUser()
 
+    // 보안 관련 기본 응답 헤더 추가
+    supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
+    supabaseResponse.headers.set('X-Frame-Options', 'DENY')
+    supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    supabaseResponse.headers.set('Permissions-Policy', 'geolocation=()')
+
     return supabaseResponse
   } catch {
-    return NextResponse.next({ request })
+    // 미들웨어에서 발생한 예외는 로깅해두고 요청을 통과시킵니다.
+    // 향후 Sentry/Datadog 같은 외부 에러 집계로 전송하도록 확장 권장.
+    // eslint-disable-next-line no-console
+    console.error('Middleware error during session refresh')
+    const resp = NextResponse.next({ request })
+    resp.headers.set('X-Content-Type-Options', 'nosniff')
+    resp.headers.set('X-Frame-Options', 'DENY')
+    return resp
   }
 }
 
