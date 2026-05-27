@@ -50,6 +50,9 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },
   },
+  verification: {
+    google: 'iF0aTOLZZaC4hTAROA-qQXqZaJ2jitoET0q6iWam-mk',
+  },
 }
 
 export const viewport: Viewport = {
