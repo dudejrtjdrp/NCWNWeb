@@ -20,7 +20,6 @@ export const POST = withHandler(async (_request: NextRequest, { params }: { para
   checkRateLimit(_request, 'works-view', 30, 60_000)
 
   const supabase = createClient()
-  const supabase = createClient()
 
   // 우선적으로 Postgres RPC (atomic increment) 사용 시도
   try {
