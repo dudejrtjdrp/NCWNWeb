@@ -1,148 +1,12 @@
 /**
  * Awards 세부 페이지: /ninc/awards/[id]
- * 수상 항목의 상세 내용을 보여줍니다.
- * 서버 연결 전까지 정적 mock 데이터 사용.
+ * Server Component — Supabase에서 단일 수상 데이터 fetch
  */
 
 import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { notFound } from 'next/navigation'
-
-// ── 임시 데이터 (서버 연결 시 fetch로 교체) ────────────────
-const AWARDS_DATA = [
-  {
-    id: '1',
-    year: 2025,
-    competition: '대한민국 광고대상',
-    award_name: '금상',
-    winner: '홍길동',
-    team_members: ['홍길동', '이영희'],
-    description: '국내 최고 권위의 광고 시상식에서 금상을 수상하였습니다. 혁신적인 디지털 광고 캠페인으로 심사위원단의 높은 평가를 받았습니다. 브랜드 스토리텔링과 감각적인 영상 편집이 돋보였으며, 수용자 분석을 바탕으로 한 타깃 메시지 전달이 특히 인정받았습니다.',
-    thumbnail_url: null,
-    category: '광고',
-    hosted_by: '한국광고총연합회',
-  },
-  {
-    id: '2',
-    year: 2025,
-    competition: 'K-콘텐츠 공모전',
-    award_name: '최우수상',
-    winner: '이영희',
-    team_members: ['이영희'],
-    description: 'K-콘텐츠의 글로벌 경쟁력을 높이기 위한 공모전에서 최우수상을 수상하였습니다. 한국 문화의 독창성을 현대적 감각으로 재해석한 작품으로 심사위원들로부터 호평을 받았습니다.',
-    thumbnail_url: null,
-    category: '콘텐츠',
-    hosted_by: '문화체육관광부',
-  },
-  {
-    id: '3',
-    year: 2024,
-    competition: '방송영상 콘텐츠 경진대회',
-    award_name: '우수상',
-    winner: '김민수',
-    team_members: ['김민수', '박태양'],
-    description: '방송영상 분야의 신진 창작자를 발굴하는 경진대회에서 우수상을 수상하였습니다. 독창적인 서사 구조와 뛰어난 영상미로 심사위원단의 호평을 받았습니다.',
-    thumbnail_url: null,
-    category: '영상',
-    hosted_by: '한국방송영상산업진흥원',
-  },
-  {
-    id: '4',
-    year: 2024,
-    competition: '전국 대학생 미디어 공모전',
-    award_name: '장려상',
-    winner: '최지우',
-    team_members: ['최지우'],
-    description: '전국 대학생을 대상으로 한 미디어 공모전에서 장려상을 수상하였습니다. 소셜미디어 트렌드를 반영한 참신한 콘텐츠 기획으로 주목을 받았습니다.',
-    thumbnail_url: null,
-    category: '미디어',
-    hosted_by: '한국미디어학회',
-  },
-  {
-    id: '5',
-    year: 2024,
-    competition: '한국광고학회 공모전',
-    award_name: '대상',
-    winner: '박서연',
-    team_members: ['박서연', '김도현'],
-    description: '한국광고학회 주관 공모전에서 영예의 대상을 수상하였습니다. 데이터 기반의 광고 전략과 창의적인 크리에이티브의 조화로 대상의 영예를 안았습니다.',
-    thumbnail_url: null,
-    category: '광고',
-    hosted_by: '한국광고학회',
-  },
-  {
-    id: '6',
-    year: 2024,
-    competition: '디지털 콘텐츠 창작 경진대회',
-    award_name: '우수상',
-    winner: '이준호',
-    team_members: ['이준호'],
-    description: '디지털 환경에서의 창의적 콘텐츠 제작 역량을 겨루는 경진대회에서 우수상을 수상하였습니다.',
-    thumbnail_url: null,
-    category: '디지털',
-    hosted_by: '한국콘텐츠진흥원',
-  },
-  {
-    id: '7',
-    year: 2023,
-    competition: '대학생 영상 페스티벌',
-    award_name: '최우수상',
-    winner: '박나연',
-    team_members: ['박나연', '강민준'],
-    description: '대학생 영상 창작자들의 축제에서 최우수상을 수상하였습니다. 실험적인 영상 언어와 독창적인 내러티브로 심사위원의 극찬을 받았습니다.',
-    thumbnail_url: null,
-    category: '영상',
-    hosted_by: '대학영화제연합',
-  },
-  {
-    id: '8',
-    year: 2023,
-    competition: 'NCR 트렌드 리포트 공모전',
-    award_name: '대상',
-    winner: '정은서',
-    team_members: ['정은서'],
-    description: 'NCR에서 주관하는 미디어 트렌드 리포트 공모전에서 대상을 수상하였습니다. 심층적인 미디어 분석과 명확한 시각화로 높은 평가를 받았습니다.',
-    thumbnail_url: null,
-    category: '리포트',
-    hosted_by: 'NCR',
-  },
-  {
-    id: '9',
-    year: 2023,
-    competition: '스마트 미디어 어워드',
-    award_name: '금상',
-    winner: '한서윤',
-    team_members: ['한서윤', '임지민'],
-    description: '스마트 미디어 분야의 혁신적인 작품을 선정하는 어워드에서 금상을 수상하였습니다.',
-    thumbnail_url: null,
-    category: '스마트미디어',
-    hosted_by: '스마트미디어산업진흥협회',
-  },
-  {
-    id: '10',
-    year: 2023,
-    competition: '전국 방송 콘텐츠 공모전',
-    award_name: '장려상',
-    winner: '오현석',
-    team_members: ['오현석'],
-    description: '전국 단위의 방송 콘텐츠 공모전에서 장려상을 수상하였습니다.',
-    thumbnail_url: null,
-    category: '방송',
-    hosted_by: '방송통신위원회',
-  },
-  {
-    id: '11',
-    year: 2022,
-    competition: '대한민국 학생 창작 공모전',
-    award_name: '우수상',
-    winner: '노지연',
-    team_members: ['노지연', '황민서'],
-    description: '대한민국 학생 창작 공모전에서 우수상을 수상하였습니다. 실험적인 미디어 아트 작품으로 창의성과 기술력을 동시에 인정받았습니다.',
-    thumbnail_url: null,
-    category: '미디어아트',
-    hosted_by: '한국예술문화단체총연합회',
-  },
-]
+import { getAwardById } from '@/lib/supabase/queries/awards'
 
 const AWARD_GRADE_COLOR: Record<string, string> = {
   '대상': 'bg-nwcn-green text-nwcn-text-default',
@@ -156,8 +20,8 @@ interface PageProps {
   params: { id: string }
 }
 
-export default function AwardDetailPage({ params }: PageProps) {
-  const award = AWARDS_DATA.find((a) => a.id === params.id)
+export default async function AwardDetailPage({ params }: PageProps) {
+  const award = await getAwardById(params.id)
   if (!award) notFound()
 
   return (
@@ -179,7 +43,9 @@ export default function AwardDetailPage({ params }: PageProps) {
             <span className={`font-body text-sm font-semibold px-4 py-1.5 rounded-full ${AWARD_GRADE_COLOR[award.award_name] ?? 'bg-white/10 text-white'}`}>
               {award.award_name}
             </span>
-            <span className="font-body text-sm text-nwcn-text-sub">{award.category}</span>
+            {award.category && (
+              <span className="font-body text-sm text-nwcn-text-sub">{award.category}</span>
+            )}
           </div>
 
           {/* 대회명 */}
@@ -189,7 +55,7 @@ export default function AwardDetailPage({ params }: PageProps) {
 
           {/* 연도 + 주최 */}
           <p className="font-body text-sm text-nwcn-text-sub mb-10">
-            {award.year}년 · {award.hosted_by}
+            {award.year}년{award.hosted_by ? ` · ${award.hosted_by}` : ''}
           </p>
         </div>
 
@@ -217,10 +83,12 @@ export default function AwardDetailPage({ params }: PageProps) {
 
                 {/* 정보 목록 */}
                 <div className="p-6 space-y-4">
-                  <div>
-                    <p className="font-body text-xs text-nwcn-text-sub mb-1">수상자</p>
-                    <p className="font-body text-sm font-semibold text-nwcn-text-default">{award.winner}</p>
-                  </div>
+                  {award.winner && (
+                    <div>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">수상자</p>
+                      <p className="font-body text-sm font-semibold text-nwcn-text-default">{award.winner}</p>
+                    </div>
+                  )}
                   {award.team_members.length > 1 && (
                     <div>
                       <p className="font-body text-xs text-nwcn-text-sub mb-1">팀원</p>
@@ -233,14 +101,18 @@ export default function AwardDetailPage({ params }: PageProps) {
                     <p className="font-body text-xs text-nwcn-text-sub mb-1">수상 연도</p>
                     <p className="font-body text-sm text-nwcn-text-muted">{award.year}년</p>
                   </div>
-                  <div>
-                    <p className="font-body text-xs text-nwcn-text-sub mb-1">주최</p>
-                    <p className="font-body text-sm text-nwcn-text-muted">{award.hosted_by}</p>
-                  </div>
-                  <div>
-                    <p className="font-body text-xs text-nwcn-text-sub mb-1">분야</p>
-                    <p className="font-body text-sm text-nwcn-text-muted">{award.category}</p>
-                  </div>
+                  {award.hosted_by && (
+                    <div>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">주최</p>
+                      <p className="font-body text-sm text-nwcn-text-muted">{award.hosted_by}</p>
+                    </div>
+                  )}
+                  {award.category && (
+                    <div>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">분야</p>
+                      <p className="font-body text-sm text-nwcn-text-muted">{award.category}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </aside>
@@ -253,7 +125,7 @@ export default function AwardDetailPage({ params }: PageProps) {
                   수상 소개
                 </h2>
                 <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed">
-                  {award.description}
+                  {award.description ?? '상세 내용이 준비 중입니다.'}
                 </p>
               </section>
 
@@ -268,7 +140,6 @@ export default function AwardDetailPage({ params }: PageProps) {
                       key={member}
                       className="flex items-center gap-3 bg-[#f5f5f5] px-4 py-3 rounded-xl"
                     >
-                      {/* 아바타 */}
                       <div className="w-9 h-9 rounded-full bg-nwcn-text-sub/20 flex items-center justify-center flex-shrink-0">
                         <span className="font-body text-sm font-semibold text-nwcn-text-muted">
                           {member.charAt(0)}
@@ -285,7 +156,7 @@ export default function AwardDetailPage({ params }: PageProps) {
                 </div>
               </section>
 
-              {/* 섹션: 수상 플레이크 (장식) */}
+              {/* 수상 정보 카드 */}
               <div className="bg-[#f9f9f9] rounded-2xl p-6 flex items-center gap-4">
                 <div className="w-12 h-12 bg-nwcn-text-sub/10 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B9B8B6" strokeWidth="1.5">

@@ -2,16 +2,21 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import WorkHero from '@/components/base/WorkHero'
 import SubNav from '@/components/common/SubNav'
 import { WORK_NAV_ITEMS } from '@/constants/nav-items'
+import { getExhibitions } from '@/lib/supabase/queries/exhibitions'
 
-const EXHIBITION_DATA = [
-  { year: 2025, title: 'FLUX — 흐름과 변화', description: '2025 졸업전시', theme: '변화와 흐름의 미학', poster_url: null },
-  { year: 2024, title: 'SIGNAL — 신호와 연결', description: '2024 졸업전시', theme: '연결과 소통의 시대', poster_url: null },
-  { year: 2023, title: 'BOUNDARY — 경계를 넘어', description: '2023 졸업전시', theme: '경계 해체와 융합', poster_url: null },
-  { year: 2022, title: 'NODE — 연결의 시작', description: '2022 졸업전시', theme: '네트워크와 관계망', poster_url: null },
-  { year: 2021, title: 'PIXEL — 디지털의 근원', description: '2021 졸업전시', theme: '디지털 본질 탐구', poster_url: null },
+// mock 데이터 (서버 데이터 없을 때 fallback)
+const FALLBACK_DATA = [
+  { id: 'mock-2025', year: 2025, title: 'FLUX — 흐름과 변화', description: '2025 졸업전시', theme: '변화와 흐름의 미학', poster_url: null, created_at: '' },
+  { id: 'mock-2024', year: 2024, title: 'SIGNAL — 신호와 연결', description: '2024 졸업전시', theme: '연결과 소통의 시대', poster_url: null, created_at: '' },
+  { id: 'mock-2023', year: 2023, title: 'BOUNDARY — 경계를 넘어', description: '2023 졸업전시', theme: '경계 해체와 융합', poster_url: null, created_at: '' },
+  { id: 'mock-2022', year: 2022, title: 'NODE — 연결의 시작', description: '2022 졸업전시', theme: '네트워크와 관계망', poster_url: null, created_at: '' },
+  { id: 'mock-2021', year: 2021, title: 'PIXEL — 디지털의 근원', description: '2021 졸업전시', theme: '디지털 본질 탐구', poster_url: null, created_at: '' },
 ]
 
-export default function ExhibitionPage() {
+export default async function ExhibitionPage() {
+  const serverData = await getExhibitions()
+  const EXHIBITION_DATA = serverData.length > 0 ? serverData : FALLBACK_DATA
+
   return (
     <SubPageLayout>
       {/* 히어로 */}
@@ -72,7 +77,7 @@ export default function ExhibitionPage() {
 
             <div className="space-y-6">
               {EXHIBITION_DATA.slice(1).map((item) => (
-                <div key={item.year} className="flex gap-8 group">
+                <div key={item.id ?? item.year} className="flex gap-8 group">
                   {/* 연도 */}
                   <div className="flex-shrink-0 w-[80px] text-right relative pt-6">
                     <span className="font-brand font-bold text-[15px] text-nwcn-text-default">

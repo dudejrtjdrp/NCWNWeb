@@ -4,121 +4,19 @@
  * - design: 이미지 갤러리 형식
  * - video: 비디오 플레이어 형식
  * - 3d: 3D 뷰어 형식 (iframe 임베드)
- *
- * 서버 연결 전까지 정적 mock 데이터 사용.
  */
 
-'use client'
-
-import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import Badge from '@/components/ui/Badge'
-import { useParams, notFound } from 'next/navigation'
+import { notFound } from 'next/navigation'
+import { getWorkById, type WorkType } from '@/lib/supabase/queries/works'
+import DesignViewer from './DesignViewer'
+import ViewCountTracker from './ViewCountTracker'
 
-// ── 작업물 타입 ────────────────────────────────────────────
-type WorkType = 'design' | 'video' | '3d'
+// ── 뷰어 컴포넌트 ─────────────────────────────────────────
 
-interface WorkItem {
-  id: string
-  title: string
-  author: string
-  year: number
-  description: string
-  type: WorkType
-  tech_stack: string[]
-  view_count: number
-  thumbnail_url: string | null
-  // design 전용
-  images?: string[]
-  // video 전용
-  video_url?: string
-  video_embed?: string  // iframe src (유튜브, 비메오 등)
-  // 3d 전용
-  model_embed?: string  // Sketchfab 등 iframe src
-  model_url?: string
-}
-
-// ── Mock 데이터 ────────────────────────────────────────────
-const WORKS: WorkItem[] = [
-  {
-    id: '1',
-    title: '빛의 도시',
-    author: '김민준',
-    year: 2025,
-    description: '도시의 빛과 그림자를 테마로 한 단편 영상 작품입니다. 어두운 도시 풍경 속에서 빛이 가진 희망의 메시지를 시각적으로 담아냈습니다. 드론 촬영과 타임랩스 기법을 결합하여 도시의 낮과 밤을 역동적으로 표현하였습니다.',
-    type: 'video',
-    tech_stack: ['Video', 'Motion'],
-    view_count: 342,
-    thumbnail_url: null,
-    video_embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-  },
-  {
-    id: '2',
-    title: 'Digital Fragments',
-    author: '이서연',
-    year: 2025,
-    description: '디지털 세계와 물리 세계의 경계를 탐구하는 그래픽 디자인 시리즈입니다. 픽셀과 기하학적 형태를 활용하여 현대인의 분절된 정체성을 표현하였습니다.',
-    type: 'design',
-    tech_stack: ['Graphic', 'AI'],
-    view_count: 218,
-    thumbnail_url: null,
-    images: [null, null, null, null, null, null] as any,
-  },
-  {
-    id: '3',
-    title: '도시의 소리',
-    author: '박태양',
-    year: 2025,
-    description: '도시 공간의 사운드스케이프를 시각화한 인터랙티브 웹 프로젝트입니다. 사용자가 소리를 통해 도시를 새롭게 경험할 수 있도록 설계되었습니다.',
-    type: 'video',
-    tech_stack: ['Web', 'Video'],
-    view_count: 189,
-    thumbnail_url: null,
-    video_embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-  },
-  {
-    id: '4',
-    title: 'Metamorphosis',
-    author: '최지우',
-    year: 2024,
-    description: '변태(Metamorphosis)를 주제로 한 3D 애니메이션 작품입니다. 블렌더를 활용하여 생명체의 변화 과정을 추상적으로 표현하였습니다. 유기적인 형태와 역동적인 움직임이 특징입니다.',
-    type: '3d',
-    tech_stack: ['Motion', 'Graphic'],
-    view_count: 156,
-    thumbnail_url: null,
-    model_embed: 'https://sketchfab.com/models/dGtzXf5MhE54a8RgPi34Kw/embed',
-  },
-  {
-    id: '5',
-    title: '연결의 언어',
-    author: '정하늘',
-    year: 2024,
-    description: '사람과 사람 사이의 연결을 시각 언어로 표현한 그래픽 포스터 시리즈입니다. 타이포그래피와 일러스트레이션을 결합하여 소통의 의미를 탐구합니다.',
-    type: 'design',
-    tech_stack: ['Web', 'AI'],
-    view_count: 134,
-    thumbnail_url: null,
-    images: [null, null, null, null] as any,
-  },
-  {
-    id: '6',
-    title: 'Still Life 2024',
-    author: '윤채원',
-    year: 2024,
-    description: '정물 사진 시리즈입니다. 일상적인 사물들을 새로운 시각으로 포착하여 평범한 것들의 아름다움을 발견합니다.',
-    type: 'design',
-    tech_stack: ['Photo'],
-    view_count: 98,
-    thumbnail_url: null,
-    images: [null, null, null] as any,
-  },
-]
-
-// ── 타입별 뷰어 컴포넌트 ───────────────────────────────────
-
-function VideoViewer({ embed, title }: { embed?: string; title: string }) {
+function VideoViewer({ embed, title }: { embed?: string | null; title: string }) {
   return (
     <div className="w-full">
       {embed ? (
@@ -147,55 +45,7 @@ function VideoViewer({ embed, title }: { embed?: string; title: string }) {
   )
 }
 
-function DesignViewer({ images, title }: { images?: (string | null)[]; title: string }) {
-  const [selected, setSelected] = useState(0)
-  const imageList = images ?? []
-
-  return (
-    <div className="w-full space-y-4">
-      {/* 메인 이미지 */}
-      <div className="aspect-[4/3] w-full rounded-2xl bg-[#efefef] overflow-hidden flex items-center justify-center">
-        {imageList[selected] ? (
-          <Image src={imageList[selected]!} alt={`${title} ${selected + 1}`} fill className="object-contain" />
-        ) : (
-          <div className="flex flex-col items-center gap-3 opacity-30">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.2">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <polyline points="21 15 16 10 5 21" />
-            </svg>
-            <span className="font-body text-sm text-nwcn-text-sub">이미지 {selected + 1}</span>
-          </div>
-        )}
-      </div>
-
-      {/* 썸네일 그리드 */}
-      {imageList.length > 1 && (
-        <div className="grid grid-cols-6 gap-2">
-          {imageList.map((img, i) => (
-            <button
-              key={i}
-              onClick={() => setSelected(i)}
-              className={`aspect-square rounded-lg overflow-hidden bg-[#efefef] border-2 transition-all ${
-                selected === i ? 'border-nwcn-text-default' : 'border-transparent hover:border-nwcn-text-sub/40'
-              }`}
-            >
-              {img ? (
-                <Image src={img} alt={`thumb ${i + 1}`} width={80} height={80} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="font-body text-[10px] text-nwcn-text-sub">{i + 1}</span>
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ThreeDViewer({ embed, title }: { embed?: string; title: string }) {
+function ThreeDViewer({ embed, title }: { embed?: string | null; title: string }) {
   return (
     <div className="w-full">
       {embed ? (
@@ -256,14 +106,19 @@ const TYPE_ICON: Record<WorkType, React.ReactNode> = {
   ),
 }
 
-// ── 페이지 컴포넌트 ────────────────────────────────────────
-export default function WorkDetailPage() {
-  const params = useParams()
-  const work = WORKS.find((w) => w.id === params.id)
+interface PageProps {
+  params: { id: string }
+}
+
+export default async function WorkDetailPage({ params }: PageProps) {
+  const work = await getWorkById(params.id)
   if (!work) notFound()
 
   return (
     <SubPageLayout>
+      {/* 조회수 증가 트래커 (Client Component, fire-and-forget) */}
+      <ViewCountTracker workId={work.id} />
+
       {/* ── 히어로 헤더 (다크) ── */}
       <div className="bg-nwcn-dark pt-[80px] pb-0">
         <div className="page-container pt-12 pb-0">
@@ -314,7 +169,7 @@ export default function WorkDetailPage() {
                 <VideoViewer embed={work.video_embed} title={work.title} />
               )}
               {work.type === 'design' && (
-                <DesignViewer images={work.images} title={work.title} />
+                <DesignViewer images={work.images ?? []} title={work.title} />
               )}
               {work.type === '3d' && (
                 <ThreeDViewer embed={work.model_embed} title={work.title} />
@@ -332,7 +187,6 @@ export default function WorkDetailPage() {
                   </p>
                 </div>
 
-                {/* 구분선 */}
                 <div className="border-t border-white/10" />
 
                 {/* 작가 정보 */}
@@ -351,7 +205,6 @@ export default function WorkDetailPage() {
                   </div>
                 </div>
 
-                {/* 구분선 */}
                 <div className="border-t border-white/10" />
 
                 {/* 기술 스택 */}
@@ -366,7 +219,6 @@ export default function WorkDetailPage() {
                   </div>
                 </div>
 
-                {/* 구분선 */}
                 <div className="border-t border-white/10" />
 
                 {/* 조회수 */}
