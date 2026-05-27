@@ -1,11 +1,16 @@
 /**
- * BASE 컴포넌트: NcrTrendSection
+ * BASE 컴포넌트: NcrTrendSection (Server Component)
  * Figma node-id: 376:1609 (NCRTrendSection)
+ *
+ * 데이터 전략:
+ * - ncr_reports에서 published_at DESC 기준 최신 2개 fetch
+ * - reports[0] → 메인 카드 (좌), reports[1] → 서브 카드 (우)
+ * - 각각 없으면 MOCK_MAIN / MOCK_SUB fallback
  *
  * 디자인 스펙:
  * - 헤더: "NCR Trend" A2Z체 23.077px, black
- * - 메인 카드 (좌): 585×418 썸네일 + "Talks" 태그(green) + 제목(green) + 날짜
- * - 서브 카드 (우): "Contents" 태그(yellow) + 제목 + 날짜 + 402px 썸네일
+ * - 메인 카드 (좌): 썸네일 + Talks 태그(green) + 제목(green) + 날짜
+ * - 서브 카드 (우): Contents 태그(yellow) + 제목 + 날짜 + 썸네일
  * - 배경: white
  * - 호버: scale-up + shadow 애니메이션
  */
@@ -13,17 +18,63 @@
 import Link from 'next/link'
 import Tag from '@/components/base/Tag'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
+import { getHomeNcrReports, type HomeNcrReport } from '@/lib/supabase/queries/home'
 
-const ASSETS = {
-  mainThumb: '/images/ncr/main.svg',
-  subThumb: '/images/ncr/sub.png',
+// ── 목데이터 (Supabase에 데이터 없을 때 fallback) ─────────────
+const MOCK_MAIN: HomeNcrReport = {
+  id: 'mock-main',
+  title: 'AI 시대, 학과의 강점과 비전을 묻다',
+  type: 'editorial',
+  thumbnail_url: '/images/ncr/main.svg',
+  published_at: '2025-08-25T00:00:00Z',
+  season: null,
+  excerpt: null,
+}
+
+const MOCK_SUB: HomeNcrReport = {
+  id: 'mock-sub',
+  title: '보성 미디어파사드 워크숍',
+  type: 'trend',
+  thumbnail_url: '/images/ncr/sub.png',
+  published_at: '2026-05-05T00:00:00Z',
+  season: null,
+  excerpt: null,
+}
+
+// ── 타입별 태그 매핑 ──────────────────────────────────────────
+const TYPE_TAG_TYPE: Record<HomeNcrReport['type'], 'talks' | 'contents'> = {
+  editorial: 'talks',
+  trend: 'talks',
+  card_news: 'contents',
+}
+
+// 날짜 포맷: "Aug 25 2025"
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+// mock ID인지 확인 (링크 분기용)
+function getArticleHref(id: string): string {
+  return id.startsWith('mock') ? '/ncr-trend/latest' : `/ncr-trend/${id}`
 }
 
 export interface NcrTrendSectionProps {
   className?: string
 }
 
-export default function NcrTrendSection({ className = '' }: NcrTrendSectionProps) {
+export default async function NcrTrendSection({ className = '' }: NcrTrendSectionProps) {
+  // Supabase fetch → 실패하거나 데이터 없으면 목데이터 사용
+  const reports = await getHomeNcrReports()
+  const mainCard = reports[0] ?? MOCK_MAIN
+  const subCard  = reports[1] ?? MOCK_SUB
+
+  const mainHref = getArticleHref(mainCard.id)
+  const subHref  = getArticleHref(subCard.id)
+
   return (
     <section
       className={`bg-white py-[60px] px-4 ${className}`}
@@ -49,101 +100,115 @@ export default function NcrTrendSection({ className = '' }: NcrTrendSectionProps
         >
           {/* ── 메인 카드 (좌) ── */}
           <AnimateOnScroll variant="fade-right" delay={0} className="w-full lg:w-[620px] flex-shrink-0">
-          <Link
-            href="/ncr-trend/latest"
-            className="flex flex-col gap-[22.589px] w-full lg:w-[620px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
-            data-node-id="376:1574"
-          >
-            {/* 썸네일 */}
-            <div
-              className="relative rounded-[7.912px] overflow-hidden"
-              style={{ height: '445px' }}
-              data-node-id="376:1494"
+            <Link
+              href={mainHref}
+              className="flex flex-col gap-[22.589px] w-full lg:w-[620px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
+              data-node-id="376:1574"
             >
-              <img
-                src={ASSETS.mainThumb}
-                alt="AI 시대, 학과의 강점과 비전을 묻다"
-                className="object-cover w-full h-full"
-              />
-              {/* 그라디언트 오버레이 */}
+              {/* 썸네일 */}
               <div
-                className="absolute inset-0"
-                style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.00) 40%, rgba(0,0,0,0.55) 100%)' }}
-                data-node-id="376:1493"
-              />
-            </div>
+                className="relative rounded-[7.912px] overflow-hidden"
+                style={{ height: '445px' }}
+                data-node-id="376:1494"
+              >
+                {mainCard.thumbnail_url ? (
+                  <img
+                    src={mainCard.thumbnail_url}
+                    alt={mainCard.title}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#151515] flex items-center justify-center">
+                    <span className="font-brand font-black text-[72px] text-nwcn-green/[0.12] leading-none">NCR</span>
+                  </div>
+                )}
+                {/* 그라디언트 오버레이 */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.00) 40%, rgba(0,0,0,0.55) 100%)' }}
+                  data-node-id="376:1493"
+                />
+              </div>
 
-            {/* Talks 태그 */}
-            <div data-node-id="376:1559">
-              <Tag type="talks">Talks</Tag>
-            </div>
+              {/* 태그 */}
+              <div data-node-id="376:1559">
+                <Tag type={TYPE_TAG_TYPE[mainCard.type]}>
+                  {mainCard.type === 'editorial' ? 'Talks' : mainCard.type === 'trend' ? 'Trend' : 'Card News'}
+                </Tag>
+              </div>
 
-            {/* 제목 */}
-            <p
-              className="font-body font-semibold"
-              style={{ fontSize: '31.429px', color: '#09F593', lineHeight: 'normal' }}
-              data-node-id="427:874"
-            >
-              AI 시대, 학과의 강점과 비전을 묻다
-            </p>
+              {/* 제목 */}
+              <p
+                className="font-body font-semibold"
+                style={{ fontSize: '31.429px', color: '#09F593', lineHeight: 'normal' }}
+                data-node-id="427:874"
+              >
+                {mainCard.title}
+              </p>
 
-            {/* 날짜 */}
-            <p
-              className="font-body font-normal"
-              style={{ fontSize: '14.946px', color: '#B9B8B6' }}
-              data-node-id="376:1573"
-            >
-              Aug 25 2025
-            </p>
-          </Link>
+              {/* 날짜 */}
+              <p
+                className="font-body font-normal"
+                style={{ fontSize: '14.946px', color: '#B9B8B6' }}
+                data-node-id="376:1573"
+              >
+                {formatDate(mainCard.published_at)}
+              </p>
+            </Link>
           </AnimateOnScroll>
 
           {/* ── 서브 카드 (우) ── */}
           <AnimateOnScroll variant="fade-left" delay={150} className="w-full lg:w-[430px] flex-shrink-0">
-          <Link
-            href="/ncr-trend/latest"
-            className="flex flex-col gap-[26.375px] items-end w-full lg:w-[430px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
-            data-node-id="376:1606"
-          >
-            {/* Contents 태그 */}
-            <div data-node-id="376:1592">
-              <Tag type="contents">Contents</Tag>
-            </div>
-
-            {/* 제목 + 날짜 */}
-            <div
-              className="flex flex-col gap-[5.275px] w-full text-right"
-              data-node-id="376:1615"
+            <Link
+              href={subHref}
+              className="flex flex-col gap-[26.375px] items-end w-full lg:w-[430px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
+              data-node-id="376:1606"
             >
-              <p
-                className="font-body font-semibold w-full"
-                style={{ fontSize: '17.583px', color: '#323131' }}
-                data-node-id="376:1600"
-              >
-                보성 미디어파사드 워크숍
-              </p>
-              <p
-                className="font-body font-normal"
-                style={{ fontSize: '14.946px', color: '#B9B8B6' }}
-                data-node-id="376:1603"
-              >
-                5 May 2026
-              </p>
-            </div>
+              {/* 태그 */}
+              <div data-node-id="376:1592">
+                <Tag type="contents">Contents</Tag>
+              </div>
 
-            {/* 서브 썸네일 */}
-            <div
-              className="relative w-full rounded-[7.912px] overflow-hidden"
-              style={{ height: '430px' }}
-              data-node-id="376:669"
-            >
-              <img
-                src={ASSETS.subThumb}
-                alt="보성 미디어파사드 워크숍"
-                className="object-cover w-full h-full"
-              />
-            </div>
-          </Link>
+              {/* 제목 + 날짜 */}
+              <div
+                className="flex flex-col gap-[5.275px] w-full text-right"
+                data-node-id="376:1615"
+              >
+                <p
+                  className="font-body font-semibold w-full"
+                  style={{ fontSize: '17.583px', color: '#323131' }}
+                  data-node-id="376:1600"
+                >
+                  {subCard.title}
+                </p>
+                <p
+                  className="font-body font-normal"
+                  style={{ fontSize: '14.946px', color: '#B9B8B6' }}
+                  data-node-id="376:1603"
+                >
+                  {formatDate(subCard.published_at)}
+                </p>
+              </div>
+
+              {/* 서브 썸네일 */}
+              <div
+                className="relative w-full rounded-[7.912px] overflow-hidden"
+                style={{ height: '430px' }}
+                data-node-id="376:669"
+              >
+                {subCard.thumbnail_url ? (
+                  <img
+                    src={subCard.thumbnail_url}
+                    alt={subCard.title}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#151515] flex items-center justify-center">
+                    <span className="font-brand font-black text-[40px] text-nwcn-green/[0.1] leading-none">NCR</span>
+                  </div>
+                )}
+              </div>
+            </Link>
           </AnimateOnScroll>
         </div>
       </div>

@@ -1,12 +1,18 @@
 /**
  * Admin 페이지: /admin
- * 작업물(Work)과 아티클(NCR Trend) 업로드 관리 UI.
- * 서버 연결 전 UI Only — 실제 저장 로직은 서버 연결 후 구현.
+ * Supabase Auth로 보호됨 (middleware에서 미인증 시 /admin/login으로 리다이렉트)
+ *
+ * 각 폼의 handleSubmit이 Server Action을 실제로 호출:
+ * - WorkUploadForm    → saveWork    → showcase_works + work-thumbnails Storage
+ * - ArticleUploadForm → saveArticle → ncr_reports + ncr-thumbnails Storage
+ * - AwardsUploadForm  → saveAward   → awards + ninc-images/awards Storage
+ * - ProjectUploadForm → saveProject → projects + ninc-images/projects Storage
  */
 
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useTransition } from 'react'
+import { saveWork, saveArticle, saveAward, saveProject, signOut, type ActionResult } from './actions'
 
 // ── 타입 ──────────────────────────────────────────────────
 type Tab = 'work' | 'article' | 'awards' | 'project'
@@ -36,7 +42,7 @@ function Textarea({ ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement
   )
 }
 
-function Select({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
+function Sel({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { children: React.ReactNode }) {
   return (
     <select
       {...props}
@@ -116,12 +122,37 @@ function FileDropZone({
   )
 }
 
-function SubmitButton({ loading, onClick }: { loading: boolean; onClick: () => void }) {
+// 결과 피드백 컴포넌트
+function Feedback({ result }: { result: ActionResult | null }) {
+  if (!result) return null
+  if ('success' in result) {
+    return (
+      <div className="flex items-center gap-3 bg-nwcn-green/10 border border-nwcn-green/30 rounded-xl p-4">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="2">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        <p className="font-body text-sm text-nwcn-green">저장이 완료되었습니다!</p>
+      </div>
+    )
+  }
+  return (
+    <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p className="font-body text-sm text-red-400">{result.error}</p>
+    </div>
+  )
+}
+
+function SubmitButton({ loading }: { loading: boolean }) {
   return (
     <button
-      onClick={onClick}
+      type="submit"
       disabled={loading}
-      className="w-full flex items-center justify-center gap-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-sm py-4 rounded-xl transition-all hover:bg-nwcn-green-dark disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full flex items-center justify-center gap-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-sm py-4 rounded-xl transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {loading ? (
         <>
@@ -145,34 +176,35 @@ function SubmitButton({ loading, onClick }: { loading: boolean; onClick: () => v
 // ── Work 업로드 폼 ─────────────────────────────────────────
 function WorkUploadForm() {
   const [workType, setWorkType] = useState<WorkType>('design')
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [form, setForm] = useState({
-    title: '',
-    author: '',
-    year: new Date().getFullYear().toString(),
-    description: '',
-    tech_stack: '',
-    video_url: '',
-    model_url: '',
-  })
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const thumbnailRef = useRef<File | null>(null)
 
-  const handleSubmit = async () => {
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 1200))
-    setLoading(false)
-    setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
+
+    setResult(null)
+    startTransition(async () => {
+      const res = await saveWork(null, formData)
+      setResult(res)
+      if ('success' in res) {
+        (e.target as HTMLFormElement).reset()
+        thumbnailRef.current = null
+      }
+    })
   }
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* 작업물 타입 선택 */}
       <div>
         <Label>작업물 타입 *</Label>
         <div className="grid grid-cols-3 gap-3">
           {(['design', 'video', '3d'] as WorkType[]).map((type) => (
             <button
+              type="button"
               key={type}
               onClick={() => setWorkType(type)}
               className={`flex flex-col items-center gap-2 py-4 rounded-xl border-2 transition-all ${
@@ -181,26 +213,9 @@ function WorkUploadForm() {
                   : 'border-white/10 text-white/40 hover:border-white/20'
               }`}
             >
-              {type === 'design' && (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <polyline points="21 15 16 10 5 21" />
-                </svg>
-              )}
-              {type === 'video' && (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polygon points="23 7 16 12 23 17 23 7" />
-                  <rect x="1" y="5" width="15" height="14" rx="2" />
-                </svg>
-              )}
-              {type === '3d' && (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              )}
+              {type === 'design' && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>}
+              {type === 'video'  && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>}
+              {type === '3d'     && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" /></svg>}
               <span className="font-body text-xs font-semibold uppercase">
                 {type === 'design' ? '디자인' : type === 'video' ? '영상' : '3D'}
               </span>
@@ -209,215 +224,124 @@ function WorkUploadForm() {
         </div>
       </div>
 
-      {/* 공통 필드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>작품명 *</Label>
-          <Input placeholder="작품 제목을 입력하세요" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        </div>
-        <div>
-          <Label>작가명 *</Label>
-          <Input placeholder="작가/학생 이름" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
-        </div>
+        <div><Label>작품명 *</Label><Input name="title" placeholder="작품 제목을 입력하세요" required /></div>
+        <div><Label>작가명 *</Label><Input name="author" placeholder="작가/학생 이름" required /></div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>제작 연도 *</Label>
-          <Input type="number" placeholder="2025" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
-        </div>
-        <div>
-          <Label>기술 스택 (쉼표로 구분)</Label>
-          <Input placeholder="예: Video, Motion, AI" value={form.tech_stack} onChange={(e) => setForm({ ...form, tech_stack: e.target.value })} />
-        </div>
+        <div><Label>제작 연도 *</Label><Input name="year" type="number" placeholder="2025" defaultValue={new Date().getFullYear()} required /></div>
+        <div><Label>기술 스택 (쉼표로 구분)</Label><Input name="tech_stack" placeholder="예: Video, Motion, AI" /></div>
       </div>
-
-      <div>
-        <Label>작품 설명</Label>
-        <Textarea placeholder="작품에 대한 설명을 입력하세요..." rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      </div>
-
-      {/* 타입별 추가 필드 */}
-      {workType === 'design' && (
-        <div>
-          <Label>이미지 파일 (여러 장 가능)</Label>
-          <FileDropZone accept="image/*" label="JPG, PNG, GIF, WebP 파일" multiple />
-        </div>
-      )}
+      <div><Label>작품 설명</Label><Textarea name="description" placeholder="작품에 대한 설명을 입력하세요..." rows={4} /></div>
 
       {workType === 'video' && (
-        <div className="space-y-4">
-          <div>
-            <Label>영상 파일 또는 임베드 URL</Label>
-            <Input placeholder="YouTube/Vimeo 임베드 URL (예: https://www.youtube.com/embed/...)" value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} />
-          </div>
-          <div>
-            <Label>또는 영상 파일 업로드</Label>
-            <FileDropZone accept="video/*" label="MP4, MOV, AVI 파일" />
-          </div>
-        </div>
+        <div><Label>영상 임베드 URL</Label><Input name="video_url" placeholder="YouTube/Vimeo 임베드 URL" /></div>
       )}
-
       {workType === '3d' && (
-        <div className="space-y-4">
-          <div>
-            <Label>3D 뷰어 임베드 URL</Label>
-            <Input placeholder="Sketchfab 임베드 URL (예: https://sketchfab.com/models/...)" value={form.model_url} onChange={(e) => setForm({ ...form, model_url: e.target.value })} />
-          </div>
-          <div>
-            <Label>또는 3D 파일 업로드</Label>
-            <FileDropZone accept=".glb,.gltf,.obj,.fbx,.stl" label="GLB, GLTF, OBJ, FBX, STL 파일" />
-          </div>
-        </div>
+        <div><Label>3D 뷰어 임베드 URL</Label><Input name="model_url" placeholder="Sketchfab 임베드 URL" /></div>
       )}
 
-      {/* 썸네일 */}
       <div>
         <Label>썸네일 이미지</Label>
-        <FileDropZone accept="image/*" label="대표 썸네일 이미지 (권장: 4:3 비율)" />
+        <FileDropZone
+          accept="image/*"
+          label="대표 썸네일 이미지 (권장: 4:3 비율)"
+          onFiles={(files) => { thumbnailRef.current = files[0] }}
+        />
       </div>
 
-      {success && (
-        <div className="flex items-center gap-3 bg-nwcn-green/10 border border-nwcn-green/30 rounded-xl p-4">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="2">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <p className="font-body text-sm text-nwcn-green">저장이 완료되었습니다! (서버 연결 후 실제 저장됩니다)</p>
-        </div>
-      )}
-
-      <SubmitButton loading={loading} onClick={handleSubmit} />
-    </div>
+      <Feedback result={result} />
+      <SubmitButton loading={isPending} />
+    </form>
   )
 }
 
 // ── Article 업로드 폼 ──────────────────────────────────────
 function ArticleUploadForm() {
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [form, setForm] = useState({
-    title: '',
-    author: '',
-    type: 'editorial' as ArticleType,
-    season: '',
-    published_at: '',
-    description: '',
-    content: '',
-    tags: '',
-  })
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const thumbnailRef = useRef<File | null>(null)
 
-  const handleSubmit = async () => {
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 1200))
-    setLoading(false)
-    setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
+
+    setResult(null)
+    startTransition(async () => {
+      const res = await saveArticle(null, formData)
+      setResult(res)
+      if ('success' in res) {
+        (e.target as HTMLFormElement).reset()
+        thumbnailRef.current = null
+      }
+    })
   }
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>제목 *</Label>
-          <Input placeholder="아티클 제목" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        </div>
-        <div>
-          <Label>작성자 *</Label>
-          <Input placeholder="NCR 에디터팀" value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
-        </div>
+        <div><Label>제목 *</Label><Input name="title" placeholder="아티클 제목" required /></div>
+        <div><Label>작성자</Label><Input name="author" placeholder="NCR 에디터팀" /></div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label>아티클 유형 *</Label>
-          <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as ArticleType })}>
+          <Sel name="type" required>
             <option value="editorial">에디토리얼</option>
             <option value="trend">트렌드</option>
             <option value="card_news">카드뉴스</option>
-          </Select>
+          </Sel>
         </div>
-        <div>
-          <Label>시즌</Label>
-          <Input placeholder="예: Season 3" value={form.season} onChange={(e) => setForm({ ...form, season: e.target.value })} />
-        </div>
-        <div>
-          <Label>발행일 *</Label>
-          <Input type="date" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} />
-        </div>
+        <div><Label>시즌</Label><Input name="season" placeholder="예: Season 3" /></div>
+        <div><Label>발행일 *</Label><Input name="published_at" type="date" required /></div>
       </div>
-
-      <div>
-        <Label>요약 설명</Label>
-        <Input placeholder="한 줄 요약 (목록에서 보여지는 설명)" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      </div>
-
-      <div>
-        <Label>본문 내용 (마크다운 지원: ## 헤더)</Label>
-        <Textarea
-          placeholder="## 소제목&#10;&#10;본문 내용을 입력하세요..."
-          rows={12}
-          value={form.content}
-          onChange={(e) => setForm({ ...form, content: e.target.value })}
-        />
-      </div>
-
-      <div>
-        <Label>태그 (쉼표로 구분)</Label>
-        <Input placeholder="예: AI, 미디어, 콘텐츠산업" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
-      </div>
-
+      <div><Label>요약 설명</Label><Input name="excerpt" placeholder="한 줄 요약 (목록에서 보여지는 설명)" /></div>
+      <div><Label>본문 내용 (마크다운 지원: ## 헤더)</Label><Textarea name="content" placeholder={"## 소제목\n\n본문 내용을 입력하세요..."} rows={12} /></div>
+      <div><Label>태그 (쉼표로 구분)</Label><Input name="tags" placeholder="예: AI, 미디어, 콘텐츠산업" /></div>
       <div>
         <Label>썸네일 이미지</Label>
-        <FileDropZone accept="image/*" label="아티클 대표 이미지 (권장: 16:9 비율)" />
+        <FileDropZone
+          accept="image/*"
+          label="아티클 대표 이미지 (권장: 16:9 비율)"
+          onFiles={(files) => { thumbnailRef.current = files[0] }}
+        />
       </div>
-
-      {success && (
-        <div className="flex items-center gap-3 bg-nwcn-green/10 border border-nwcn-green/30 rounded-xl p-4">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="2">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <p className="font-body text-sm text-nwcn-green">저장이 완료되었습니다! (서버 연결 후 실제 저장됩니다)</p>
-        </div>
-      )}
-
-      <SubmitButton loading={loading} onClick={handleSubmit} />
-    </div>
+      <Feedback result={result} />
+      <SubmitButton loading={isPending} />
+    </form>
   )
 }
 
 // ── Awards 등록 폼 ─────────────────────────────────────────
 function AwardsUploadForm() {
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [form, setForm] = useState({
-    competition: '',
-    award_name: '',
-    winner: '',
-    team_members: '',
-    year: new Date().getFullYear().toString(),
-    category: '',
-    hosted_by: '',
-    description: '',
-  })
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const thumbnailRef = useRef<File | null>(null)
 
-  const handleSubmit = async () => {
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 1200))
-    setLoading(false)
-    setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
+
+    setResult(null)
+    startTransition(async () => {
+      const res = await saveAward(null, formData)
+      setResult(res)
+      if ('success' in res) {
+        (e.target as HTMLFormElement).reset()
+        thumbnailRef.current = null
+      }
+    })
   }
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>대회명 *</Label>
-          <Input placeholder="대한민국 광고대상" value={form.competition} onChange={(e) => setForm({ ...form, competition: e.target.value })} />
-        </div>
+        <div><Label>대회명 *</Label><Input name="competition" placeholder="대한민국 광고대상" required /></div>
         <div>
           <Label>수상 등급 *</Label>
-          <Select value={form.award_name} onChange={(e) => setForm({ ...form, award_name: e.target.value })}>
+          <Sel name="award_name" required>
             <option value="">선택하세요</option>
             <option value="대상">대상</option>
             <option value="금상">금상</option>
@@ -425,203 +349,112 @@ function AwardsUploadForm() {
             <option value="우수상">우수상</option>
             <option value="장려상">장려상</option>
             <option value="특별상">특별상</option>
-          </Select>
+          </Sel>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <Label>대표 수상자 *</Label>
-          <Input placeholder="홍길동" value={form.winner} onChange={(e) => setForm({ ...form, winner: e.target.value })} />
-        </div>
-        <div>
-          <Label>팀원 (쉼표로 구분)</Label>
-          <Input placeholder="홍길동, 이영희" value={form.team_members} onChange={(e) => setForm({ ...form, team_members: e.target.value })} />
-        </div>
-        <div>
-          <Label>수상 연도 *</Label>
-          <Input type="number" placeholder="2025" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
-        </div>
+        <div><Label>대표 수상자</Label><Input name="winner" placeholder="홍길동" /></div>
+        <div><Label>팀원 (쉼표로 구분)</Label><Input name="team_members" placeholder="홍길동, 이영희" /></div>
+        <div><Label>수상 연도 *</Label><Input name="year" type="number" placeholder="2025" defaultValue={new Date().getFullYear()} required /></div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>분야</Label>
-          <Input placeholder="예: 광고, 영상, 미디어아트" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-        </div>
-        <div>
-          <Label>주최 기관</Label>
-          <Input placeholder="한국광고총연합회" value={form.hosted_by} onChange={(e) => setForm({ ...form, hosted_by: e.target.value })} />
-        </div>
-      </div>
-
-      <div>
-        <Label>수상 설명</Label>
-        <Textarea placeholder="수상 배경 및 작품 소개..." rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      </div>
-
+      <div><Label>수상 설명</Label><Textarea name="description" placeholder="수상 배경 및 작품 소개..." rows={5} /></div>
       <div>
         <Label>수상 관련 이미지</Label>
-        <FileDropZone accept="image/*" label="시상식 사진 또는 작품 이미지" multiple />
+        <FileDropZone
+          accept="image/*"
+          label="시상식 사진 또는 작품 이미지"
+          onFiles={(files) => { thumbnailRef.current = files[0] }}
+        />
       </div>
-
-      {success && (
-        <div className="flex items-center gap-3 bg-nwcn-green/10 border border-nwcn-green/30 rounded-xl p-4">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="2">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <p className="font-body text-sm text-nwcn-green">저장이 완료되었습니다! (서버 연결 후 실제 저장됩니다)</p>
-        </div>
-      )}
-
-      <SubmitButton loading={loading} onClick={handleSubmit} />
-    </div>
+      <Feedback result={result} />
+      <SubmitButton loading={isPending} />
+    </form>
   )
 }
 
 // ── Project 등록 폼 ────────────────────────────────────────
 function ProjectUploadForm() {
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [form, setForm] = useState({
-    title: '',
-    type: 'industry' as 'industry' | 'international',
-    partner: '',
-    year: new Date().getFullYear().toString(),
-    duration: '',
-    participants: '',
-    skills: '',
-    description: '',
-    outcome: '',
-  })
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [isPending, startTransition] = useTransition()
+  const thumbnailRef = useRef<File | null>(null)
 
-  const handleSubmit = async () => {
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 1200))
-    setLoading(false)
-    setSuccess(true)
-    setTimeout(() => setSuccess(false), 3000)
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
+
+    setResult(null)
+    startTransition(async () => {
+      const res = await saveProject(null, formData)
+      setResult(res)
+      if ('success' in res) {
+        (e.target as HTMLFormElement).reset()
+        thumbnailRef.current = null
+      }
+    })
   }
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>프로젝트명 *</Label>
-          <Input placeholder="○○ 기업 브랜드 영상 제작" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        </div>
+        <div><Label>프로젝트명 *</Label><Input name="title" placeholder="○○ 기업 브랜드 영상 제작" required /></div>
         <div>
           <Label>유형 *</Label>
-          <Select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as any })}>
+          <Sel name="type" required>
             <option value="industry">산학협력</option>
             <option value="international">해외교류</option>
-          </Select>
+          </Sel>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <Label>파트너 기관 *</Label>
-          <Input placeholder="○○ 주식회사" value={form.partner} onChange={(e) => setForm({ ...form, partner: e.target.value })} />
-        </div>
-        <div>
-          <Label>연도 *</Label>
-          <Input type="number" placeholder="2025" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} />
-        </div>
-        <div>
-          <Label>기간</Label>
-          <Input placeholder="2025.03 – 2025.06" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} />
-        </div>
+        <div><Label>파트너 기관</Label><Input name="partner" placeholder="○○ 주식회사" /></div>
+        <div><Label>연도 *</Label><Input name="year" type="number" placeholder="2025" defaultValue={new Date().getFullYear()} required /></div>
+        <div><Label>기간</Label><Input name="duration" placeholder="2025.03 – 2025.06" /></div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>참여 학생 (쉼표로 구분)</Label>
-          <Input placeholder="홍길동, 이영희" value={form.participants} onChange={(e) => setForm({ ...form, participants: e.target.value })} />
-        </div>
-        <div>
-          <Label>활용 기술/역량 (쉼표로 구분)</Label>
-          <Input placeholder="영상 기획, 촬영, 편집" value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} />
-        </div>
-      </div>
-
-      <div>
-        <Label>프로젝트 설명 *</Label>
-        <Textarea placeholder="프로젝트 배경 및 진행 내용..." rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      </div>
-
-      <div>
-        <Label>결과물 / 성과</Label>
-        <Input placeholder="기업 공식 유튜브 채널 업로드 및 사내 행사 활용" value={form.outcome} onChange={(e) => setForm({ ...form, outcome: e.target.value })} />
-      </div>
-
+      <div><Label>프로젝트 설명</Label><Textarea name="description" placeholder="프로젝트 배경 및 진행 내용..." rows={5} /></div>
       <div>
         <Label>프로젝트 이미지</Label>
-        <FileDropZone accept="image/*" label="프로젝트 관련 사진" multiple />
+        <FileDropZone
+          accept="image/*"
+          label="프로젝트 관련 사진"
+          onFiles={(files) => { thumbnailRef.current = files[0] }}
+        />
       </div>
-
-      {success && (
-        <div className="flex items-center gap-3 bg-nwcn-green/10 border border-nwcn-green/30 rounded-xl p-4">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="2">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          <p className="font-body text-sm text-nwcn-green">저장이 완료되었습니다! (서버 연결 후 실제 저장됩니다)</p>
-        </div>
-      )}
-
-      <SubmitButton loading={loading} onClick={handleSubmit} />
-    </div>
+      <Feedback result={result} />
+      <SubmitButton loading={isPending} />
+    </form>
   )
 }
 
 // ── 메인 Admin 페이지 ──────────────────────────────────────
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>('work')
+  const [signingOut, startSignOut] = useTransition()
 
-  const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
+  const handleSignOut = () => {
+    startSignOut(async () => { await signOut() })
+  }
+
+  const TABS: { key: Tab; label: string; icon: React.ReactNode; desc: string }[] = [
     {
-      key: 'work',
-      label: '작업물 등록',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <circle cx="8.5" cy="8.5" r="1.5" />
-          <polyline points="21 15 16 10 5 21" />
-        </svg>
-      ),
+      key: 'work', label: '작업물 등록', desc: '디자인, 영상, 3D 작업물을 업로드합니다',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>,
     },
     {
-      key: 'article',
-      label: 'NCR 아티클',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="16" y1="13" x2="8" y2="13" />
-          <line x1="16" y1="17" x2="8" y2="17" />
-          <polyline points="10 9 9 9 8 9" />
-        </svg>
-      ),
+      key: 'article', label: 'NCR 아티클', desc: 'NCR Trend 아티클을 작성하고 발행합니다',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>,
     },
     {
-      key: 'awards',
-      label: '수상 등록',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-        </svg>
-      ),
+      key: 'awards', label: '수상 등록', desc: '수상 내역을 등록합니다',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" /></svg>,
     },
     {
-      key: 'project',
-      label: '프로젝트 등록',
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-        </svg>
-      ),
+      key: 'project', label: '프로젝트 등록', desc: '산학협력·해외교류 프로젝트를 등록합니다',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>,
     },
   ]
+
+  const activeTab = TABS.find((t) => t.key === tab)!
 
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
@@ -630,20 +463,27 @@ export default function AdminPage() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="font-brand text-xl text-nwcn-green">NWCN</span>
-            <span className="font-body text-xs text-white/20 px-2 py-0.5 border border-white/10 rounded-full">
-              ADMIN
-            </span>
+            <span className="font-body text-xs text-white/20 px-2 py-0.5 border border-white/10 rounded-full">ADMIN</span>
           </div>
-          <a
-            href="/"
-            className="flex items-center gap-2 font-body text-xs text-white/30 hover:text-white/60 transition-colors"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            사이트로 돌아가기
-          </a>
+          <div className="flex items-center gap-4">
+            <a href="/" className="flex items-center gap-2 font-body text-xs text-white/30 hover:text-white/60 transition-colors">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+              사이트 보기
+            </a>
+            {/* 로그아웃 */}
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="flex items-center gap-1.5 font-body text-xs text-white/30 hover:text-red-400 transition-colors disabled:opacity-40"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              {signingOut ? '로그아웃 중...' : '로그아웃'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -653,7 +493,6 @@ export default function AdminPage() {
           <h1 className="font-body font-bold text-[28px] text-white mb-2">콘텐츠 관리</h1>
           <p className="font-body text-sm text-white/30">
             작업물, 아티클, 수상, 프로젝트 콘텐츠를 등록하고 관리합니다.
-            <span className="ml-2 text-nwcn-green/60">서버 연결 전 UI 미리보기</span>
           </p>
         </div>
 
@@ -681,15 +520,11 @@ export default function AdminPage() {
             <div className="mt-8 p-4 rounded-xl border border-white/8 bg-white/3">
               <div className="flex items-start gap-3">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="2" className="flex-shrink-0 mt-0.5">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                <div>
-                  <p className="font-body text-xs text-white/40 leading-relaxed">
-                    서버 연결 후 실제 데이터가 저장됩니다. 현재는 UI 미리보기 상태입니다.
-                  </p>
-                </div>
+                <p className="font-body text-xs text-white/40 leading-relaxed">
+                  저장 후 해당 페이지에 즉시 반영됩니다. NCR 아티클은 홈 화면에도 자동 업데이트됩니다.
+                </p>
               </div>
             </div>
           </aside>
@@ -701,26 +536,19 @@ export default function AdminPage() {
               <div className="mb-8 pb-6 border-b border-white/10">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-nwcn-green/10 flex items-center justify-center text-nwcn-green">
-                    {TABS.find((t) => t.key === tab)?.icon}
+                    {activeTab.icon}
                   </div>
                   <div>
-                    <h2 className="font-body font-bold text-[18px] text-white">
-                      {TABS.find((t) => t.key === tab)?.label}
-                    </h2>
-                    <p className="font-body text-xs text-white/30">
-                      {tab === 'work' && '디자인, 영상, 3D 작업물을 업로드합니다'}
-                      {tab === 'article' && 'NCR Trend 아티클을 작성하고 발행합니다'}
-                      {tab === 'awards' && '수상 내역을 등록합니다'}
-                      {tab === 'project' && '산학협력·해외교류 프로젝트를 등록합니다'}
-                    </p>
+                    <h2 className="font-body font-bold text-[18px] text-white">{activeTab.label}</h2>
+                    <p className="font-body text-xs text-white/30">{activeTab.desc}</p>
                   </div>
                 </div>
               </div>
 
               {/* 폼 컨텐츠 */}
-              {tab === 'work' && <WorkUploadForm />}
+              {tab === 'work'    && <WorkUploadForm />}
               {tab === 'article' && <ArticleUploadForm />}
-              {tab === 'awards' && <AwardsUploadForm />}
+              {tab === 'awards'  && <AwardsUploadForm />}
               {tab === 'project' && <ProjectUploadForm />}
             </div>
           </div>

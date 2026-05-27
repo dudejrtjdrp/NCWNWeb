@@ -1,39 +1,40 @@
 /**
- * BASE 컴포넌트: NincSection
+ * BASE 컴포넌트: NincSection (Server Component)
  * Figma node-id: 376:1492 (NINCSection)
+ *
+ * 데이터 전략:
+ * - ninc_home_cards 테이블에서 활성 카드 fetch (getHomeNincCards)
+ * - 데이터 없으면 MOCK_SLIDE_CARDS (SVG 목데이터) fallback
  *
  * 디자인 스펙:
  * - 섹션 헤더: "Now In NewCon" A2Z체 23px, black
  * - 배경: 유기적 형태 이미지 (blur, -14.75deg 회전)
- * - 슬라이드 카드 4장 (가로 배치, gap 78px)
- * - 카드 크기: 512×310 / 282×389 / 287×268 / 390×354
+ * - 슬라이드 카드: 가로 배치, gap 78px
+ * - 기본 카드 크기: 512×310 / 282×389 / 287×268 / 390×354
  */
 
-import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
+import { getHomeNincCards, type HomeNincCard } from '@/lib/supabase/queries/home'
 
-// 로컬 목데이터로 대체
-const ASSETS = {
-  bg: '/images/ninc/bg.svg',
-  card1: '/images/ninc/card1.svg', // 512×310
-  card2: '/images/ninc/card2.svg', // 282×389
-  card3: '/images/ninc/card3.svg', // 287×268
-  card4: '/images/ninc/card4.svg', // 390×354
-} 
-
-const SLIDE_CARDS = [
-  { src: ASSETS.card1, width: 512, height: 310, alt: 'NINC 활동 1' },
-  { src: ASSETS.card2, width: 282, height: 389, alt: 'NINC 활동 2' },
-  { src: ASSETS.card3, width: 287, height: 268, alt: 'NINC 활동 3' },
-  { src: ASSETS.card4, width: 390, height: 354, alt: 'NINC 활동 4' },
+// ── 목데이터 (Supabase에 데이터 없을 때 fallback) ─────────────
+const MOCK_SLIDE_CARDS: HomeNincCard[] = [
+  { id: 'mock-1', image_url: '/images/ninc/card1.svg', card_width: 512, card_height: 310, alt_text: 'NINC 활동 1', link_href: null, sort_order: 0 },
+  { id: 'mock-2', image_url: '/images/ninc/card2.svg', card_width: 282, card_height: 389, alt_text: 'NINC 활동 2', link_href: null, sort_order: 1 },
+  { id: 'mock-3', image_url: '/images/ninc/card3.svg', card_width: 287, card_height: 268, alt_text: 'NINC 활동 3', link_href: null, sort_order: 2 },
+  { id: 'mock-4', image_url: '/images/ninc/card4.svg', card_width: 390, card_height: 354, alt_text: 'NINC 활동 4', link_href: null, sort_order: 3 },
 ]
 
 export interface NincSectionProps {
   className?: string
 }
 
-export default function NincSection({ className = '' }: NincSectionProps) {
+export default async function NincSection({ className = '' }: NincSectionProps) {
+  // Supabase fetch → 실패하거나 데이터 없으면 목데이터 사용
+  const serverCards = await getHomeNincCards()
+  const displayCards = serverCards.length > 0 ? serverCards : MOCK_SLIDE_CARDS
+
   return (
     <section
       className={`relative bg-white py-[80px] ${className}`}
@@ -42,7 +43,6 @@ export default function NincSection({ className = '' }: NincSectionProps) {
       aria-label="Now In NewCon"
     >
       {/* 배경 유기적 형태 — Figma: blur 2px, -14.75deg */}
-      {/* overflow-x: clip 으로 수평만 클립 → 회전된 이미지 상하 잘림 방지 */}
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
         aria-hidden="true"
@@ -57,7 +57,7 @@ export default function NincSection({ className = '' }: NincSectionProps) {
           }}
         >
           <Image
-            src={ASSETS.bg}
+            src="/images/ninc/bg.svg"
             alt=""
             fill
             className="object-cover"
@@ -82,36 +82,51 @@ export default function NincSection({ className = '' }: NincSectionProps) {
         className="relative z-10 flex items-center justify-center"
         data-node-id="376:1489"
       >
-        {/* 데스크탑: 가로 스크롤 가능 컨테이너 */}
         <div
           className="flex items-center gap-[78px] overflow-x-auto scrollbar-hide px-8 py-12"
           data-node-id="376:1488"
         >
-          {SLIDE_CARDS.map((card, i) => (
-            <AnimateOnScroll
-              key={i}
-              variant="fade-up"
-              delay={i * 100}
-              className="relative flex-shrink-0 py-2"
-              style={{ width: card.width, height: card.height } as React.CSSProperties}
-            >
+          {displayCards.map((card, i) => {
+            const inner = (
               <div
-                role="button"
-                tabIndex={0}
-                className="relative w-full h-full transform transition duration-200 ease-out hover:scale-105 hover:shadow-2xl hover:z-20 focus:outline-none cursor-pointer"
+                className="rounded-md overflow-hidden w-full h-full"
               >
-                <div className="rounded-md overflow-hidden w-full h-full">
-                  <Image
-                    src={card.src}
-                    alt={card.alt}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
+                <Image
+                  src={card.image_url}
+                  alt={card.alt_text ?? `NINC 활동 ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
               </div>
-            </AnimateOnScroll>
-          ))}
+            )
+
+            return (
+              <AnimateOnScroll
+                key={card.id}
+                variant="fade-up"
+                delay={i * 100}
+                className="relative flex-shrink-0 py-2"
+                style={{ width: card.card_width, height: card.card_height } as React.CSSProperties}
+              >
+                {card.link_href ? (
+                  <Link
+                    href={card.link_href}
+                    className="relative w-full h-full block transform transition duration-200 ease-out hover:scale-105 hover:shadow-2xl hover:z-20 focus:outline-none cursor-pointer"
+                  >
+                    {inner}
+                  </Link>
+                ) : (
+                  <div
+                    role="img"
+                    className="relative w-full h-full transform transition duration-200 ease-out hover:scale-105 hover:shadow-2xl hover:z-20"
+                  >
+                    {inner}
+                  </div>
+                )}
+              </AnimateOnScroll>
+            )
+          })}
         </div>
       </div>
     </section>
