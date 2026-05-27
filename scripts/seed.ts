@@ -460,7 +460,19 @@ async function seedEvents() {
 
 // ── 쇼케이스 작품 ─────────────────────────────────────────
 async function seedShowcaseWorks() {
-  const rows = [
+  type ShowcaseWorkSeedRow = {
+    title: string
+    author: string
+    year: number
+    description: string
+    type: string
+    tech_stack: string[]
+    view_count: number
+    video_embed?: string
+    model_embed?: string
+  }
+
+  const rows: ShowcaseWorkSeedRow[] = [
     {
       title: '빛의 도시',
       author: '김민준',
