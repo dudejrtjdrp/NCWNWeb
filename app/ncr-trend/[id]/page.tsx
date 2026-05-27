@@ -10,7 +10,7 @@ import Badge from '@/components/ui/Badge'
 import { notFound } from 'next/navigation'
 import { getNcrReportById, getRelatedNcrReports } from '@/lib/supabase/queries/ncr'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 const TYPE_LABELS_KO: Record<string, string> = {
   editorial: '에디토리얼',

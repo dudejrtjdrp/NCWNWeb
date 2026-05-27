@@ -3,7 +3,7 @@ import './globals.css'
 import SmoothScroll from '@/components/providers/SmoothScroll'
 import ScrollToTopOnNavigate from '@/components/providers/ScrollToTopOnNavigate'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

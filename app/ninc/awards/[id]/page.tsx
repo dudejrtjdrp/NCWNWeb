@@ -9,7 +9,7 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import { notFound } from 'next/navigation'
 import { getAwardById } from '@/lib/supabase/queries/awards'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 /** 동적 메타데이터 — 수상 상세 */
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {

@@ -8,7 +8,7 @@
 import type { MetadataRoute } from 'next'
 import { createDbClient } from '@/lib/supabase/db'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 /** Supabase에서 발행된 NCR 리포트 ID + 날짜 조회 */
 async function getNcrIds(): Promise<{ id: string; updated_at: string }[]> {

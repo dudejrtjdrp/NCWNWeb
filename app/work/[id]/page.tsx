@@ -15,7 +15,7 @@ import { getWorkById, type WorkType } from '@/lib/supabase/queries/works'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 /** 동적 메타데이터 — 쇼케이스 작품 상세 */
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
