@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import NcrHero from '@/components/base/NcrHero'
 import SubNav from '@/components/common/SubNav'
@@ -6,6 +7,19 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { NCR_NAV_ITEMS } from '@/constants/nav-items'
 import { getNcrReports } from '@/lib/supabase/queries/ncr'
+
+export const metadata: Metadata = {
+  title: 'NCR TREND — 최신 아티클',
+  description:
+    '뉴미디어콘텐츠과 NCR TREND의 최신 에디토리얼, 트렌드 리포트, 카드뉴스를 만나보세요.',
+  keywords: ['NCR TREND', '뉴미디어콘텐츠과', '에디토리얼', '트렌드 리포트', '미디어 트렌드'],
+  alternates: { canonical: '/ncr-trend/latest' },
+  openGraph: {
+    type: 'website',
+    title: 'NCR TREND — 최신 아티클 | NWCN',
+    description: '뉴미디어콘텐츠과 NCR TREND의 최신 에디토리얼·트렌드·카드뉴스',
+  },
+}
 
 const TYPE_LABELS: Record<string, string> = {
   editorial: '에디토리얼',

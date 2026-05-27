@@ -3,17 +3,64 @@
  * Server Component — Supabase에서 단일 리포트 fetch
  */
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import Badge from '@/components/ui/Badge'
 import { notFound } from 'next/navigation'
 import { getNcrReportById, getRelatedNcrReports } from '@/lib/supabase/queries/ncr'
 
-const TYPE_LABELS: Record<string, string> = {
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+
+const TYPE_LABELS_KO: Record<string, string> = {
   editorial: '에디토리얼',
   trend: '트렌드',
   card_news: '카드뉴스',
 }
+
+/** 동적 메타데이터 — 아티클 제목·설명·OG */
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const article = await getNcrReportById(params.id)
+  if (!article) return { title: '아티클을 찾을 수 없습니다' }
+
+  const title = article.title
+  const description = article.description ?? article.excerpt ?? '뉴미디어콘텐츠과 NCR TREND 아티클'
+  const url = `${SITE_URL}/ncr-trend/${article.id}`
+  const imageUrl = article.thumbnail_url ?? undefined
+
+  return {
+    title,
+    description,
+    keywords: [
+      '뉴미디어콘텐츠과',
+      'NCR TREND',
+      TYPE_LABELS_KO[article.type] ?? article.type,
+      ...(article.tags ?? []),
+      article.season ?? '',
+    ].filter(Boolean),
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'article',
+      url,
+      title,
+      description,
+      locale: 'ko_KR',
+      siteName: 'NWCN',
+      publishedTime: article.published_at,
+      authors: article.author ? [article.author] : undefined,
+      tags: article.tags ?? undefined,
+      images: imageUrl ? [{ url: imageUrl, alt: title }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
+    },
+  }
+}
+
+const TYPE_LABELS = TYPE_LABELS_KO
 
 // 간단한 마크다운 → JSX 변환 (## 헤더, 단락)
 function renderContent(content: string) {
@@ -58,8 +105,37 @@ export default async function ArticleDetailPage({ params }: PageProps) {
     day: 'numeric',
   })
 
+  /** Article JSON-LD 구조화 데이터 */
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.description ?? article.excerpt ?? '',
+    datePublished: article.published_at,
+    dateModified: article.created_at,
+    author: article.author
+      ? { '@type': 'Person', name: article.author }
+      : { '@type': 'Organization', name: 'NWCN 뉴미디어콘텐츠과' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'NWCN — 동아방송예술대학교 뉴미디어콘텐츠과',
+      url: SITE_URL,
+    },
+    url: `${SITE_URL}/ncr-trend/${article.id}`,
+    ...(article.thumbnail_url ? { image: article.thumbnail_url } : {}),
+    keywords: article.tags?.join(', ') ?? '',
+    articleSection: TYPE_LABELS[article.type] ?? article.type,
+    inLanguage: 'ko-KR',
+  }
+
   return (
     <SubPageLayout>
+      {/* JSON-LD 구조화 데이터 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* ── 아티클 히어로 ── */}
       <div className="bg-nwcn-dark pt-[80px] pb-0">
         <div className="page-container pt-12 pb-0">

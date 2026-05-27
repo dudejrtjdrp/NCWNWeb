@@ -1,9 +1,23 @@
+import type { Metadata } from 'next'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import NincHeroBanner from '@/components/base/NincHeroBanner'
 import SubNav from '@/components/common/SubNav'
 import { NINC_NAV_ITEMS } from '@/constants/nav-items'
 import { getEvents } from '@/lib/supabase/queries/events'
 import EventClient from './EventClient'
+
+export const metadata: Metadata = {
+  title: 'EVENT — Now In NewCon',
+  description:
+    '동아방송예술대학교 뉴미디어콘텐츠과의 최신 이벤트, 행사, 전시 소식을 확인하세요.',
+  keywords: ['뉴미디어콘텐츠과', '이벤트', '행사', '전시', 'Now In NewCon', 'NINC'],
+  alternates: { canonical: '/ninc/event' },
+  openGraph: {
+    type: 'website',
+    title: 'EVENT — Now In NewCon | NWCN',
+    description: '뉴미디어콘텐츠과의 최신 이벤트·행사·전시 소식',
+  },
+}
 
 const EventTagline = (
   <>

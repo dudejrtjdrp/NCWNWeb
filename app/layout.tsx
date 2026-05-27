@@ -3,22 +3,53 @@ import './globals.css'
 import SmoothScroll from '@/components/providers/SmoothScroll'
 import ScrollToTopOnNavigate from '@/components/providers/ScrollToTopOnNavigate'
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'NWCN — 뉴미디어콘텐츠과',
     template: '%s | NWCN',
   },
   description:
     '동아방송예술대학교 뉴미디어콘텐츠과 공식 홈페이지. 예술과 기술이 만나는 곳에서 새로운 미디어를 만들어냅니다.',
-  keywords: ['뉴미디어콘텐츠과', 'NWCN', '동아방송예술대학교', '미디어', '콘텐츠', '디지털'],
+  keywords: [
+    '뉴미디어콘텐츠과',
+    'NWCN',
+    '동아방송예술대학교',
+    '동아방송예술대',
+    '뉴미디어',
+    '미디어콘텐츠',
+    '콘텐츠 제작',
+    '영상 제작',
+    '디지털 미디어',
+    'NCR TREND',
+    '학과 소개',
+    '입학',
+  ],
+  alternates: {
+    canonical: SITE_URL,
+  },
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    siteName: 'NWCN',
+    url: SITE_URL,
+    siteName: 'NWCN — 뉴미디어콘텐츠과',
     title: 'NWCN — 뉴미디어콘텐츠과',
-    description: '예술과 기술이 만나는 곳에서 새로운 미디어를 만들어냅니다.',
+    description:
+      '동아방송예술대학교 뉴미디어콘텐츠과 공식 홈페이지. 예술과 기술이 만나는 곳에서 새로운 미디어를 만들어냅니다.',
   },
-  robots: { index: true, follow: true },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NWCN — 뉴미디어콘텐츠과',
+    description:
+      '동아방송예술대학교 뉴미디어콘텐츠과 공식 홈페이지. 예술과 기술이 만나는 곳에서 새로운 미디어를 만들어냅니다.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },
+  },
 }
 
 export const viewport: Viewport = {

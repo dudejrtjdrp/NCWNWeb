@@ -3,10 +3,24 @@
  * Server Component — Supabase에서 수상 데이터를 가져와 AwardsClient에 전달
  */
 
+import type { Metadata } from 'next'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import NincHeroBanner from '@/components/base/NincHeroBanner'
 import { getAwards } from '@/lib/supabase/queries/awards'
 import AwardsClient from './AwardsClient'
+
+export const metadata: Metadata = {
+  title: 'AWARDS — Now In NewCon',
+  description:
+    '동아방송예술대학교 뉴미디어콘텐츠과 학생들의 수상 실적을 확인하세요. 국내외 각종 공모전·경진대회 수상 내역.',
+  keywords: ['뉴미디어콘텐츠과', '수상', '공모전', '경진대회', 'Now In NewCon', 'NINC', '동아방송예술대학교'],
+  alternates: { canonical: '/ninc/awards' },
+  openGraph: {
+    type: 'website',
+    title: 'AWARDS — Now In NewCon | NWCN',
+    description: '뉴미디어콘텐츠과 학생들의 수상 실적을 소개합니다.',
+  },
+}
 
 const HERO_IMAGE_URL = '/images/ninc/awards-hero.png'
 

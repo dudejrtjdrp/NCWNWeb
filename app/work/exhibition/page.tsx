@@ -1,8 +1,22 @@
+import type { Metadata } from 'next'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import WorkHero from '@/components/base/WorkHero'
 import SubNav from '@/components/common/SubNav'
 import { WORK_NAV_ITEMS } from '@/constants/nav-items'
 import { getExhibitions } from '@/lib/supabase/queries/exhibitions'
+
+export const metadata: Metadata = {
+  title: 'EXHIBITION — 졸업전시',
+  description:
+    '동아방송예술대학교 뉴미디어콘텐츠과 졸업전시 아카이브. 연도별 전시 주제와 작품을 확인하세요.',
+  keywords: ['뉴미디어콘텐츠과', '졸업전시', '전시회', '아카이브', '동아방송예술대학교'],
+  alternates: { canonical: '/work/exhibition' },
+  openGraph: {
+    type: 'website',
+    title: 'EXHIBITION — 졸업전시 | NWCN',
+    description: '뉴미디어콘텐츠과 졸업전시 연도별 아카이브',
+  },
+}
 
 // mock 데이터 (서버 데이터 없을 때 fallback)
 const FALLBACK_DATA = [

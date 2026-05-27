@@ -3,10 +3,24 @@
  * Server Component — Supabase에서 프로젝트 데이터를 가져와 ProjectClient에 전달
  */
 
+import type { Metadata } from 'next'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import NincHeroBanner from '@/components/base/NincHeroBanner'
 import { getProjects } from '@/lib/supabase/queries/projects'
 import ProjectClient from './ProjectClient'
+
+export const metadata: Metadata = {
+  title: 'PROJECT — Now In NewCon',
+  description:
+    '동아방송예술대학교 뉴미디어콘텐츠과 학생들의 프로젝트를 소개합니다.',
+  keywords: ['뉴미디어콘텐츠과', '학생 프로젝트', 'Now In NewCon', 'NINC', '동아방송예술대학교'],
+  alternates: { canonical: '/ninc/project' },
+  openGraph: {
+    type: 'website',
+    title: 'PROJECT — Now In NewCon | NWCN',
+    description: '뉴미디어콘텐츠과 학생들의 다양한 프로젝트를 만나보세요.',
+  },
+}
 
 const HERO_IMAGE_URL = '/images/ninc/project-hero.png'
 

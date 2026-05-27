@@ -3,10 +3,48 @@
  * Server Component — Supabase에서 단일 수상 데이터 fetch
  */
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { notFound } from 'next/navigation'
 import { getAwardById } from '@/lib/supabase/queries/awards'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+
+/** 동적 메타데이터 — 수상 상세 */
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const award = await getAwardById(params.id)
+  if (!award) return { title: '수상 정보를 찾을 수 없습니다' }
+
+  const title = `${award.competition} ${award.award_name}`
+  const description =
+    award.description ??
+    `${award.year}년 ${award.competition}에서 뉴미디어콘텐츠과 학생이 ${award.award_name}을(를) 수상했습니다.`
+  const url = `${SITE_URL}/ninc/awards/${award.id}`
+
+  return {
+    title,
+    description,
+    keywords: [
+      '뉴미디어콘텐츠과',
+      '수상',
+      award.competition,
+      award.award_name,
+      String(award.year),
+      award.category ?? '',
+    ].filter(Boolean),
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'article',
+      url,
+      title,
+      description,
+      locale: 'ko_KR',
+      siteName: 'NWCN',
+      images: award.thumbnail_url ? [{ url: award.thumbnail_url, alt: title }] : undefined,
+    },
+  }
+}
 
 const AWARD_GRADE_COLOR: Record<string, string> = {
   '대상': 'bg-nwcn-green text-nwcn-text-default',

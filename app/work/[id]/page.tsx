@@ -6,6 +6,7 @@
  * - 3d: 3D 뷰어 형식 (iframe 임베드)
  */
 
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import Badge from '@/components/ui/Badge'
@@ -13,6 +14,42 @@ import { notFound } from 'next/navigation'
 import { getWorkById, type WorkType } from '@/lib/supabase/queries/works'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nwcn.kr'
+
+/** 동적 메타데이터 — 쇼케이스 작품 상세 */
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const work = await getWorkById(params.id)
+  if (!work) return { title: '작품을 찾을 수 없습니다' }
+
+  const title = work.title
+  const description =
+    work.description ??
+    `${work.year}년 뉴미디어콘텐츠과 학생 ${work.author}의 작품 "${work.title}"입니다.`
+  const url = `${SITE_URL}/work/${work.id}`
+
+  return {
+    title,
+    description,
+    keywords: [
+      '뉴미디어콘텐츠과',
+      '쇼케이스',
+      work.author,
+      String(work.year),
+      ...(work.tech_stack ?? []),
+    ].filter(Boolean),
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'article',
+      url,
+      title,
+      description,
+      locale: 'ko_KR',
+      siteName: 'NWCN',
+      images: work.thumbnail_url ? [{ url: work.thumbnail_url, alt: title }] : undefined,
+    },
+  }
+}
 
 // ── 뷰어 컴포넌트 ─────────────────────────────────────────
 
