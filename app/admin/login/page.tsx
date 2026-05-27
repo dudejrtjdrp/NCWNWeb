@@ -6,16 +6,44 @@
  * 성공 시 /admin (또는 ?next= 파라미터 경로)으로 리다이렉트
  */
 
-import { useActionState } from 'react'
+import { useFormState, useFormStatus } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { signIn } from '@/app/admin/actions'
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full flex items-center justify-center gap-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-sm py-4 rounded-xl transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {pending ? (
+        <>
+          <svg
+            className="animate-spin w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+          </svg>
+          로그인 중...
+        </>
+      ) : (
+        '로그인'
+      )}
+    </button>
+  )
+}
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const callbackError = searchParams.get('error')
 
-  const [state, formAction, isPending] = useActionState(signIn, null)
+  const [state, formAction] = useFormState(signIn, null)
   const errorMsg = (state as { error?: string } | null)?.error ??
     (callbackError ? '인증 오류가 발생했습니다. 다시 시도해주세요.' : null)
 
@@ -98,28 +126,7 @@ function LoginForm() {
             )}
 
             {/* 로그인 버튼 */}
-            <button
-              type="submit"
-              disabled={isPending}
-              className="w-full flex items-center justify-center gap-2 bg-nwcn-green text-nwcn-text-default font-body font-semibold text-sm py-4 rounded-xl transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? (
-                <>
-                  <svg
-                    className="animate-spin w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                  로그인 중...
-                </>
-              ) : (
-                '로그인'
-              )}
-            </button>
+            <SubmitButton />
           </form>
         </div>
 
