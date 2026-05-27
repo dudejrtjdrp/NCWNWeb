@@ -79,4 +79,4 @@ export const POST = withHandler(async (request: NextRequest) => {
   // 세션 쿠키가 심긴 successResponse 반환 → 브라우저가 /admin으로 이동
   logInfo('admin login success', email)
   return successResponse
-}
+})
