@@ -7,22 +7,16 @@
  * ※ Hero(§1) + SubNav 탭은 AboutHero 컴포넌트로 분리됨
  *    이 컴포넌트는 SubNav 아래 콘텐츠(학과소개 ~ 자격증)만 담당
  *
- * 좌표계: DeptSection y = Figma y − 64 (NavBar)
- *         이 컴포넌트 내부 y = DeptSection y − 805 (Hero 높이)
- *
  * 섹션 구성 (AboutHero 이후)
- *  §A 학과소개 인트로   0    – 1308  (h=1308)  ← Figma §2의 SubNav 제외 영역 포함
- *  §B 교육 목표        1308 – 3052  (h=1744)  ← Figma §3
- *  §C 세부 교육 목표   3052 – 3893  (h=841)   ← Figma §4
- *  §D 교육방침         3893 – 4986  (h=1093)  ← Figma §5
- *  §E 졸업 후 진로     4986 – 6778  (h=1792)  ← Figma §6
- *  §F 자격증           6778 – 7579  (h=801)   ← Figma §7
- *
- * 내부 좌표 변환: section_y = Figma_y − 64 − 805 (= Figma_y − 869)
- *   SubNav(Figma top=869)가 AboutHero로 분리됐으므로
- *   §A top=0 = Figma y=869 (SubNav top)
+ *  §A 학과소개 인트로   0    – 1308
+ *  §B 교육 목표        1308 – 3052
+ *  §C 세부 교육 목표   3052 – 3893
+ *  §D 교육방침         3893 – 4986
+ *  §E 졸업 후 진로     4986 – 6778
+ *  §F 자격증           6778 – 7579
  */
 
+import { useTranslations } from 'next-intl'
 import CertCarousel from '@/components/base/CertCarousel'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
@@ -40,7 +34,7 @@ const IMG = {
 }
 
 /* ─── SymbolCard ─── */
-function SymbolCard() {
+function SymbolCard({ alt }: { alt: string }) {
   return (
     <div style={{ position: 'relative', width: 606, height: 320 }}>
       <div
@@ -56,39 +50,38 @@ function SymbolCard() {
       </div>
       <img
         src={IMG.symbolCardBg}
-        alt="뉴미디어콘텐츠과 상징 이미지"
+        alt={alt}
         style={{ position: 'absolute', inset: 0, display: 'block', width: '100%', height: '100%', maxWidth: 'none' }}
       />
     </div>
   )
 }
 
-/* ─── 교육 목표 01-05 데이터 ─── */
-const GOALS = [
-  { num: '01', text: '가상현실 콘텐츠 제작 전문인력양성',    numLeft: 0,   numTop: 0,   textLeft: 6,   textTop: 103, textW: 450, align: 'left'  as const },
-  { num: '02', text: '인터랙티브 콘텐츠 제작 전문인력양성',  numLeft: 744, numTop: 221, textLeft: 362, textTop: 324, textW: 485, align: 'right' as const },
-  { num: '03', text: '실감 콘텐츠 제작 전문인력양성',        numLeft: 7,   numTop: 442, textLeft: 7,   textTop: 545, textW: 388, align: 'left'  as const },
-  { num: '04', text: '스마트미디어 콘텐츠 제작 전문인력양성', numLeft: 750, numTop: 663, textLeft: 325, textTop: 766, textW: 522, align: 'right' as const },
-  { num: '05', text: '웹기반 콘텐츠 제작 전문인력양성',      numLeft: 7,   numTop: 884, textLeft: 7,   textTop: 987, textW: 415, align: 'left'  as const },
+/* ─── 교육 목표 위치 데이터 (텍스트 제외) ─── */
+const GOAL_POSITIONS = [
+  { num: '01', numLeft: 0,   numTop: 0,   textLeft: 6,   textTop: 103, textW: 450, align: 'left'  as const },
+  { num: '02', numLeft: 744, numTop: 221, textLeft: 362, textTop: 324, textW: 485, align: 'right' as const },
+  { num: '03', numLeft: 7,   numTop: 442, textLeft: 7,   textTop: 545, textW: 388, align: 'left'  as const },
+  { num: '04', numLeft: 750, numTop: 663, textLeft: 325, textTop: 766, textW: 522, align: 'right' as const },
+  { num: '05', numLeft: 7,   numTop: 884, textLeft: 7,   textTop: 987, textW: 415, align: 'left'  as const },
 ]
 
-/* ─── 졸업 후 진로 태그 ─── */
-interface CareerTag { label: string; top: number; left: string; width: number }
-const CAREER_TAGS: CareerTag[] = [
-  { label: '모바일 콘텐츠 기획 및 제작 전문가',  top: 701,  left: 'calc(25% + 31px)',    width: 275 },
-  { label: '앱 콘텐츠 기획자',                   top: 786,  left: 'calc(33.33% + 66px)', width: 174 },
-  { label: 'UI/UX 디자이너',                     top: 862,  left: 'calc(16.67% + 72px)', width: 174 },
-  { label: 'UI/UX 기획자',                       top: 981,  left: 'calc(33.33% + 16px)', width: 149 },
-  { label: 'AR/VR 콘텐츠제작 전문가',            top: 999,  left: 'calc(58.33% + 64px)', width: 245 },
-  { label: '웹 콘텐츠 개발자',                   top: 1023, left: 'calc(8.33% + 118px)', width: 177 },
-  { label: '웹사이트 기획 및 제작자',            top: 1129, left: 'calc(83.33% - 17px)', width: 214 },
-  { label: '웹 콘텐츠 기획자',                   top: 1147, left: 'calc(58.33% + 25px)', width: 177 },
-  { label: 'AR/VR 콘텐츠 제작자',               top: 1160, left: 'calc(25% + 73px)',     width: 235 },
-  { label: '미디어 아티스트',                    top: 1171, left: '41px',                 width: 174 },
-  { label: '앱 콘텐츠 개발자',                   top: 1195, left: 'calc(66.67% - 6px)',  width: 177 },
-  { label: '인터넷방송 콘텐츠제작 전문가',        top: 1296, left: 'calc(8.33% + 102px)', width: 260 },
-  { label: '인터랙티브 콘텐츠 기획 및 제작자',   top: 1321, left: 'calc(58.33% + 57px)', width: 296 },
-  { label: '인터렉티브 퍼포먼스 기획 및 제작자', top: 1345, left: 'calc(16.67% + 97px)', width: 296 },
+/* ─── 졸업 후 진로 위치 데이터 (텍스트 제외) ─── */
+const CAREER_POSITIONS = [
+  { top: 701,  left: 'calc(25% + 31px)',    width: 275 },
+  { top: 786,  left: 'calc(33.33% + 66px)', width: 174 },
+  { top: 862,  left: 'calc(16.67% + 72px)', width: 174 },
+  { top: 981,  left: 'calc(33.33% + 16px)', width: 149 },
+  { top: 999,  left: 'calc(58.33% + 64px)', width: 245 },
+  { top: 1023, left: 'calc(8.33% + 118px)', width: 177 },
+  { top: 1129, left: 'calc(83.33% - 17px)', width: 214 },
+  { top: 1147, left: 'calc(58.33% + 25px)', width: 177 },
+  { top: 1160, left: 'calc(25% + 73px)',     width: 235 },
+  { top: 1171, left: '41px',                 width: 174 },
+  { top: 1195, left: 'calc(66.67% - 6px)',  width: 177 },
+  { top: 1296, left: 'calc(8.33% + 102px)', width: 260 },
+  { top: 1321, left: 'calc(58.33% + 57px)', width: 296 },
+  { top: 1345, left: 'calc(16.67% + 97px)', width: 296 },
 ]
 
 /* ─── 글래스모피즘 진로 태그 ─── */
@@ -125,6 +118,10 @@ function GlassTag({ label, width }: { label: string; width: number }) {
    메인 컴포넌트
 ══════════════════════════════════════════════════════ */
 export default function DepartmentSection() {
+  const t = useTranslations('about.department')
+  const goals = t.raw('goals') as string[]
+  const careers = t.raw('careers') as string[]
+
   return (
     <div
       style={{
@@ -143,7 +140,7 @@ export default function DepartmentSection() {
       <AnimateOnScroll variant="fade-up" threshold={0.05}>
       <div style={{ position: 'relative', height: 1308, background: '#fff' }}>
 
-        {/* 하향 화살표 — Figma: center-y=1074.5(Figma)=205(§2 내부) */}
+        {/* 하향 화살표 */}
         <div
           style={{
             position: 'absolute',
@@ -158,7 +155,7 @@ export default function DepartmentSection() {
             style={{ display: 'block', width: '100%', height: '100%' }} />
         </div>
 
-        {/* "학과 소개" — Figma: center-y=1164.5→section=295 */}
+        {/* "학과 소개" 타이틀 */}
         <p style={{
           position: 'absolute', top: 295, left: '50%',
           transform: 'translateX(-50%) translateY(-50%)',
@@ -167,15 +164,15 @@ export default function DepartmentSection() {
           fontWeight: 700, fontSize: 24, color: '#444',
           lineHeight: 'normal', whiteSpace: 'nowrap',
         }}>
-          학과 소개
+          {t('intro')}
         </p>
 
-        {/* SymbolCard — Figma: top=1299(DeptSection=1235)→section=430 */}
+        {/* SymbolCard */}
         <div style={{ position: 'absolute', top: 430, left: '50%', transform: 'translateX(-50%)' }}>
-          <SymbolCard />
+          <SymbolCard alt={t('imageAlt')} />
         </div>
 
-        {/* 소개 텍스트 — Figma: center-y=1836.5→section=967 */}
+        {/* 소개 텍스트 */}
         <div style={{
           position: 'absolute', top: 967, left: '50%',
           transform: 'translateX(-50%) translateY(-50%)',
@@ -186,7 +183,7 @@ export default function DepartmentSection() {
             fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
             fontWeight: 400, fontSize: 32, lineHeight: '37px', color: '#000',
           }}>
-            뉴미디어 산업을 선도할 수 있는 융합 콘텐츠 전문인 양성
+            {t('introText1')}
           </p>
           <p style={{
             margin: 0,
@@ -197,7 +194,7 @@ export default function DepartmentSection() {
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}>
-            2022년 뉴미디어 콘텐츠 제작 분야 국내 Top 3
+            {t('introText2')}
           </p>
         </div>
       </div>
@@ -235,10 +232,10 @@ export default function DepartmentSection() {
             fontWeight: 700, fontSize: 24, color: '#444',
             textAlign: 'center', lineHeight: 'normal',
           }}>
-            교육 목표
+            {t('goal')}
           </p>
 
-          {GOALS.map((g) => (
+          {GOAL_POSITIONS.map((g, i) => (
             <div key={g.num} style={{ position: 'absolute', top: 0, left: 0, width: '100%' }}>
               <span style={{
                 position: 'absolute', top: 177 + g.numTop, left: g.numLeft,
@@ -255,7 +252,7 @@ export default function DepartmentSection() {
                 fontWeight: 700, fontSize: 25, lineHeight: 'normal',
                 color: '#1d1d1d', textAlign: g.align,
               }}>
-                {g.text}
+                {goals[i]}
               </p>
             </div>
           ))}
@@ -278,12 +275,12 @@ export default function DepartmentSection() {
           fontWeight: 700, fontSize: 24, color: '#444',
           lineHeight: 'normal', textAlign: 'center', width: '100%',
         }}>
-          세부 교육 목표
+          {t('detailGoal')}
         </p>
         <div style={{ display: 'flex', gap: 42, alignItems: 'center', marginTop: 75 }}>
           {[0, 1, 2].map((i) => (
             <div key={i} style={{ position: 'relative', width: 378, height: 283, flexShrink: 0 }}>
-              <img src={IMG.goalCard} alt={`세부 교육 목표 ${i + 1}`}
+              <img src={IMG.goalCard} alt={`${t('detailGoal')} ${i + 1}`}
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', maxWidth: 'none' }} />
             </div>
           ))}
@@ -303,7 +300,7 @@ export default function DepartmentSection() {
             fontWeight: 700, fontSize: 24, color: '#444',
             lineHeight: 'normal', textAlign: 'center',
           }}>
-            교육방침
+            {t('policy')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 41, marginTop: 111 }}>
 
@@ -325,10 +322,9 @@ export default function DepartmentSection() {
                   margin: 0,
                   fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
                   fontWeight: 500, fontSize: 18, lineHeight: '27px',
-                  color: '#fff', textAlign: 'right', whiteSpace: 'nowrap',
+                  color: '#fff', textAlign: 'right', whiteSpace: 'pre-line',
                 }}>
-                  4차 산업혁명과 5G상용화에 따라 VR/AR콘텐츠, 스마트폰, 태블릿PC 등과 관련된 인터랙티브 콘텐츠(쌍방향 콘텐츠)를<br />
-                  제작할 수 있는 다양한 디지털 장비와 컴퓨터를 고루 갖추어 실무에서 곧바로 사용할 수 있는 현장 중심 실무형 교육을 실시한다.
+                  {t('policyText1')}
                 </p>
               </div>
             </div>
@@ -351,11 +347,9 @@ export default function DepartmentSection() {
                   margin: 0,
                   fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
                   fontWeight: 500, fontSize: 18, lineHeight: '27px',
-                  color: '#fff', whiteSpace: 'nowrap',
+                  color: '#fff', whiteSpace: 'pre-line',
                 }}>
-                  또한, VR/AR 콘텐츠 제작을 위한 프로그래밍 기술(Java, Processing 등)과 사이트 구축을 위한 기술(HTML5, CSS3, Javascript, JSP 등)을 갖춘<br />
-                  실무와 이론을 겸비한 능력을 가진다. 콘텐츠를 제작하는데 기반이 되는 기획능력, 디자인능력, 프로그래밍능력을 고루 갖추는 교육을 통해<br />
-                  실무에 빠르게 적응하는 융합형 인재를 양성한다.
+                  {t('policyText2')}
                 </p>
               </div>
             </div>
@@ -379,38 +373,38 @@ export default function DepartmentSection() {
           <img src={IMG.vecCareer} alt="" style={{ display: 'block', width: '100%', height: '100%' }} />
         </div>
 
-        {/* "뉴미디어콘텐츠과는" — Figma center-y=6150.98→§6 rel=296 */}
+        {/* careerQ1 */}
         <div style={{
           position: 'absolute', top: 296, left: 'calc(29.17% - 12.3px)',
           transform: 'translateX(-50%) translateY(-50%) rotate(23.07deg)',
         }}>
           <span style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif", fontWeight: 700, fontSize: 24, color: '#444', whiteSpace: 'nowrap' }}>
-            뉴미디어콘텐츠과는
+            {t('careerQ1')}
           </span>
         </div>
-        {/* "졸업 후" — Figma center-y=6376.29→§6 rel=521 */}
+        {/* careerQ2 */}
         <div style={{
           position: 'absolute', top: 521, left: 'calc(58.33% - 19.71px)',
           transform: 'translateX(-50%) translateY(-50%) rotate(45deg)',
         }}>
           <span style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif", fontWeight: 700, fontSize: 24, color: '#444', whiteSpace: 'nowrap' }}>
-            졸업 후
+            {t('careerQ2')}
           </span>
         </div>
-        {/* "무슨 일을 하나요?" — Figma center-y=6470.38→§6 rel=615 */}
+        {/* careerQ3 */}
         <div style={{
           position: 'absolute', top: 615, left: 'calc(83.33% - 50.54px)',
           transform: 'translateX(-50%) translateY(-50%) rotate(-21.3deg)',
         }}>
           <span style={{ fontFamily: "'Pretendard Variable', Pretendard, sans-serif", fontWeight: 700, fontSize: 24, color: '#444', whiteSpace: 'nowrap' }}>
-            무슨 일을 하나요?
+            {t('careerQ3')}
           </span>
         </div>
 
         {/* 진로 태그 */}
-        {CAREER_TAGS.map((tag) => (
-          <div key={tag.label} style={{ position: 'absolute', top: tag.top, left: tag.left }}>
-            <GlassTag label={tag.label} width={tag.width} />
+        {CAREER_POSITIONS.map((pos, i) => (
+          <div key={i} style={{ position: 'absolute', top: pos.top, left: pos.left }}>
+            <GlassTag label={careers[i] ?? ''} width={pos.width} />
           </div>
         ))}
       </div>

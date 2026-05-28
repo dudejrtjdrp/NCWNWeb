@@ -29,6 +29,7 @@
  */
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 /* ─── 타입 정의 ─── */
@@ -519,8 +520,20 @@ export interface CurriculumSectionProps {
 
 export default function CurriculumSection({ className }: CurriculumSectionProps) {
   const [activeGrade, setActiveGrade] = useState<1 | 2 | 3>(1)
+  const t = useTranslations('about.curriculum')
 
   const currentData = CURRICULUM_DATA.find((d) => d.grade === activeGrade)!
+
+  // 카테고리/학기 레이블 번역 맵
+  const categoryLabelMap: Record<string, string> = {
+    '교양필수': t('required'),
+    '전공필수': t('majorRequired'),
+    '전공선택': t('majorElective'),
+  }
+  const semesterLabelMap: Record<string, string> = {
+    '1학기': t('semester1'),
+    '2학기': t('semester2'),
+  }
 
   return (
     <div
@@ -560,7 +573,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
               textAlign: 'center',
             }}
           >
-            교육 과정
+            {t('title')}
           </p>
         </div>
       </AnimateOnScroll>
@@ -607,7 +620,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
                 whiteSpace: 'nowrap',
               }}
             >
-              {grade}학년
+              {t('grade', { grade })}
             </button>
           )
         })}
@@ -620,7 +633,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
       <div
         id={`curriculum-panel-${activeGrade}`}
         role="tabpanel"
-        aria-label={`${activeGrade}학년 커리큘럼`}
+        aria-label={t('grade', { grade: activeGrade })}
       >
         {currentData.categories.map((category, idx) => (
           <AnimateOnScroll key={`${activeGrade}-${category.title}`} variant="fade-up" delay={idx * 60} threshold={0.05}>
@@ -659,14 +672,18 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
                   color: category.color,
                 }}
               >
-                {category.title}
+                {categoryLabelMap[category.title] ?? category.title}
               </p>
 
               {/* 학기 목록 */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 95 }}>
-                {category.semesters.map((semester, sIdx) => (
-                  <SemesterBlock key={sIdx} semester={semester} />
-                ))}
+                {category.semesters.map((semester, sIdx) => {
+                  const translatedSemester = {
+                    ...semester,
+                    label: semesterLabelMap[semester.label] ?? semester.label,
+                  }
+                  return <SemesterBlock key={sIdx} semester={translatedSemester} />
+                })}
               </div>
             </div>
           </div>

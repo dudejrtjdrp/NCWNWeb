@@ -6,6 +6,7 @@
  */
 
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import FacultyCard from '@/components/base/FacultyCard'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 import { FACULTY_LIST } from '@/lib/faculty-data'
@@ -29,6 +30,7 @@ export interface FacultySectionProps {
 }
 
 export default function FacultySection({ className }: FacultySectionProps) {
+  const t = useTranslations('about.faculty')
   const professors = FACULTY_LIST.filter((f) => f.role === '교수')
   const assistants = FACULTY_LIST.filter((f) => f.role === '조교')
 
@@ -48,7 +50,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
             className="font-body font-bold text-[24px] text-[#444] text-center mb-[60px]"
             data-node-id="427:910"
           >
-            교수진
+            {t('professors')}
           </h2>
         </AnimateOnScroll>
 
@@ -87,7 +89,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
             className="font-body font-bold text-[24px] text-[#444] text-center mb-[60px]"
             data-node-id="427:1250"
           >
-            조교
+            {t('assistants')}
           </h2>
         </AnimateOnScroll>
 

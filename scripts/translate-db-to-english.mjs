@@ -17,6 +17,17 @@ import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
+// ── Node.js 18 WebSocket 폴리필 (Supabase Realtime 초기화 오류 방지) ──
+// 이 스크립트는 Realtime을 사용하지 않으므로 더미 구현으로 충분합니다.
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = class MockWebSocket extends EventTarget {
+    static CONNECTING = 0; static OPEN = 1; static CLOSING = 2; static CLOSED = 3
+    constructor() { super(); this.readyState = 3 /* CLOSED */ }
+    close() {}
+    send() {}
+  }
+}
+
 // ── 환경 변수 로드 ────────────────────────────────────────────
 const __dir = dirname(fileURLToPath(import.meta.url))
 const envPath = join(__dir, '..', '.env.local')
@@ -136,7 +147,7 @@ async function processTable(tableName, config) {
   // _en 컬럼이 모두 NULL인 행만 가져옴 (이미 번역된 건 스킵)
   const selectCols = ['id', ...fields, ...enFields].join(',')
   const { data: rows, error } = await sb
-    .table(tableName)
+    .from(tableName)
     .select(selectCols)
     .order('created_at', { ascending: true })
 
@@ -213,7 +224,7 @@ async function processTable(tableName, config) {
     }
 
     const { error: updateErr } = await sb
-      .table(tableName)
+      .from(tableName)
       .update(updates)
       .eq('id', row.id)
 

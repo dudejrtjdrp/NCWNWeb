@@ -79,7 +79,39 @@
       "goal": "Educational Goals",
       "policy": "Educational Policy",
       "career": "Career Paths",
-      "certificate": "Certifications"
+      "certificate": "Certifications",
+      "detailGoal": "Detailed Educational Goals",
+      "imageAlt": "NWCN Symbol Image",
+      "introText1": "Training convergence content professionals who lead the new media industry",
+      "introText2": "2022 Top 3 in New Media Content Production in Korea",
+      "policyText1": "With the 4th Industrial Revolution and 5G commercialization, we equip students with diverse digital equipment and computers for interactive content (VR/AR, smartphones, tablets),\nproviding field-centered practical education for immediate workplace application.",
+      "policyText2": "We also cultivate programming skills for VR/AR content (Java, Processing, etc.) and web development (HTML5, CSS3, Javascript, JSP, etc.),\ncombining theory and practice. Through education in planning, design, and programming — the foundations of content creation —\nwe nurture convergence talent that quickly adapts to the professional field.",
+      "careerQ1": "What can you do",
+      "careerQ2": "after graduating",
+      "careerQ3": "from NWCN?",
+      "goals": [
+        "Training VR Content Production Professionals",
+        "Training Interactive Content Production Professionals",
+        "Training Immersive Content Production Professionals",
+        "Training Smart Media Content Production Professionals",
+        "Training Web-Based Content Production Professionals"
+      ],
+      "careers": [
+        "Mobile Content Planning & Production Specialist",
+        "App Content Planner",
+        "UI/UX Designer",
+        "UI/UX Planner",
+        "AR/VR Content Production Specialist",
+        "Web Content Developer",
+        "Website Planning & Production",
+        "Web Content Planner",
+        "AR/VR Content Creator",
+        "Media Artist",
+        "App Content Developer",
+        "Internet Broadcasting Content Production Specialist",
+        "Interactive Content Planning & Production",
+        "Interactive Performance Planning & Production"
+      ]
     },
     "faculty": {
       "title": "FACULTY",
@@ -172,11 +204,51 @@
       ]
     },
     "contact": {
-      "title": "CONTACT"
+      "title": "CONTACT",
+      "heading": "Contact Information",
+      "directionsHeading": "Directions",
+      "directionsMap": "Map Area",
+      "directionsLink": "View directions on school website",
+      "items": [
+        { "label": "Phone", "value": "031-000-0000", "sub": "Mon–Fri 09:00 — 18:00" },
+        { "label": "Email", "value": "nwcn@dba.ac.kr", "sub": "Response within 2 business days" },
+        { "label": "Address", "value": "San 30, Seoam-ri, Tongjin-eup, Gimpo-si, Gyeonggi-do", "sub": "Dong-A Broadcasting Arts University, Dept. of New Media Contents" },
+        { "label": "Hours", "value": "Mon–Fri 09:00 — 18:00", "sub": "Closed on weekends and public holidays" }
+      ],
+      "directions": [
+        { "icon": "🚌", "label": "Bus", "value": "Routes XX or OO, walk 5 min from stop" },
+        { "icon": "🚇", "label": "Subway", "value": "Gimpo Goldline — transfer to bus at OO Station" },
+        { "icon": "🚗", "label": "Car", "value": "Search \"Dong-A Broadcasting Arts University\" in navigation" }
+      ]
     },
     "privacy": {
       "title": "PRIVACY",
-      "heading": "Privacy Policy"
+      "heading": "Privacy Policy",
+      "lastModifiedLabel": "Last Updated",
+      "lastModified": "May 20, 2026",
+      "footerNote": "This privacy policy may be updated in accordance with relevant laws and internal policies. Changes will be announced on our website. For inquiries, please contact",
+      "sections": [
+        {
+          "title": "Personal Information Collected",
+          "content": "This website may collect the following personal information during service use.\n\n- Automatically collected: IP address, access time, browser information, cookies"
+        },
+        {
+          "title": "Purpose of Collection and Use",
+          "content": "Collected information will not be used for purposes other than those listed below. Prior consent will be obtained if purposes change.\n\n- Service provision and operation\n- Service improvement and statistical analysis"
+        },
+        {
+          "title": "Retention and Use Period",
+          "content": "Personal information is destroyed immediately upon achievement of collection and use purposes. Information required under relevant laws will be retained for the prescribed period."
+        },
+        {
+          "title": "Destruction Procedures and Methods",
+          "content": "Information in electronic file format is deleted using technical methods that prevent restoration of records."
+        },
+        {
+          "title": "Privacy Officer",
+          "content": "We have designated a privacy officer to oversee all privacy-related matters and handle complaints and remedies.\n\n- Department: New Media Contents\n- Email: nwcn@dba.ac.kr"
+        }
+      ]
     }
   },
   "notFound": {

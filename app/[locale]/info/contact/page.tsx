@@ -3,54 +3,53 @@ import InfoHero from '@/components/base/InfoHero'
 import SubNav from '@/components/common/SubNav'
 import Button from '@/components/ui/Button'
 import { INFO_NAV_ITEMS } from '@/constants/nav-items'
+import { getTranslations } from 'next-intl/server'
 
-const CONTACT_ITEMS = [
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 0h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 14.92z" />
-      </svg>
-    ),
-    label: '전화',
-    value: '031-000-0000',
-    sub: '평일 09:00 — 18:00',
-  },
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
-    label: '이메일',
-    value: 'nwcn@dba.ac.kr',
-    sub: '문의 접수 후 2영업일 이내 회신',
-  },
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
-    label: '주소',
-    value: '경기도 김포시 통진읍 서암리 산30',
-    sub: '동아방송예술대학교 뉴미디어콘텐츠과',
-  },
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    label: '운영시간',
-    value: '평일 09:00 — 18:00',
-    sub: '주말 및 공휴일 제외',
-  },
+interface ContactItem {
+  label: string
+  value: string
+  sub: string
+}
+
+interface DirectionItem {
+  icon: string
+  label: string
+  value: string
+}
+
+interface PageProps {
+  params: Promise<{ locale: string }>
+}
+
+const ICONS = [
+  // Phone
+  <svg key="phone" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 0h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 14.92z" />
+  </svg>,
+  // Email
+  <svg key="email" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
+  </svg>,
+  // Address
+  <svg key="address" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>,
+  // Hours
+  <svg key="hours" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>,
 ]
 
-export default function ContactPage() {
+export default async function ContactPage({ params }: PageProps) {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'info.contact' })
+
+  const items = t.raw('items') as ContactItem[]
+  const directions = t.raw('directions') as DirectionItem[]
+
   return (
     <SubPageLayout>
       {/* 히어로 */}
@@ -74,15 +73,15 @@ export default function ContactPage() {
                 <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   CONTACT INFO
                 </p>
-                <h2 className="font-brand font-bold text-[24px] text-nwcn-text-default">문의 연락처</h2>
+                <h2 className="font-brand font-bold text-[24px] text-nwcn-text-default">{t('heading')}</h2>
               </div>
 
               <div className="space-y-6">
-                {CONTACT_ITEMS.map((item) => (
+                {items.map((item, idx) => (
                   <div key={item.label} className="flex items-start gap-5">
                     {/* 아이콘 */}
                     <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-[#f7f7f7] flex items-center justify-center text-nwcn-green">
-                      {item.icon}
+                      {ICONS[idx]}
                     </div>
                     {/* 텍스트 */}
                     <div>
@@ -105,7 +104,7 @@ export default function ContactPage() {
                 <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   DIRECTIONS
                 </p>
-                <h2 className="font-brand font-bold text-[24px] text-nwcn-text-default">오시는 길</h2>
+                <h2 className="font-brand font-bold text-[24px] text-nwcn-text-default">{t('directionsHeading')}</h2>
               </div>
 
               {/* 지도 플레이스홀더 */}
@@ -114,26 +113,22 @@ export default function ContactPage() {
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
-                <p className="font-body text-[13px] text-[#ccc]">지도 영역</p>
+                <p className="font-body text-[13px] text-[#ccc]">{t('directionsMap')}</p>
               </div>
 
               {/* 교통 안내 */}
               <div className="space-y-3 pt-2">
-                {[
-                  { icon: '🚌', label: '버스', value: 'XX번, OO번 정류장 하차 후 도보 5분' },
-                  { icon: '🚇', label: '지하철', value: '김포골드라인 OO역 하차 후 버스 환승' },
-                  { icon: '🚗', label: '자가용', value: '네비게이션에 "동아방송예술대학교" 검색' },
-                ].map((t) => (
-                  <div key={t.label} className="flex items-center gap-3">
-                    <span className="text-[16px]">{t.icon}</span>
-                    <span className="font-body font-semibold text-[12px] text-[#bbb] w-12">{t.label}</span>
-                    <span className="font-body text-[13px] text-[#888]">{t.value}</span>
+                {directions.map((d) => (
+                  <div key={d.label} className="flex items-center gap-3">
+                    <span className="text-[16px]">{d.icon}</span>
+                    <span className="font-body font-semibold text-[12px] text-[#bbb] w-12">{d.label}</span>
+                    <span className="font-body text-[13px] text-[#888]">{d.value}</span>
                   </div>
                 ))}
               </div>
 
               <Button href="https://www.dba.ac.kr" external variant="ghost" size="sm">
-                학교 홈페이지에서 찾아오는 길 보기
+                {t('directionsLink')}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
                 </svg>
