@@ -15,11 +15,12 @@ const TYPE_STYLE = {
 }
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string; locale: string }>
 }
 
 export default async function ProjectDetailPage({ params }: PageProps) {
-  const project = await getProjectById(params.id)
+  const { id, locale } = await params
+  const project = await getProjectById(id, locale)
   if (!project) notFound()
 
   return (

@@ -19,8 +19,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function ShowcasePage() {
-  const works = await getShowcaseWorks()
+export default async function ShowcasePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const works = await getShowcaseWorks(locale)
 
   return (
     <SubPageLayout>

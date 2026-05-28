@@ -32,8 +32,9 @@ const AwardsTagline = (
   </>
 )
 
-export default async function AwardsPage() {
-  const awards = await getAwards()
+export default async function AwardsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const awards = await getAwards(locale)
 
   return (
     <SubPageLayout>

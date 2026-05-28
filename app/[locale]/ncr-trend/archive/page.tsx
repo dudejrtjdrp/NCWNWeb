@@ -5,8 +5,9 @@ import { NCR_NAV_ITEMS } from '@/constants/nav-items'
 import { getNcrReports } from '@/lib/supabase/queries/ncr'
 import ArchiveClient from './ArchiveClient'
 
-export default async function ArchivePage() {
-  const reports = await getNcrReports()
+export default async function ArchivePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const reports = await getNcrReports(locale)
 
   // DB에서 고유 시즌 추출 → Season 3 > 2 > 1 내림차순 정렬
   const seasons = Array.from(

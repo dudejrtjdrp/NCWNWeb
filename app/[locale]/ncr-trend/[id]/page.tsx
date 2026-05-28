@@ -19,8 +19,9 @@ const TYPE_LABELS_KO: Record<string, string> = {
 }
 
 /** 동적 메타데이터 — 아티클 제목·설명·OG */
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const article = await getNcrReportById(params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const article = await getNcrReportById(id)
   if (!article) return { title: '아티클을 찾을 수 없습니다' }
 
   const title = article.title
@@ -90,14 +91,15 @@ function renderContent(content: string) {
 }
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string; locale: string }>
 }
 
 export default async function ArticleDetailPage({ params }: PageProps) {
-  const article = await getNcrReportById(params.id)
+  const { id, locale } = await params
+  const article = await getNcrReportById(id, locale)
   if (!article) notFound()
 
-  const relatedArticles = await getRelatedNcrReports(article.related_ids ?? [])
+  const relatedArticles = await getRelatedNcrReports(article.related_ids ?? [], locale)
 
   const formattedDate = new Date(article.published_at).toLocaleDateString('ko-KR', {
     year: 'numeric',

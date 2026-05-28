@@ -27,8 +27,9 @@ const EventTagline = (
   </>
 )
 
-export default async function EventPage() {
-  const events = await getEvents()
+export default async function EventPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const events = await getEvents(locale)
 
   return (
     <SubPageLayout>

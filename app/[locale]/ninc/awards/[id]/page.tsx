@@ -12,8 +12,9 @@ import { getAwardById } from '@/lib/supabase/queries/awards'
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 /** 동적 메타데이터 — 수상 상세 */
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const award = await getAwardById(params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const award = await getAwardById(id)
   if (!award) return { title: '수상 정보를 찾을 수 없습니다' }
 
   const title = `${award.competition} ${award.award_name}`
@@ -55,11 +56,12 @@ const AWARD_GRADE_COLOR: Record<string, string> = {
 }
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string; locale: string }>
 }
 
 export default async function AwardDetailPage({ params }: PageProps) {
-  const award = await getAwardById(params.id)
+  const { id, locale } = await params
+  const award = await getAwardById(id, locale)
   if (!award) notFound()
 
   return (

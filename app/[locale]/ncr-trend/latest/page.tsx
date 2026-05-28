@@ -32,8 +32,9 @@ const TYPE_BADGE: Record<string, 'new' | 'hot' | 'number'> = {
   card_news: 'number',
 }
 
-export default async function LatestReportPage() {
-  const reports = await getNcrReports()
+export default async function LatestReportPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const reports = await getNcrReports(locale)
 
   const featured = reports[0]
   const rest = reports.slice(1)

@@ -54,8 +54,9 @@ const ProjectTagline = (
   </>
 )
 
-export default async function ProjectPage() {
-  const projects = await getProjects()
+export default async function ProjectPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const projects = await getProjects(locale)
 
   return (
     <SubPageLayout>

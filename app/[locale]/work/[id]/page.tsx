@@ -18,8 +18,9 @@ import ViewCountTracker from './ViewCountTracker'
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 /** 동적 메타데이터 — 쇼케이스 작품 상세 */
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const work = await getWorkById(params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const work = await getWorkById(id)
   if (!work) return { title: '작품을 찾을 수 없습니다' }
 
   const title = work.title
@@ -144,11 +145,12 @@ const TYPE_ICON: Record<WorkType, React.ReactNode> = {
 }
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string; locale: string }>
 }
 
 export default async function WorkDetailPage({ params }: PageProps) {
-  const work = await getWorkById(params.id)
+  const { id, locale } = await params
+  const work = await getWorkById(id, locale)
   if (!work) notFound()
 
   return (
