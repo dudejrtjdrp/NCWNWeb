@@ -37,9 +37,12 @@
  * ──────────────────────────────────────────────────────────────────────────
  */
 
+'use client'
+
 import Image from 'next/image'
 import Link  from 'next/link'
 import Button from '@/components/ui/Button'
+import { useTranslations } from 'next-intl'
 
 const NWCN_LOGO_URL = '/images/common/newcon-logo.png'
 const NOT_FOUND_404_URL = '/images/common/404-text.svg'
@@ -57,6 +60,8 @@ export default function NotFound404Page({
   onBack,
   homeHref = '/',
 }: NotFound404PageProps) {
+  const t = useTranslations('notFound')
+
   return (
     <div
       className="min-h-screen bg-[#f0f0f0] flex flex-col items-center"
@@ -129,11 +134,8 @@ export default function NotFound404Page({
         }}
         data-node-id="376:1206"
       >
-        <p>죄송합니다. 페이지를 찾을 수 없습니다.</p>
-        <p>
-          입력하신 주소가 잘못되었거나 변경되어 페이지가 존재하지 않습니다.
-          아래 버튼을 이용해 이동해 주세요.
-        </p>
+        <p>{t('description1')}</p>
+        <p>{t('description2')}</p>
       </div>
 
       {/* ── 버튼 영역 ─────────────────────────────────────────────────────
@@ -152,7 +154,7 @@ export default function NotFound404Page({
           className="border border-black font-bold w-[126px] justify-center"
           data-node-id="376:1205"
         >
-          메인으로
+          {t('goHome')}
         </Button>
 
         {/* ← 이전으로 — ghost 컬러 Figma 스펙(#444)으로 오버라이드 + Regular */}
@@ -162,7 +164,7 @@ export default function NotFound404Page({
           className="border-[#444444] text-[#444444] font-normal w-[126px] justify-center"
           data-node-id="376:1204"
         >
-          ← 이전으로
+          {t('goBack')}
         </Button>
       </div>
     </div>

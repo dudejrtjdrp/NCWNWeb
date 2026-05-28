@@ -144,12 +144,14 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title       = (formData.get('title')       as string)?.trim()
-  const author      = (formData.get('author')      as string)?.trim()
-  const yearStr     = formData.get('year')          as string
-  const description = (formData.get('description') as string)?.trim()
-  const techRaw     = (formData.get('tech_stack')  as string)?.trim()
-  const thumbnail   = formData.get('thumbnail')    as File | null
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const author         = (formData.get('author')         as string)?.trim()
+  const yearStr        = formData.get('year')             as string
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const techRaw        = (formData.get('tech_stack')     as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
@@ -182,7 +184,9 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
 
   const { error } = await supabase.from('showcase_works').insert({
     title, author, year,
-    description:   description || null,
+    description:    description || null,
+    title_en:       title_en || null,
+    description_en: description_en || null,
     tech_stack,
     thumbnail_url,
     view_count: 0,
@@ -205,12 +209,14 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title       = (formData.get('title')       as string)?.trim()
-  const author      = (formData.get('author')      as string)?.trim()
-  const yearStr     = formData.get('year')          as string
-  const description = (formData.get('description') as string)?.trim()
-  const techRaw     = (formData.get('tech_stack')  as string)?.trim()
-  const thumbnail   = formData.get('thumbnail')    as File | null
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const author         = (formData.get('author')         as string)?.trim()
+  const yearStr        = formData.get('year')             as string
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const techRaw        = (formData.get('tech_stack')     as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
@@ -234,7 +240,9 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
 
   const updateData: Record<string, unknown> = {
     title, author, year, tech_stack,
-    description: description || null,
+    description:    description || null,
+    title_en:       title_en || null,
+    description_en: description_en || null,
   }
 
   if (thumbnail && thumbnail.size > 0) {
@@ -296,25 +304,29 @@ export async function saveArticle(_: unknown, formData: FormData): Promise<Actio
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title        = (formData.get('title')        as string)?.trim()
-  const author       = (formData.get('author')       as string)?.trim()
-  const type         = formData.get('type')           as string
-  const season       = (formData.get('season')       as string)?.trim()
-  const published_at = formData.get('published_at')  as string
-  const excerpt      = (formData.get('excerpt')      as string)?.trim()
-  const content      = (formData.get('content')      as string)?.trim()
-  const tagsRaw      = (formData.get('tags')         as string)?.trim()
-  const relatedRaw   = (formData.get('related_ids')  as string)?.trim()
-  const thumbnail    = formData.get('thumbnail')     as File | null
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const author         = (formData.get('author')         as string)?.trim()
+  const type           = formData.get('type')             as string
+  const season         = (formData.get('season')         as string)?.trim()
+  const published_at   = formData.get('published_at')    as string
+  const excerpt        = (formData.get('excerpt')        as string)?.trim()
+  const excerpt_en     = (formData.get('excerpt_en')     as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const content        = (formData.get('content')        as string)?.trim()
+  const content_en     = (formData.get('content_en')     as string)?.trim()
+  const tagsRaw        = (formData.get('tags')           as string)?.trim()
+  const relatedRaw     = (formData.get('related_ids')    as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!title)        return { error: '제목은 필수입니다.' }
   if (!published_at) return { error: '발행일은 필수입니다.' }
 
-  const titleErr   = checkTextLength(title,   'title',       '제목')
+  const titleErr   = checkTextLength(title,   'title',   '제목')
   if (titleErr)   return { error: titleErr }
-  const excerptErr = checkTextLength(excerpt, 'excerpt',     '요약')
+  const excerptErr = checkTextLength(excerpt, 'excerpt', '요약')
   if (excerptErr) return { error: excerptErr }
-  const contentErr = checkTextLength(content, 'content',     '본문')
+  const contentErr = checkTextLength(content, 'content', '본문')
   if (contentErr) return { error: contentErr }
 
   if (thumbnail && thumbnail.size > 0) {
@@ -343,12 +355,16 @@ export async function saveArticle(_: unknown, formData: FormData): Promise<Actio
 
   const { error } = await supabase.from('ncr_reports').insert({
     title,
-    author:       author || null,
-    type:         type || 'editorial',
-    season:       season || null,
-    published_at: publishedDate.toISOString(),
-    excerpt:      excerpt || null,
-    content:      content || null,
+    title_en:       title_en || null,
+    author:         author || null,
+    type:           type || 'editorial',
+    season:         season || null,
+    published_at:   publishedDate.toISOString(),
+    excerpt:        excerpt || null,
+    excerpt_en:     excerpt_en || null,
+    description_en: description_en || null,
+    content:        content || null,
+    content_en:     content_en || null,
     tags,
     related_ids,
     thumbnail_url,
@@ -374,16 +390,20 @@ export async function updateArticle(id: string, formData: FormData): Promise<Act
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title        = (formData.get('title')        as string)?.trim()
-  const author       = (formData.get('author')       as string)?.trim()
-  const type         = formData.get('type')           as string
-  const season       = (formData.get('season')       as string)?.trim()
-  const published_at = formData.get('published_at')  as string
-  const excerpt      = (formData.get('excerpt')      as string)?.trim()
-  const content      = (formData.get('content')      as string)?.trim()
-  const tagsRaw      = (formData.get('tags')         as string)?.trim()
-  const relatedRaw   = (formData.get('related_ids')  as string)?.trim()
-  const thumbnail    = formData.get('thumbnail')     as File | null
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const author         = (formData.get('author')         as string)?.trim()
+  const type           = formData.get('type')             as string
+  const season         = (formData.get('season')         as string)?.trim()
+  const published_at   = formData.get('published_at')    as string
+  const excerpt        = (formData.get('excerpt')        as string)?.trim()
+  const excerpt_en     = (formData.get('excerpt_en')     as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const content        = (formData.get('content')        as string)?.trim()
+  const content_en     = (formData.get('content_en')     as string)?.trim()
+  const tagsRaw        = (formData.get('tags')           as string)?.trim()
+  const relatedRaw     = (formData.get('related_ids')    as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!title)        return { error: '제목은 필수입니다.' }
   if (!published_at) return { error: '발행일은 필수입니다.' }
@@ -412,12 +432,16 @@ export async function updateArticle(id: string, formData: FormData): Promise<Act
 
   const updateData: Record<string, unknown> = {
     title,
-    author:       author || null,
-    type:         type || 'editorial',
-    season:       season || null,
-    published_at: publishedDate.toISOString(),
-    excerpt:      excerpt || null,
-    content:      content || null,
+    title_en:       title_en || null,
+    author:         author || null,
+    type:           type || 'editorial',
+    season:         season || null,
+    published_at:   publishedDate.toISOString(),
+    excerpt:        excerpt || null,
+    excerpt_en:     excerpt_en || null,
+    description_en: description_en || null,
+    content:        content || null,
+    content_en:     content_en || null,
     tags,
     related_ids,
   }
@@ -530,13 +554,17 @@ export async function saveAward(_: unknown, formData: FormData): Promise<ActionR
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const competition  = (formData.get('competition')  as string)?.trim()
-  const award_name   = (formData.get('award_name')   as string)?.trim()
-  const winner       = (formData.get('winner')       as string)?.trim()
-  const teamRaw      = (formData.get('team_members') as string)?.trim()
-  const yearStr      = formData.get('year')           as string
-  const description  = (formData.get('description')  as string)?.trim()
-  const thumbnail    = formData.get('thumbnail')     as File | null
+  const competition    = (formData.get('competition')    as string)?.trim()
+  const competition_en = (formData.get('competition_en') as string)?.trim()
+  const award_name     = (formData.get('award_name')     as string)?.trim()
+  const award_name_en  = (formData.get('award_name_en')  as string)?.trim()
+  const hosted_by_en   = (formData.get('hosted_by_en')   as string)?.trim()
+  const winner         = (formData.get('winner')         as string)?.trim()
+  const teamRaw        = (formData.get('team_members')   as string)?.trim()
+  const yearStr        = formData.get('year')             as string
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!competition) return { error: '대회명은 필수입니다.' }
   if (!award_name)  return { error: '수상 등급을 선택해주세요.' }
@@ -567,9 +595,13 @@ export async function saveAward(_: unknown, formData: FormData): Promise<ActionR
 
   const { error } = await supabase.from('awards').insert({
     competition, award_name,
-    winner:       winner || null,
+    competition_en:  competition_en || null,
+    award_name_en:   award_name_en || null,
+    hosted_by_en:    hosted_by_en || null,
+    winner:          winner || null,
     team_members, year,
-    description:  description || null,
+    description:     description || null,
+    description_en:  description_en || null,
     thumbnail_url,
   })
 
@@ -590,13 +622,17 @@ export async function updateAward(id: string, formData: FormData): Promise<Actio
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const competition  = (formData.get('competition')  as string)?.trim()
-  const award_name   = (formData.get('award_name')   as string)?.trim()
-  const winner       = (formData.get('winner')       as string)?.trim()
-  const teamRaw      = (formData.get('team_members') as string)?.trim()
-  const yearStr      = formData.get('year')           as string
-  const description  = (formData.get('description')  as string)?.trim()
-  const thumbnail    = formData.get('thumbnail')     as File | null
+  const competition    = (formData.get('competition')    as string)?.trim()
+  const competition_en = (formData.get('competition_en') as string)?.trim()
+  const award_name     = (formData.get('award_name')     as string)?.trim()
+  const award_name_en  = (formData.get('award_name_en')  as string)?.trim()
+  const hosted_by_en   = (formData.get('hosted_by_en')   as string)?.trim()
+  const winner         = (formData.get('winner')         as string)?.trim()
+  const teamRaw        = (formData.get('team_members')   as string)?.trim()
+  const yearStr        = formData.get('year')             as string
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!competition) return { error: '대회명은 필수입니다.' }
   if (!award_name)  return { error: '수상 등급을 선택해주세요.' }
@@ -620,9 +656,13 @@ export async function updateAward(id: string, formData: FormData): Promise<Actio
 
   const updateData: Record<string, unknown> = {
     competition, award_name,
-    winner:       winner || null,
+    competition_en:  competition_en || null,
+    award_name_en:   award_name_en || null,
+    hosted_by_en:    hosted_by_en || null,
+    winner:          winner || null,
     team_members, year,
-    description:  description || null,
+    description:     description || null,
+    description_en:  description_en || null,
   }
 
   if (thumbnail && thumbnail.size > 0) {
@@ -681,12 +721,15 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title       = (formData.get('title')       as string)?.trim()
-  const type        = formData.get('type')          as string
-  const partner     = (formData.get('partner')     as string)?.trim()
-  const yearStr     = formData.get('year')          as string
-  const description = (formData.get('description') as string)?.trim()
-  const thumbnail   = formData.get('thumbnail')    as File | null
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const type           = formData.get('type')             as string
+  const partner        = (formData.get('partner')        as string)?.trim()
+  const yearStr        = formData.get('year')             as string
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const outcome_en     = (formData.get('outcome_en')     as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!title) return { error: '프로젝트명은 필수입니다.' }
 
@@ -712,10 +755,13 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
 
   const { error } = await supabase.from('projects').insert({
     title,
-    type:         type || 'industry',
-    partner:      partner || null,
+    title_en:       title_en || null,
+    type:           type || 'industry',
+    partner:        partner || null,
     year,
-    description:  description || null,
+    description:    description || null,
+    description_en: description_en || null,
+    outcome_en:     outcome_en || null,
     thumbnail_url,
   })
 
@@ -737,13 +783,16 @@ export async function updateProject(id: string, formData: FormData): Promise<Act
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title       = (formData.get('title')       as string)?.trim()
-  const type        = formData.get('type')          as string
-  const partner     = (formData.get('partner')     as string)?.trim()
-  const yearStr     = formData.get('year')          as string
-  const duration    = (formData.get('duration')    as string)?.trim()
-  const description = (formData.get('description') as string)?.trim()
-  const thumbnail   = formData.get('thumbnail')    as File | null
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const type           = formData.get('type')             as string
+  const partner        = (formData.get('partner')        as string)?.trim()
+  const yearStr        = formData.get('year')             as string
+  const duration       = (formData.get('duration')       as string)?.trim()
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
+  const outcome_en     = (formData.get('outcome_en')     as string)?.trim()
+  const thumbnail      = formData.get('thumbnail')       as File | null
 
   if (!title) return { error: '프로젝트명은 필수입니다.' }
 
@@ -762,11 +811,14 @@ export async function updateProject(id: string, formData: FormData): Promise<Act
 
   const updateData: Record<string, unknown> = {
     title,
-    type:         type || 'industry',
-    partner:      partner || null,
+    title_en:       title_en || null,
+    type:           type || 'industry',
+    partner:        partner || null,
     year,
-    duration:     duration || null,
-    description:  description || null,
+    duration:       duration || null,
+    description:    description || null,
+    description_en: description_en || null,
+    outcome_en:     outcome_en || null,
   }
 
   if (thumbnail && thumbnail.size > 0) {
@@ -827,12 +879,14 @@ export async function saveEvent(_: unknown, formData: FormData): Promise<ActionR
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title       = (formData.get('title')       as string)?.trim()
-  const type        = formData.get('type')          as string
-  const start_date  = formData.get('start_date')   as string
-  const end_date    = formData.get('end_date')     as string
-  const location    = (formData.get('location')    as string)?.trim()
-  const description = (formData.get('description') as string)?.trim()
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const type           = formData.get('type')             as string
+  const start_date     = formData.get('start_date')      as string
+  const end_date       = formData.get('end_date')        as string
+  const location       = (formData.get('location')       as string)?.trim()
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
 
   if (!title)      return { error: '이벤트 제목은 필수입니다.' }
   if (!start_date) return { error: '시작일은 필수입니다.' }
@@ -854,11 +908,13 @@ export async function saveEvent(_: unknown, formData: FormData): Promise<ActionR
 
   const { error } = await supabase.from('events').insert({
     title,
-    type:        type || '기타',
-    start_date:  startDateObj.toISOString(),
-    end_date:    endDateISO,
-    location:    location || null,
-    description: description || null,
+    title_en:       title_en || null,
+    type:           type || '기타',
+    start_date:     startDateObj.toISOString(),
+    end_date:       endDateISO,
+    location:       location || null,
+    description:    description || null,
+    description_en: description_en || null,
     is_published: true,
   })
 
@@ -879,12 +935,14 @@ export async function updateEvent(id: string, formData: FormData): Promise<Actio
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  const title       = (formData.get('title')       as string)?.trim()
-  const type        = formData.get('type')          as string
-  const start_date  = formData.get('start_date')   as string
-  const end_date    = formData.get('end_date')     as string
-  const location    = (formData.get('location')    as string)?.trim()
-  const description = (formData.get('description') as string)?.trim()
+  const title          = (formData.get('title')          as string)?.trim()
+  const title_en       = (formData.get('title_en')       as string)?.trim()
+  const type           = formData.get('type')             as string
+  const start_date     = formData.get('start_date')      as string
+  const end_date       = formData.get('end_date')        as string
+  const location       = (formData.get('location')       as string)?.trim()
+  const description    = (formData.get('description')    as string)?.trim()
+  const description_en = (formData.get('description_en') as string)?.trim()
 
   if (!title)      return { error: '이벤트 제목은 필수입니다.' }
   if (!start_date) return { error: '시작일은 필수입니다.' }
@@ -906,11 +964,13 @@ export async function updateEvent(id: string, formData: FormData): Promise<Actio
 
   const { error } = await supabase.from('events').update({
     title,
-    type:        type || '기타',
-    start_date:  startDateObj.toISOString(),
-    end_date:    endDateISO,
-    location:    location || null,
-    description: description || null,
+    title_en:       title_en || null,
+    type:           type || '기타',
+    start_date:     startDateObj.toISOString(),
+    end_date:       endDateISO,
+    location:       location || null,
+    description:    description || null,
+    description_en: description_en || null,
   }).eq('id', id)
 
   if (error) {

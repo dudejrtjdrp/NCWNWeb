@@ -1,11 +1,16 @@
 /**
- * BASE 컴포넌트: NcrHero
+ * BASE 컴포넌트: NcrHero (i18n 적용)
  * NCR TREND 섹션 히어로 배너
  */
 
+'use client'
+
+import { useTranslations } from 'next-intl'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 export default function NcrHero() {
+  const t = useTranslations('ncr.hero')
+
   return (
     <div
       className="relative w-full overflow-hidden"
@@ -56,7 +61,7 @@ export default function NcrHero() {
       <div className="absolute inset-0 flex flex-col justify-center px-[79px]">
         <AnimateOnScroll variant="fade-up" delay={0}>
           <p className="font-body font-semibold text-[12px] tracking-[0.25em] text-nwcn-green mb-6">
-            NWCN — MEDIA TREND REPORT
+            {t('label')}
           </p>
         </AnimateOnScroll>
 
@@ -65,15 +70,18 @@ export default function NcrHero() {
             className="font-brand font-bold text-white mb-5"
             style={{ fontSize: 'clamp(40px, 6vw, 80px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
           >
-            NCR TREND
+            {t('title')}
           </h1>
         </AnimateOnScroll>
 
         <AnimateOnScroll variant="fade-up" delay={160}>
           <p className="font-body text-[15px] text-white/50 leading-relaxed max-w-[480px]">
-            뉴미디어콘텐츠과 기자단 NCR이 직접 발굴하고 분석한
-            <br />
-            미디어 트렌드 리포트를 확인하세요.
+            {t('description').split('\n').map((line, i, arr) => (
+              <span key={i}>
+                {line}
+                {i < arr.length - 1 && <br />}
+              </span>
+            ))}
           </p>
         </AnimateOnScroll>
 
@@ -81,7 +89,7 @@ export default function NcrHero() {
           <div className="mt-8 flex items-center gap-4">
             <div className="w-12 h-[2px] bg-nwcn-green" />
             <span className="font-body text-[12px] text-white/30 tracking-widest">
-              TREND · EDITORIAL · CARD NEWS
+              {t('tags')}
             </span>
           </div>
         </AnimateOnScroll>

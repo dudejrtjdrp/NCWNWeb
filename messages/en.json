@@ -1,0 +1,189 @@
+{
+  "common": {
+    "siteName": "NWCN — New Media Contents",
+    "siteDescription": "Official website of the Department of New Media Contents at Dong-A Broadcasting Arts University. Where art and technology meet to create new media.",
+    "search": "Search",
+    "searchPlaceholder": "Search...",
+    "backToTop": "Back to top",
+    "loading": "Loading..."
+  },
+  "nav": {
+    "home": "NWCN Home",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "footer": {
+    "address": "47 Dongayedae-gil, Samjuk-myeon, Anseong-si, Gyeonggi-do, Korea",
+    "copyright": "Copyright ⓒ NWCN All Rights Reserved.",
+    "privacy": "Privacy Policy",
+    "youtube": "YouTube",
+    "instagram": "Instagram",
+    "contact": {
+      "schoolName": "School",
+      "schoolNameValue": "Dong-A Broadcasting Arts University",
+      "deptContact": "Dept. Contact",
+      "deptName": "Department",
+      "deptNameValue": "New Media Contents",
+      "deptEmail": "Dept. Email"
+    }
+  },
+  "home": {
+    "hero": {
+      "label": "NEWMEDIA CONTENTS",
+      "headline": "Where art and\ntechnology meet,\nwe create\nnew media",
+      "subtext": "The Department of New Media Contents at Dong-A Broadcasting Arts University cultivates creative talent at the intersection of broadcasting, art, and IT.",
+      "ctaAbout": "About Department",
+      "ctaWork": "View Student Works",
+      "scroll": "SCROLL"
+    },
+    "whatIs": {
+      "slogan1": "Where the sense of art meets the power of technology,",
+      "slogan2": "creating new possibilities —",
+      "slogan3": "We are the",
+      "slogan3Highlight": "New Media Contents",
+      "slogan3End": "Department."
+    },
+    "ninc": {
+      "sectionLabel": "Now In NewCon",
+      "viewMore": "View More"
+    },
+    "ncr": {
+      "sectionLabel": "NCR Trend",
+      "viewMore": "View More",
+      "talks": "Talks",
+      "contents": "Contents"
+    }
+  },
+  "work": {
+    "hero": {
+      "label": "NWCN — STUDENT WORKS",
+      "title": "Student Works\nPortfolio",
+      "description": "Explore the creative works and graduation\nexhibition records of NWCN students."
+    },
+    "showcase": {
+      "title": "SHOWCASE",
+      "all": "All",
+      "empty": "No works found."
+    },
+    "exhibition": {
+      "title": "EXHIBITION"
+    }
+  },
+  "about": {
+    "hero": {
+      "imageAlt": "NWCN New Media Contents Department"
+    },
+    "department": {
+      "title": "DEPARTMENT",
+      "intro": "Introduction",
+      "goal": "Educational Goals",
+      "policy": "Educational Policy",
+      "career": "Career Paths",
+      "certificate": "Certifications"
+    },
+    "faculty": {
+      "title": "FACULTY",
+      "professors": "Professors",
+      "assistants": "Assistants"
+    },
+    "curriculum": {
+      "title": "Curriculum",
+      "grade": "Year {grade}",
+      "semester1": "Semester 1",
+      "semester2": "Semester 2",
+      "required": "General Education",
+      "majorRequired": "Major Required",
+      "majorElective": "Major Elective"
+    },
+    "lab": {
+      "title": "LAB"
+    }
+  },
+  "ninc": {
+    "hero": {
+      "title": "NINC",
+      "tagline": "Now In NewCon"
+    },
+    "awards": {
+      "title": "AWARDS",
+      "description": "Award Records",
+      "empty": "No awards found."
+    },
+    "project": {
+      "title": "PROJECT",
+      "description": "Projects",
+      "empty": "No projects found."
+    },
+    "event": {
+      "title": "EVENT",
+      "description": "Events",
+      "empty": "No events found."
+    }
+  },
+  "ncr": {
+    "hero": {
+      "label": "NWCN — MEDIA TREND REPORT",
+      "title": "NCR TREND",
+      "description": "Explore media trend reports discovered and\nanalyzed by NCR, the journalism team of NWCN.",
+      "tags": "TREND · EDITORIAL · CARD NEWS"
+    },
+    "latest": {
+      "title": "LATEST REPORT"
+    },
+    "archive": {
+      "title": "ARCHIVE",
+      "empty": "No posts found."
+    }
+  },
+  "info": {
+    "hero": {
+      "label": "NWCN — INFORMATION",
+      "title": "Department Info",
+      "description": "Find admission information, contact details,\nprivacy policy, and other department resources."
+    },
+    "admission": {
+      "title": "ADMISSION",
+      "faqTitle": "Frequently Asked Questions",
+      "stepsTitle": "Admission Process",
+      "linkLabel": "Visit Admissions Office",
+      "faqs": [
+        {
+          "q": "What are the admission types?",
+          "a": "We accept applications through early admission (수시) and regular admission (정시). Please check the admissions office website for details."
+        },
+        {
+          "q": "Is there a practical exam?",
+          "a": "A practical exam may be required depending on the admission type. Requirements may vary each year, so please check the official admissions office."
+        },
+        {
+          "q": "Is transfer admission available?",
+          "a": "Yes, transfer admissions are also offered. Please refer to the admissions office notices for timing and eligibility requirements."
+        },
+        {
+          "q": "Is a portfolio required?",
+          "a": "Some admission types may require a portfolio submission. Please check the specific year's admissions guide for detailed requirements."
+        }
+      ],
+      "steps": [
+        { "step": "01", "label": "Application", "desc": "Submit your application online via the admissions office website" },
+        { "step": "02", "label": "Documents", "desc": "Submit school records, personal statement, and other required documents" },
+        { "step": "03", "label": "Exam / Interview", "desc": "Participate in practical exam or interview depending on admission type" },
+        { "step": "04", "label": "Results", "desc": "Check admission results on the admissions office website" }
+      ]
+    },
+    "contact": {
+      "title": "CONTACT"
+    },
+    "privacy": {
+      "title": "PRIVACY",
+      "heading": "Privacy Policy"
+    }
+  },
+  "notFound": {
+    "title": "PAGE NOT FOUND!",
+    "description1": "We're sorry. The page could not be found.",
+    "description2": "The address you entered may be incorrect or the page may have been moved. Please use the buttons below to navigate.",
+    "goHome": "Go Home",
+    "goBack": "← Go Back"
+  }
+}

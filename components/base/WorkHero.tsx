@@ -1,11 +1,16 @@
 /**
- * BASE 컴포넌트: WorkHero
+ * BASE 컴포넌트: WorkHero (i18n 적용)
  * WORK 섹션 히어로 배너
  */
 
+'use client'
+
+import { useTranslations } from 'next-intl'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 export default function WorkHero() {
+  const t = useTranslations('work.hero')
+
   return (
     <div className="bg-white">
       <div
@@ -40,7 +45,7 @@ export default function WorkHero() {
         >
           <AnimateOnScroll variant="fade-up" delay={0}>
             <p className="font-body font-semibold text-[13px] tracking-[0.2em] text-nwcn-green pl-[18px]">
-              NWCN — STUDENT WORKS
+              {t('label')}
             </p>
           </AnimateOnScroll>
 
@@ -49,17 +54,23 @@ export default function WorkHero() {
               className="font-brand font-bold text-nwcn-text-default pl-[18px]"
               style={{ fontSize: 'clamp(48px, 7vw, 96px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
             >
-              학생 작품
-              <br />
-              포트폴리오
+              {t('title').split('\n').map((line, i, arr) => (
+                <span key={i}>
+                  {line}
+                  {i < arr.length - 1 && <br />}
+                </span>
+              ))}
             </h1>
           </AnimateOnScroll>
 
           <AnimateOnScroll variant="fade-up" delay={160}>
             <p className="font-body text-[15px] text-[#888] leading-relaxed pl-[18px] max-w-[400px]">
-              뉴미디어콘텐츠과 재학생들의 크리에이티브한
-              <br />
-              작품과 졸업전시 기록을 만나보세요.
+              {t('description').split('\n').map((line, i, arr) => (
+                <span key={i}>
+                  {line}
+                  {i < arr.length - 1 && <br />}
+                </span>
+              ))}
             </p>
           </AnimateOnScroll>
         </div>

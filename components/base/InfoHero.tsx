@@ -1,11 +1,16 @@
 /**
- * BASE 컴포넌트: InfoHero
+ * BASE 컴포넌트: InfoHero (i18n 적용)
  * INFO 섹션 히어로 배너
  */
 
+'use client'
+
+import { useTranslations } from 'next-intl'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 export default function InfoHero() {
+  const t = useTranslations('info.hero')
+
   return (
     <div className="bg-white">
       <div
@@ -36,7 +41,7 @@ export default function InfoHero() {
         >
           <AnimateOnScroll variant="fade-up" delay={0}>
             <p className="font-body font-semibold text-[12px] tracking-[0.2em] text-nwcn-green">
-              NWCN — INFORMATION
+              {t('label')}
             </p>
           </AnimateOnScroll>
 
@@ -45,15 +50,18 @@ export default function InfoHero() {
               className="font-brand font-bold text-nwcn-text-default"
               style={{ fontSize: 'clamp(40px, 6vw, 80px)', lineHeight: 1.05, letterSpacing: '-0.02em' }}
             >
-              학과 안내
+              {t('title')}
             </h1>
           </AnimateOnScroll>
 
           <AnimateOnScroll variant="fade-up" delay={160}>
             <p className="font-body text-[15px] text-[#888] leading-relaxed max-w-[420px]">
-              입시 정보, 문의 연락처, 개인정보처리방침 등
-              <br />
-              학과 관련 안내 정보를 확인하세요.
+              {t('description').split('\n').map((line, i, arr) => (
+                <span key={i}>
+                  {line}
+                  {i < arr.length - 1 && <br />}
+                </span>
+              ))}
             </p>
           </AnimateOnScroll>
 

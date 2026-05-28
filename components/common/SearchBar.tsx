@@ -16,6 +16,7 @@
  */
 
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 export interface SearchBarProps {
   value: string
@@ -31,18 +32,21 @@ export interface SearchBarProps {
 export default function SearchBar({
   value,
   onChange,
-  placeholder = '검색어를 입력하세요',
-  label = '검색',
+  placeholder,
+  label,
   maxWidth = 'max-w-[1011px]',
   className,
 }: SearchBarProps) {
+  const t = useTranslations('common')
+  const resolvedPlaceholder = placeholder ?? t('searchPlaceholder')
+  const resolvedLabel = label ?? t('search')
   return (
     <div className={cn('flex justify-center px-4', className)}>
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         className={cn(
           'w-full h-[47px] px-6',
           'border border-black rounded-[229px]',
@@ -51,7 +55,7 @@ export default function SearchBar({
           'outline-none focus:border-nwcn-green transition-colors',
           maxWidth
         )}
-        aria-label={label}
+        aria-label={resolvedLabel}
       />
     </div>
   )

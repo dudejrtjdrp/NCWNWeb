@@ -13,11 +13,12 @@
  * 메뉴: 우측 정렬 (right: 79px, Figma 스펙)
  */
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 import MobileMenu from './MobileMenu'
+import LocaleSwitcher from '@/components/common/LocaleSwitcher'
 import { NAV_ITEMS } from '@/constants/nav-items'
 
 export type HeaderVariant = 'light' | 'dark' | 'transparent'
@@ -55,6 +56,7 @@ function NwcnLogo() {
 
 export default function Header({ variant = 'light', className }: HeaderProps) {
   const pathname = usePathname()
+  const t = useTranslations('nav')
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -92,7 +94,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
         <div className="relative h-full max-w-[1440px] mx-auto">
           {/* 로고 — Figma: 중앙 정렬 */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <Link href="/" aria-label="NWCN 홈">
+            <Link href="/" aria-label={t('home')}>
               <NwcnLogo />
             </Link>
           </div>
@@ -168,11 +170,16 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
             })}
           </nav>
 
+          {/* 언어 전환 버튼 (데스크탑) */}
+          <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2" style={{ left: '79px' }}>
+            <LocaleSwitcher isLight={isLight} />
+          </div>
+
           {/* 모바일 햄버거 */}
           <button
             className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 p-2 flex flex-col gap-[5px]"
             onClick={() => setMobileOpen(true)}
-            aria-label="메뉴 열기"
+            aria-label={t('openMenu')}
           >
             <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-[#323131]' : 'bg-white')} />
             <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-[#323131]' : 'bg-white')} />

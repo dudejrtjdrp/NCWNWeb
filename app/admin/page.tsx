@@ -1,10 +1,9 @@
 /**
- * Admin 페이지 (Server Component)
- * 인증 체크는 AdminDashboard(Client Component)에서 처리
+ * Admin 루트 페이지 — /admin/work 로 리다이렉트
  */
 
-import AdminDashboard from './_components/AdminDashboard'
+import { redirect } from 'next/navigation'
 
 export default function AdminPage() {
-  return <AdminDashboard />
+  redirect('/admin/work')
 }

@@ -1,23 +1,27 @@
 /**
  * Next.js Middleware
  *
- * 역할 ①: 전체 요청에 보안 헤더 주입
- * 역할 ②: /admin·/auth 경로에서 Supabase 세션 쿠키 자동 갱신
+ * 역할 ①: next-intl 로케일 감지 및 리다이렉트
+ *   - 브라우저 Accept-Language 헤더로 자동 감지 (ko/en)
+ *   - 기본 로케일(ko)은 prefix 없이 /로, 영어는 /en/으로
+ * 역할 ②: 전체 요청에 보안 헤더 주입
+ * 역할 ③: /admin·/auth 경로에서 Supabase 세션 쿠키 자동 갱신
  *
  * 인증 가드는 각 페이지(Server Component)에서 직접 처리:
  *   - /admin        → 비인증 시 /admin/login 으로 redirect
  *   - /admin/login  → 인증 시 /admin 으로 redirect
  */
 
+import createIntlMiddleware from 'next-intl/middleware'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
+import { routing } from './i18n/routing'
+
+// ── next-intl 미들웨어 ─────────────────────────────────────
+const intlMiddleware = createIntlMiddleware(routing)
 
 // ── 보안 헤더 정의 ─────────────────────────────────────────
 
-/**
- * 모든 응답에 공통으로 주입하는 보안 헤더.
- * HSTS는 HTTPS 환경(프로덕션)에서만 활성화됩니다.
- */
 const SECURITY_HEADERS: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
@@ -29,10 +33,6 @@ const SECURITY_HEADERS: Record<string, string> = {
     : {}),
 }
 
-/**
- * Content-Security-Policy 헤더 생성.
- * 외부 리소스를 Supabase Storage 도메인으로 제한합니다.
- */
 function buildCSP(): string {
   const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
     ? (() => { try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname } catch { return '*.supabase.co' } })()
@@ -70,7 +70,7 @@ export async function middleware(request: NextRequest) {
 
   try {
     if (needsSessionRefresh) {
-      // 세션 쿠키 갱신이 필요한 경로: Supabase 클라이언트 생성
+      // admin/auth 경로: Supabase 세션 갱신 (로케일 미들웨어 제외)
       let supabaseResponse = NextResponse.next({ request })
 
       const supabase = createServerClient(
@@ -94,19 +94,17 @@ export async function middleware(request: NextRequest) {
         }
       )
 
-      // 만료된 토큰 자동 갱신 트리거
       await supabase.auth.getUser()
-
       applySecurityHeaders(supabaseResponse)
       return supabaseResponse
     }
 
-    // 나머지 경로: 보안 헤더만 주입
-    const response = NextResponse.next({ request })
+    // 일반 경로: next-intl 로케일 처리 + 보안 헤더
+    const response = intlMiddleware(request)
     applySecurityHeaders(response)
     return response
   } catch {
-    console.error('[middleware] 세션 갱신 중 예외 발생')
+    console.error('[middleware] 예외 발생')
     const response = NextResponse.next({ request })
     applySecurityHeaders(response)
     return response
@@ -116,8 +114,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * 보안 헤더는 모든 경로에 적용.
-     * Next.js 내부 정적 자원(_next/static, _next/image 등)은 제외.
+     * 모든 경로에 적용. 단 Next.js 내부 정적 자원은 제외:
+     * - _next/static, _next/image
+     * - favicon.ico
+     * - 정적 파일 확장자 (.svg, .png, .jpg 등)
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?)$).*)',
   ],

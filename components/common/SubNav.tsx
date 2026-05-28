@@ -18,8 +18,7 @@
  *   - NCR Trend: NCR_NAV_ITEMS (LATEST REPORT | ARCHIVE)
  */
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
 
 export interface SubNavItem {

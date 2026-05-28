@@ -8,7 +8,7 @@
  * 'use client' 선언 이유: useRouter().back()을 통한 이전 페이지 이동 처리
  */
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import NotFound404Page from '@/components/base/NotFound404Page'
 
 export default function NotFound() {

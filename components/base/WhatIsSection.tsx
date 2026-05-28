@@ -1,25 +1,24 @@
 /**
- * BASE 컴포넌트: WhatIsSection
+ * BASE 컴포넌트: WhatIsSection (i18n 적용)
  * Figma node-id: 376:663 (What is NeWCon?)
  * + node-id: 427:879 (IntroVideo)
  * + node-id: 452:189 (Slogan)
- *
- * 디자인 스펙:
- * - "What / is / NewCon?" — A2Z체, 19.914px, black, center
- * - IntroVideo 영역 (810px 높이)
- * - 슬로건 텍스트 — Pretendard Bold 28px / ExtraBold 45px
- * - "뉴미디어콘텐츠과" — 그린 그라디언트 (#00e888 → #00824c)
  */
+
+'use client'
+
+import React from 'react'
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 
 export interface WhatIsSectionProps {
   className?: string
 }
 
-import React from 'react'
-import Image from 'next/image'
-import AnimateOnScroll from '@/components/common/AnimateOnScroll'
-
 export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
+  const t = useTranslations('home.whatIs')
+
   return (
     <section className={`bg-white ${className}`} aria-label="What is NewCon?">
       {/* What is NewCon? 헤더 */}
@@ -67,7 +66,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
             className="font-body font-bold text-[#323131] mb-4"
             style={{ fontSize: 'clamp(18px, 2.5vw, 28.259px)' }}
           >
-            예술의 감각과 기술의 힘이 만나는 순간,
+            {t('slogan1')}
           </p>
         </AnimateOnScroll>
         <AnimateOnScroll variant="fade-up" delay={100}>
@@ -75,7 +74,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
             className="font-body font-bold text-[#323131] mb-8"
             style={{ fontSize: 'clamp(18px, 2.5vw, 28.259px)' }}
           >
-            새로운 가능성을 만들어내는
+            {t('slogan2')}
           </p>
         </AnimateOnScroll>
         <AnimateOnScroll variant="fade-up" delay={200}>
@@ -83,7 +82,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
             className="font-body font-extrabold text-[#323131]"
             style={{ fontSize: 'clamp(24px, 4vw, 45.215px)', lineHeight: 1.2 }}
           >
-            {'우리는 '}
+            {t('slogan3')}{' '}
             <span
               style={{
                 background: 'linear-gradient(to right, #00e888, #00824c)',
@@ -92,9 +91,9 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
                 backgroundClip: 'text',
               }}
             >
-              뉴미디어콘텐츠과
+              {t('slogan3Highlight')}
             </span>
-            입니다.
+            {t('slogan3End')}
           </p>
         </AnimateOnScroll>
       </div>

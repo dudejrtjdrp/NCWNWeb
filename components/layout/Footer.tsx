@@ -1,5 +1,5 @@
 /**
- * 글로벌 Footer 컴포넌트 (통합)
+ * 글로벌 Footer 컴포넌트 (통합 + i18n)
  * Figma node-id: 376:637 (Footer)
  *
  * 디자인 스펙:
@@ -9,28 +9,22 @@
  * - Copyright: Copyright ⓒ NWCN All Rights Reserved.
  * - 연락처 정보 (우측): 학교명, 학과 연락처, 학과명, 학과 이메일
  * - SNS (우하단): YouTube, Instagram 링크
- *
- * 기존 HomeFooter와 Footer를 통합 — 이 파일이 단일 소스
  */
 
-import Image from 'next/image'
-import Link from 'next/link'
+'use client'
 
-const CONTACT_INFO = [
-  { label: '학교명', value: '동아방송예술대학교' },
-  { label: '학과 연락처', value: '031-670-6680' },
-  { label: '학과명', value: '뉴미디어콘텐츠과' },
-  { label: '학과 이메일', value: '02-000-0000' },
-]
+import Image from 'next/image'
+import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 
 const SNS_LINKS = [
   {
-    label: '유튜브 바로가기',
+    key: 'youtube' as const,
     href: 'https://www.youtube.com/channel/UCo9nQUcZ8W1yvUVxApWRMQw',
     icon: '/images/common/youtube.svg',
   },
   {
-    label: '인스타그램 바로가기',
+    key: 'instagram' as const,
     href: 'https://www.instagram.com/2026newcon/',
     icon: '/images/common/instagram.svg',
   },
@@ -41,6 +35,15 @@ export interface FooterProps {
 }
 
 export default function Footer({ className = '' }: FooterProps) {
+  const t = useTranslations('footer')
+
+  const CONTACT_INFO = [
+    { labelKey: 'contact.schoolName', value: t('contact.schoolNameValue') },
+    { labelKey: 'contact.deptContact', value: '031-670-6680' },
+    { labelKey: 'contact.deptName', value: t('contact.deptNameValue') },
+    { labelKey: 'contact.deptEmail', value: '02-000-0000' },
+  ]
+
   return (
     <footer
       className={`relative overflow-hidden ${className}`}
@@ -68,10 +71,10 @@ export default function Footer({ className = '' }: FooterProps) {
             className="flex flex-wrap gap-x-[76px] gap-y-[23px] w-[242px]"
             data-node-id="376:903"
           >
-            {CONTACT_INFO.map(({ label, value }) => (
-              <div key={label} className="flex flex-col gap-[3px]" style={{ minWidth: '73px' }}>
+            {CONTACT_INFO.map(({ labelKey, value }) => (
+              <div key={labelKey} className="flex flex-col gap-[3px]" style={{ minWidth: '73px' }}>
                 <p className="font-body font-medium text-[#323131]" style={{ fontSize: '14px' }}>
-                  {label}
+                  {t(labelKey as Parameters<typeof t>[0])}
                 </p>
                 <p className="font-body font-normal text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
                   {value}
@@ -89,20 +92,20 @@ export default function Footer({ className = '' }: FooterProps) {
         {/* ── 하단 영역 ── */}
         <div className="flex justify-between items-start pt-[32px]">
           {/* 주소 + Copyright */}
-          <div className="flex flex-col gap-[16px] w-[213px]" data-node-id="376:1616">
+          <div className="flex flex-col gap-[16px] w-[300px]" data-node-id="376:1616">
             <p className="font-body font-medium text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
-              경기도 안성시 삼죽면 동아예대길 47
+              {t('address')}
             </p>
             <p className="font-body font-medium text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
-              Copyright ⓒ NWCN All Rights Reserved.
+              {t('copyright')}
             </p>
           </div>
 
           {/* SNS 링크 */}
           <div className="flex flex-col gap-[12px] items-start" data-node-id="452:264">
-            {SNS_LINKS.map(({ label, href, icon }) => (
+            {SNS_LINKS.map(({ key, href, icon }) => (
               <a
-                key={label}
+                key={key}
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -110,7 +113,7 @@ export default function Footer({ className = '' }: FooterProps) {
               >
                 <Image src={icon} alt="" width={19} height={19} unoptimized aria-hidden="true" />
                 <span className="font-body font-medium whitespace-nowrap" style={{ fontSize: '12.62px' }}>
-                  {label}
+                  {t(key)}
                 </span>
               </a>
             ))}
@@ -123,11 +126,10 @@ export default function Footer({ className = '' }: FooterProps) {
             href="/info/privacy"
             className="font-body text-[11px] text-white/30 hover:text-white/60 transition-colors"
           >
-            개인정보처리방침
+            {t('privacy')}
           </Link>
         </div>
       </div>
     </footer>
   )
 }
-

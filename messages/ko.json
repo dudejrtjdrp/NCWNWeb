@@ -1,0 +1,189 @@
+{
+  "common": {
+    "siteName": "NWCN — 뉴미디어콘텐츠과",
+    "siteDescription": "동아방송예술대학교 뉴미디어콘텐츠과 공식 홈페이지. 예술과 기술이 만나는 곳에서 새로운 미디어를 만들어냅니다.",
+    "search": "검색",
+    "searchPlaceholder": "검색어를 입력하세요",
+    "backToTop": "맨 위로",
+    "loading": "로딩 중..."
+  },
+  "nav": {
+    "home": "NWCN 홈",
+    "openMenu": "메뉴 열기",
+    "closeMenu": "메뉴 닫기"
+  },
+  "footer": {
+    "address": "경기도 안성시 삼죽면 동아예대길 47",
+    "copyright": "Copyright ⓒ NWCN All Rights Reserved.",
+    "privacy": "개인정보처리방침",
+    "youtube": "유튜브 바로가기",
+    "instagram": "인스타그램 바로가기",
+    "contact": {
+      "schoolName": "학교명",
+      "schoolNameValue": "동아방송예술대학교",
+      "deptContact": "학과 연락처",
+      "deptName": "학과명",
+      "deptNameValue": "뉴미디어콘텐츠과",
+      "deptEmail": "학과 이메일"
+    }
+  },
+  "home": {
+    "hero": {
+      "label": "NEWMEDIA CONTENTS",
+      "headline": "예술과 기술이\n만나는 곳에서\n새로운 미디어를\n만들어냅니다",
+      "subtext": "동아방송예술대학교 뉴미디어콘텐츠과는 방송, 예술, IT가 교차하는 융복합 창의 인재를 양성합니다.",
+      "ctaAbout": "학과 소개 보기",
+      "ctaWork": "학생 작품 보기",
+      "scroll": "SCROLL"
+    },
+    "whatIs": {
+      "slogan1": "예술의 감각과 기술의 힘이 만나는 순간,",
+      "slogan2": "새로운 가능성을 만들어내는",
+      "slogan3": "우리는",
+      "slogan3Highlight": "뉴미디어콘텐츠과",
+      "slogan3End": "입니다."
+    },
+    "ninc": {
+      "sectionLabel": "Now In NewCon",
+      "viewMore": "더 보기"
+    },
+    "ncr": {
+      "sectionLabel": "NCR Trend",
+      "viewMore": "더 보기",
+      "talks": "Talks",
+      "contents": "Contents"
+    }
+  },
+  "work": {
+    "hero": {
+      "label": "NWCN — STUDENT WORKS",
+      "title": "학생 작품\n포트폴리오",
+      "description": "뉴미디어콘텐츠과 재학생들의 크리에이티브한\n작품과 졸업전시 기록을 만나보세요."
+    },
+    "showcase": {
+      "title": "SHOWCASE",
+      "all": "전체",
+      "empty": "작품이 없습니다."
+    },
+    "exhibition": {
+      "title": "EXHIBITION"
+    }
+  },
+  "about": {
+    "hero": {
+      "imageAlt": "NWCN 뉴미디어콘텐츠과"
+    },
+    "department": {
+      "title": "DEPARTMENT",
+      "intro": "학과 소개",
+      "goal": "교육 목표",
+      "policy": "교육 방침",
+      "career": "졸업 후 진로",
+      "certificate": "자격증"
+    },
+    "faculty": {
+      "title": "FACULTY",
+      "professors": "교수진",
+      "assistants": "조교"
+    },
+    "curriculum": {
+      "title": "교육 과정",
+      "grade": "{grade}학년",
+      "semester1": "1학기",
+      "semester2": "2학기",
+      "required": "교양필수",
+      "majorRequired": "전공필수",
+      "majorElective": "전공선택"
+    },
+    "lab": {
+      "title": "LAB"
+    }
+  },
+  "ninc": {
+    "hero": {
+      "title": "NINC",
+      "tagline": "Now In NewCon"
+    },
+    "awards": {
+      "title": "AWARDS",
+      "description": "수상 실적",
+      "empty": "수상 내역이 없습니다."
+    },
+    "project": {
+      "title": "PROJECT",
+      "description": "프로젝트",
+      "empty": "프로젝트가 없습니다."
+    },
+    "event": {
+      "title": "EVENT",
+      "description": "이벤트",
+      "empty": "이벤트가 없습니다."
+    }
+  },
+  "ncr": {
+    "hero": {
+      "label": "NWCN — MEDIA TREND REPORT",
+      "title": "NCR TREND",
+      "description": "뉴미디어콘텐츠과 기자단 NCR이 직접 발굴하고 분석한\n미디어 트렌드 리포트를 확인하세요.",
+      "tags": "TREND · EDITORIAL · CARD NEWS"
+    },
+    "latest": {
+      "title": "LATEST REPORT"
+    },
+    "archive": {
+      "title": "ARCHIVE",
+      "empty": "게시물이 없습니다."
+    }
+  },
+  "info": {
+    "hero": {
+      "label": "NWCN — INFORMATION",
+      "title": "학과 안내",
+      "description": "입시 정보, 문의 연락처, 개인정보처리방침 등\n학과 관련 안내 정보를 확인하세요."
+    },
+    "admission": {
+      "title": "ADMISSION",
+      "faqTitle": "자주 묻는 질문",
+      "stepsTitle": "입학 절차",
+      "linkLabel": "입학처 바로가기",
+      "faqs": [
+        {
+          "q": "입학 전형은 어떻게 되나요?",
+          "a": "수시 및 정시 전형으로 모집합니다. 자세한 내용은 아래 입학처 홈페이지에서 확인하세요."
+        },
+        {
+          "q": "실기 시험이 있나요?",
+          "a": "전형에 따라 실기 시험이 포함될 수 있습니다. 매년 달라질 수 있으니 공식 입학처에서 확인 바랍니다."
+        },
+        {
+          "q": "편입학도 가능한가요?",
+          "a": "네, 편입학 모집도 진행합니다. 편입 시기와 요건은 입학처 공지사항을 참고해 주세요."
+        },
+        {
+          "q": "포트폴리오가 필요한가요?",
+          "a": "일부 전형에서 포트폴리오 제출이 요구될 수 있습니다. 구체적인 요건은 해당 연도 모집요강을 확인해 주세요."
+        }
+      ],
+      "steps": [
+        { "step": "01", "label": "원서 접수", "desc": "입학처 홈페이지에서 온라인 원서 제출" },
+        { "step": "02", "label": "서류 제출", "desc": "학교생활기록부 및 자기소개서 등 제출" },
+        { "step": "03", "label": "실기/면접", "desc": "전형별 실기 심사 또는 면접 진행" },
+        { "step": "04", "label": "합격 발표", "desc": "입학처 홈페이지에서 합격자 확인" }
+      ]
+    },
+    "contact": {
+      "title": "CONTACT"
+    },
+    "privacy": {
+      "title": "PRIVACY",
+      "heading": "개인정보처리방침"
+    }
+  },
+  "notFound": {
+    "title": "PAGE NOT FOUND!",
+    "description1": "죄송합니다. 페이지를 찾을 수 없습니다.",
+    "description2": "입력하신 주소가 잘못되었거나 변경되어 페이지가 존재하지 않습니다. 아래 버튼을 이용해 이동해 주세요.",
+    "goHome": "메인으로",
+    "goBack": "← 이전으로"
+  }
+}
