@@ -4,6 +4,7 @@ import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveWork, updateWork, deleteWork } from '../actions'
 import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { useLoading } from '@/components/providers/LoadingProvider'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -86,8 +87,10 @@ export default function WorkTab() {
   const [loadingList, setLoadingList] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const { showLoading, hideLoading } = useLoading()
 
   const fetchWorks = useCallback(async () => {
+    showLoading()
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
@@ -97,7 +100,8 @@ export default function WorkTab() {
       .limit(30)
     setWorks((data ?? []) as WorkItem[])
     setLoadingList(false)
-  }, [])
+    hideLoading()
+  }, [showLoading, hideLoading])
 
   useEffect(() => { fetchWorks() }, [fetchWorks])
 

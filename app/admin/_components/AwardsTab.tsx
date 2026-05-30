@@ -4,6 +4,7 @@ import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveAward, updateAward, deleteAward } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { useLoading } from '@/components/providers/LoadingProvider'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -105,7 +106,10 @@ export default function AwardsTab() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
 
+  const { showLoading, hideLoading } = useLoading()
+
   const fetchAwards = useCallback(async () => {
+    showLoading()
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
@@ -115,7 +119,8 @@ export default function AwardsTab() {
       .limit(30)
     setAwards((data ?? []) as AwardItem[])
     setLoadingList(false)
-  }, [])
+    hideLoading()
+  }, [showLoading, hideLoading])
 
   useEffect(() => { fetchAwards() }, [fetchAwards])
 

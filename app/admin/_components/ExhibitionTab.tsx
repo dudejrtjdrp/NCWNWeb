@@ -4,6 +4,7 @@ import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveExhibition, updateExhibition, deleteExhibition } from '../actions'
 import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { useLoading } from '@/components/providers/LoadingProvider'
 import type { ActionResult } from '../actions'
 
 interface ExhibitionItem {
@@ -81,7 +82,10 @@ export default function ExhibitionTab() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
 
+  const { showLoading, hideLoading } = useLoading()
+
   const fetchExhibitions = useCallback(async () => {
+    showLoading()
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
@@ -91,7 +95,8 @@ export default function ExhibitionTab() {
       .limit(30)
     setExhibitions((data ?? []) as ExhibitionItem[])
     setLoadingList(false)
-  }, [])
+    hideLoading()
+  }, [showLoading, hideLoading])
 
   useEffect(() => { fetchExhibitions() }, [fetchExhibitions])
 

@@ -4,8 +4,9 @@
 
 'use client'
 
-import { useState, useRef, useTransition } from 'react'
+import { useState, useRef, useTransition, useEffect } from 'react'
 import type { ActionResult } from '../actions'
+import { useLoading } from '@/components/providers/LoadingProvider'
 
 export function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -164,6 +165,13 @@ export function Feedback({ result }: { result: ActionResult | null }) {
 }
 
 export function SubmitButton({ loading, label = '저장하기' }: { loading: boolean; label?: string }) {
+  const { showLoading, hideLoading } = useLoading()
+
+  useEffect(() => {
+    if (loading) showLoading()
+    else hideLoading()
+  }, [loading, showLoading, hideLoading])
+
   return (
     <button
       type="submit"
@@ -192,6 +200,12 @@ export function SubmitButton({ loading, label = '저장하기' }: { loading: boo
 export function DeleteButton({ onDelete }: { onDelete: () => Promise<void> }) {
   const [confirming, setConfirming] = useState(false)
   const [pending, startTransition] = useTransition()
+  const { showLoading, hideLoading } = useLoading()
+
+  useEffect(() => {
+    if (pending) showLoading()
+    else hideLoading()
+  }, [pending, showLoading, hideLoading])
 
   if (confirming) {
     return (

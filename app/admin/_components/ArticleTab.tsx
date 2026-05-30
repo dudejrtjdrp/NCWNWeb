@@ -4,6 +4,7 @@ import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveArticle, updateArticle, deleteArticle } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { useLoading } from '@/components/providers/LoadingProvider'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -362,7 +363,10 @@ export default function ArticleTab() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
 
+  const { showLoading, hideLoading } = useLoading()
+
   const fetchArticles = useCallback(async () => {
+    showLoading()
     setLoadingList(true)
     setFetchError(null)
     const supabase = createClient()
@@ -377,7 +381,8 @@ export default function ArticleTab() {
     }
     setArticles((data ?? []) as ArticleListItem[])
     setLoadingList(false)
-  }, [])
+    hideLoading()
+  }, [showLoading, hideLoading])
 
   useEffect(() => { fetchArticles() }, [fetchArticles])
 

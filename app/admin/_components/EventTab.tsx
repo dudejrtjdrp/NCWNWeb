@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveEvent, updateEvent, deleteEvent } from '../actions'
 import { Label, Input, Textarea, Sel, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { useLoading } from '@/components/providers/LoadingProvider'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -100,7 +101,10 @@ export default function EventTab() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
 
+  const { showLoading, hideLoading } = useLoading()
+
   const fetchEvents = useCallback(async () => {
+    showLoading()
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
@@ -110,7 +114,8 @@ export default function EventTab() {
       .limit(30)
     setEvents((data ?? []) as EventItem[])
     setLoadingList(false)
-  }, [])
+    hideLoading()
+  }, [showLoading, hideLoading])
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
 

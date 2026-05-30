@@ -4,6 +4,7 @@ import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveProject, updateProject, deleteProject } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { useLoading } from '@/components/providers/LoadingProvider'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -100,7 +101,10 @@ export default function ProjectTab() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
 
+  const { showLoading, hideLoading } = useLoading()
+
   const fetchProjects = useCallback(async () => {
+    showLoading()
     setLoadingList(true)
     const supabase = createClient()
     const { data } = await supabase
@@ -110,7 +114,8 @@ export default function ProjectTab() {
       .limit(30)
     setProjects((data ?? []) as ProjectItem[])
     setLoadingList(false)
-  }, [])
+    hideLoading()
+  }, [showLoading, hideLoading])
 
   useEffect(() => { fetchProjects() }, [fetchProjects])
 

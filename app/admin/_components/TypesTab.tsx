@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { saveArticleTypes, saveProjectTypes } from '../actions'
 import { Label, Input, Feedback } from './admin-ui'
+import { useLoading } from '@/components/providers/LoadingProvider'
 import type { ActionResult } from '../actions'
 
 const DEFAULT_ARTICLE_TYPES = [
@@ -24,6 +25,17 @@ export default function TypesTab() {
   const [projectResult, setProjectResult] = useState<ActionResult | null>(null)
   const [articlePending, startArticleTransition] = useTransition()
   const [projectPending, startProjectTransition] = useTransition()
+  const { showLoading, hideLoading } = useLoading()
+
+  useEffect(() => {
+    if (articlePending) showLoading()
+    else hideLoading()
+  }, [articlePending, showLoading, hideLoading])
+
+  useEffect(() => {
+    if (projectPending) showLoading()
+    else hideLoading()
+  }, [projectPending, showLoading, hideLoading])
 
   const addArticleType = () => {
     if (!newAV.trim() || !newAL.trim()) return
