@@ -16,6 +16,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { FACULTY_LIST } from '@/lib/faculty-data'
+import { getTranslations } from 'next-intl/server'
 
 // ──────────────────────────────────────────────────────
 // Static Params (빌드 시 정적 생성)
@@ -27,8 +28,9 @@ export function generateStaticParams() {
 // ──────────────────────────────────────────────────────
 // Metadata
 // ──────────────────────────────────────────────────────
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const faculty = FACULTY_LIST.find((f) => f.id === params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }) {
+  const { id } = await params
+  const faculty = FACULTY_LIST.find((f) => f.id === id)
   if (!faculty) return { title: '교수진 — NWCN' }
   return {
     title: `${faculty.nameKo} ${faculty.role} — ABOUT | NWCN`,
@@ -39,9 +41,12 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 // ──────────────────────────────────────────────────────
 // Page Component
 // ──────────────────────────────────────────────────────
-export default function FacultyDetailPage({ params }: { params: { id: string } }) {
-  const faculty = FACULTY_LIST.find((f) => f.id === params.id)
+export default async function FacultyDetailPage({ params }: { params: Promise<{ id: string; locale: string }> }) {
+  const { id, locale } = await params
+  const faculty = FACULTY_LIST.find((f) => f.id === id)
   if (!faculty) notFound()
+
+  const t = await getTranslations({ locale, namespace: 'about.faculty.detail' })
 
   /* 배경 accent 색상 (variant별) */
   const accentColor =
@@ -73,7 +78,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
           <Link
             href="/about/faculty"
             className="inline-flex items-center gap-2 mb-10 font-body text-[14px] text-[#888] hover:text-nwcn-green transition-colors group"
-            aria-label="교수진 목록으로 돌아가기"
+            aria-label={t('backToList')}
           >
             <svg
               className="w-4 h-4 transition-transform group-hover:-translate-x-1"
@@ -82,7 +87,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            교수진으로 돌아가기
+            {t('backToList')}
           </Link>
 
           {/* 메인 카드 레이아웃 */}
@@ -102,7 +107,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
                 {faculty.photoUrl ? (
                   <Image
                     src={faculty.photoUrl}
-                    alt={`${faculty.nameKo} ${faculty.role} 프로필 사진`}
+                    alt={`${faculty.nameKo} ${faculty.role}`}
                     fill
                     className="object-cover object-top rounded-[5px] mt-[9px]"
                     priority
@@ -150,7 +155,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
                 {faculty.role}
               </span>
 
-              {/* 한글 이름 */}
+              {/* 한글 이름 — 영어 모드에서도 한글 이름 유지 */}
               <h1
                 className="font-body font-extrabold text-[48px] md:text-[56px] text-[#050505] leading-tight mb-1"
                 lang="ko"
@@ -179,7 +184,6 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
               {/* ── 교수님의 한마디 ─────────────────── */}
               <blockquote
                 className="relative border-l-4 border-nwcn-green pl-6 py-2"
-                aria-label="교수님의 한마디"
               >
                 {/* 인용부호 장식 */}
                 <span
@@ -199,7 +203,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
                   {faculty.education && faculty.education.length > 0 && (
                     <div>
                       <h3 className="font-body font-semibold text-[13px] text-nwcn-green uppercase tracking-wider mb-2">
-                        학력
+                        {t('education')}
                       </h3>
                       <ul className="space-y-1">
                         {faculty.education.map((edu, i) => (
@@ -213,7 +217,7 @@ export default function FacultyDetailPage({ params }: { params: { id: string } }
                   {faculty.career && faculty.career.length > 0 && (
                     <div>
                       <h3 className="font-body font-semibold text-[13px] text-nwcn-green uppercase tracking-wider mb-2">
-                        경력
+                        {t('career')}
                       </h3>
                       <ul className="space-y-1">
                         {faculty.career.map((car, i) => (

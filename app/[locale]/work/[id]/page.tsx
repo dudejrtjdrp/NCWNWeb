@@ -12,6 +12,7 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import Badge from '@/components/ui/Badge'
 import { notFound } from 'next/navigation'
 import { getWorkById, type WorkType } from '@/lib/supabase/queries/works'
+import { getTranslations } from 'next-intl/server'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
 
@@ -54,7 +55,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 // ── 뷰어 컴포넌트 ─────────────────────────────────────────
 
-function VideoViewer({ embed, title }: { embed?: string | null; title: string }) {
+function VideoViewer({ embed, title, placeholder }: { embed?: string | null; title: string; placeholder: string }) {
   return (
     <div className="w-full">
       {embed ? (
@@ -75,7 +76,7 @@ function VideoViewer({ embed, title }: { embed?: string | null; title: string })
                 <polygon points="5,3 19,12 5,21" />
               </svg>
             </div>
-            <span className="font-body text-sm text-white/50">영상을 준비 중입니다</span>
+            <span className="font-body text-sm text-white/50">{placeholder}</span>
           </div>
         </div>
       )}
@@ -83,7 +84,7 @@ function VideoViewer({ embed, title }: { embed?: string | null; title: string })
   )
 }
 
-function ThreeDViewer({ embed, title }: { embed?: string | null; title: string }) {
+function ThreeDViewer({ embed, title, placeholder, hint }: { embed?: string | null; title: string; placeholder: string; hint: string }) {
   return (
     <div className="w-full">
       {embed ? (
@@ -104,21 +105,15 @@ function ThreeDViewer({ embed, title }: { embed?: string | null; title: string }
               <path d="M2 17l10 5 10-5" />
               <path d="M2 12l10 5 10-5" />
             </svg>
-            <span className="font-body text-sm text-white/50">3D 모델을 준비 중입니다</span>
+            <span className="font-body text-sm text-white/50">{placeholder}</span>
           </div>
         </div>
       )}
       <p className="font-body text-xs text-nwcn-text-sub mt-3 text-center">
-        마우스로 드래그하여 3D 모델을 회전할 수 있습니다
+        {hint}
       </p>
     </div>
   )
-}
-
-const TYPE_LABEL: Record<WorkType, string> = {
-  design: '디자인',
-  video: '영상',
-  '3d': '3D',
 }
 
 const TYPE_ICON: Record<WorkType, React.ReactNode> = {
@@ -152,6 +147,14 @@ export default async function WorkDetailPage({ params }: PageProps) {
   const { id, locale } = await params
   const work = await getWorkById(id, locale)
   if (!work) notFound()
+
+  const t = await getTranslations({ locale, namespace: 'work.detail' })
+
+  const TYPE_LABEL: Record<WorkType, string> = {
+    design: t('typeDesign'),
+    video: t('typeVideo'),
+    '3d': t('type3d'),
+  }
 
   return (
     <SubPageLayout>
@@ -205,13 +208,22 @@ export default async function WorkDetailPage({ params }: PageProps) {
             {/* ── 뷰어 (좌) ── */}
             <div className="lg:col-span-2">
               {work.type === 'video' && (
-                <VideoViewer embed={work.video_embed} title={work.title} />
+                <VideoViewer
+                  embed={work.video_embed}
+                  title={work.title}
+                  placeholder={t('videoPlaceholder')}
+                />
               )}
               {work.type === 'design' && (
                 <DesignViewer images={work.images ?? []} title={work.title} />
               )}
               {work.type === '3d' && (
-                <ThreeDViewer embed={work.model_embed} title={work.title} />
+                <ThreeDViewer
+                  embed={work.model_embed}
+                  title={work.title}
+                  placeholder={t('threeDPlaceholder')}
+                  hint={t('threeDHint')}
+                />
               )}
             </div>
 
@@ -220,7 +232,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
               <div className="space-y-6 sticky top-24">
                 {/* 작품 설명 */}
                 <div>
-                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">작품 소개</p>
+                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionIntro')}</p>
                   <p className="font-body text-[14px] text-white/60 leading-relaxed">
                     {work.description}
                   </p>
@@ -230,7 +242,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
 
                 {/* 작가 정보 */}
                 <div>
-                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">작가</p>
+                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionAuthor')}</p>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-nwcn-green/15 flex items-center justify-center flex-shrink-0">
                       <span className="font-body text-sm font-semibold text-nwcn-green">
@@ -239,7 +251,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                     </div>
                     <div>
                       <p className="font-body text-sm text-white">{work.author}</p>
-                      <p className="font-body text-xs text-white/30">{work.year}년 작품</p>
+                      <p className="font-body text-xs text-white/30">{t('yearWork', { year: work.year })}</p>
                     </div>
                   </div>
                 </div>
@@ -248,7 +260,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
 
                 {/* 기술 스택 */}
                 <div>
-                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">사용 도구 / 기술</p>
+                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionTools')}</p>
                   <div className="flex flex-wrap gap-2">
                     {work.tech_stack.map((tag) => (
                       <span key={tag} className="font-body text-xs px-3 py-1.5 border border-white/20 text-white/60 rounded-full">
@@ -266,7 +278,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
-                  <span className="font-body text-xs">{work.view_count.toLocaleString()} 조회</span>
+                  <span className="font-body text-xs">{work.view_count.toLocaleString()} {t('views')}</span>
                 </div>
               </div>
             </aside>
@@ -284,7 +296,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
             <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            작품 목록으로
+            {t('backToList')}
           </Link>
         </div>
       </div>

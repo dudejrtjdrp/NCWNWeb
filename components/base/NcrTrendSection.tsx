@@ -64,10 +64,11 @@ function getArticleHref(id: string): string {
 
 export interface NcrTrendSectionProps {
   className?: string
+  locale?: string
 }
 
-export default async function NcrTrendSection({ className = '' }: NcrTrendSectionProps) {
-  const { items: reports, featuredCount } = await getHomeNcrReports()
+export default async function NcrTrendSection({ className = '', locale = 'ko' }: NcrTrendSectionProps) {
+  const { items: reports, featuredCount } = await getHomeNcrReports(locale)
 
   // 홈 고정이 정확히 1개면 왼쪽만, 그 외(0개 fallback or 2개)는 양쪽 모두 표시
   const singleFeatured = featuredCount === 1

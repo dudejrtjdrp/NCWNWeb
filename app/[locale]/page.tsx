@@ -11,7 +11,13 @@ import WhatIsSection from '@/components/base/WhatIsSection'
 import NincSection from '@/components/base/NincSection'
 import NcrTrendSection from '@/components/base/NcrTrendSection'
 
-export default function HomePage() {
+interface PageProps {
+  params: Promise<{ locale: string }>
+}
+
+export default async function HomePage({ params }: PageProps) {
+  const { locale } = await params
+
   return (
     <>
       {/* Header: transparent → 히어로 위에 fixed overlay, 스크롤 시 흰 배경 */}
@@ -33,7 +39,7 @@ export default function HomePage() {
       <NincSection />
 
       {/* NCR Trend */}
-      <NcrTrendSection />
+      <NcrTrendSection locale={locale} />
 
       {/* 푸터 */}
       <Footer />

@@ -9,6 +9,7 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import Badge from '@/components/ui/Badge'
 import { notFound } from 'next/navigation'
 import { getNcrReportById, getRelatedNcrReports } from '@/lib/supabase/queries/ncr'
+import { getTranslations } from 'next-intl/server'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
@@ -61,8 +62,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 }
 
-const TYPE_LABELS = TYPE_LABELS_KO
-
 // 간단한 마크다운 → JSX 변환 (## 헤더, 단락)
 function renderContent(content: string) {
   const lines = content.split('\n')
@@ -99,9 +98,19 @@ export default async function ArticleDetailPage({ params }: PageProps) {
   const article = await getNcrReportById(id, locale)
   if (!article) notFound()
 
+  const t = await getTranslations({ locale, namespace: 'ncr.detail' })
   const relatedArticles = await getRelatedNcrReports(article.related_ids ?? [], locale)
 
-  const formattedDate = new Date(article.published_at).toLocaleDateString('ko-KR', {
+  // 타입 레이블 (번역)
+  const TYPE_LABELS: Record<string, string> = {
+    editorial: t('typeEditorial'),
+    trend: t('typeTrend'),
+    card_news: t('typeCardNews'),
+  }
+
+  // 날짜 포맷
+  const dateLocale = locale === 'en' ? 'en-US' : 'ko-KR'
+  const formattedDate = new Date(article.published_at).toLocaleDateString(dateLocale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -127,7 +136,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
     ...(article.thumbnail_url ? { image: article.thumbnail_url } : {}),
     keywords: article.tags?.join(', ') ?? '',
     articleSection: TYPE_LABELS[article.type] ?? article.type,
-    inLanguage: 'ko-KR',
+    inLanguage: locale === 'en' ? 'en-US' : 'ko-KR',
   }
 
   return (
@@ -181,7 +190,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-body text-xs text-white/30">작성자</p>
+                  <p className="font-body text-xs text-white/30">{t('labelAuthor')}</p>
                   <p className="font-body text-sm text-white/80">{article.author}</p>
                 </div>
               </div>
@@ -189,14 +198,14 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
             {/* 날짜 */}
             <div>
-              <p className="font-body text-xs text-white/30">발행일</p>
+              <p className="font-body text-xs text-white/30">{t('labelPublishedAt')}</p>
               <p className="font-body text-sm text-white/80">{formattedDate}</p>
             </div>
 
             {/* 읽기 시간 */}
             {article.read_time && (
               <div>
-                <p className="font-body text-xs text-white/30">읽기 시간</p>
+                <p className="font-body text-xs text-white/30">{t('labelReadTime')}</p>
                 <p className="font-body text-sm text-white/80">{article.read_time}</p>
               </div>
             )}
@@ -235,7 +244,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
               {/* 태그 */}
               {article.tags.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-black/10">
-                  <p className="font-body text-xs text-nwcn-text-sub mb-3">태그</p>
+                  <p className="font-body text-xs text-nwcn-text-sub mb-3">{t('sectionTags')}</p>
                   <div className="flex flex-wrap gap-2">
                     {article.tags.map((tag) => (
                       <span
@@ -253,24 +262,24 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             {/* ── 사이드바 ── */}
             <aside className="lg:col-span-1">
               <div className="sticky top-24 space-y-8">
-                {/* 이 아티클 정보 */}
+                {/* 아티클 정보 */}
                 <div className="bg-[#f5f5f5] rounded-xl p-5">
                   <p className="font-body text-xs font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
-                    아티클 정보
+                    {t('sidebarInfo')}
                   </p>
                   <div className="space-y-3">
                     <div>
-                      <p className="font-body text-[11px] text-nwcn-text-sub">유형</p>
+                      <p className="font-body text-[11px] text-nwcn-text-sub">{t('sidebarType')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{TYPE_LABELS[article.type]}</p>
                     </div>
                     {article.season && (
                       <div>
-                        <p className="font-body text-[11px] text-nwcn-text-sub">시즌</p>
+                        <p className="font-body text-[11px] text-nwcn-text-sub">{t('sidebarSeason')}</p>
                         <p className="font-body text-sm text-nwcn-text-muted">{article.season}</p>
                       </div>
                     )}
                     <div>
-                      <p className="font-body text-[11px] text-nwcn-text-sub">발행일</p>
+                      <p className="font-body text-[11px] text-nwcn-text-sub">{t('sidebarPublishedAt')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{formattedDate}</p>
                     </div>
                   </div>
@@ -280,7 +289,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                 {relatedArticles.length > 0 && (
                   <div>
                     <p className="font-body text-xs font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
-                      관련 아티클
+                      {t('sidebarRelated')}
                     </p>
                     <div className="space-y-3">
                       {relatedArticles.map((rel) => (
@@ -316,7 +325,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            리포트 목록으로
+            {t('backToList')}
           </Link>
         </div>
       </div>

@@ -1,15 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import Badge from '@/components/ui/Badge'
 import Link from 'next/link'
 import type { NcrReportListItem as NcrReportItem } from '@/lib/supabase/queries/ncr'
 
-const TYPE_LABELS: Record<string, string> = {
-  editorial: '에디토리얼',
-  trend: '트렌드',
-  card_news: '카드뉴스',
-}
 const TYPE_BADGE: Record<string, 'new' | 'hot' | 'number'> = {
   editorial: 'new',
   trend: 'hot',
@@ -27,16 +23,22 @@ interface Props {
 }
 
 export default function ArchiveClient({ reports, seasons }: Props) {
-  const [activeSeason, setActiveSeason] = useState('전체')
+  const t = useTranslations('ncr.archive')
+  const locale = useLocale()
+
+  const filterAll = t('filterAll')
+
+  const [activeSeason, setActiveSeason] = useState(filterAll)
 
   const filtered =
-    activeSeason === '전체'
+    activeSeason === filterAll
       ? reports
       : reports.filter((r) => r.season === activeSeason)
 
   // 시즌별 그룹핑
+  const otherGroup = t('otherGroup')
   const grouped = filtered.reduce<Record<string, NcrReportItem[]>>((acc, r) => {
-    const key = r.season ?? '기타'
+    const key = r.season ?? otherGroup
     if (!acc[key]) acc[key] = []
     acc[key].push(r)
     return acc
@@ -44,12 +46,22 @@ export default function ArchiveClient({ reports, seasons }: Props) {
 
   const sortedSeasons = seasons.filter((s) => grouped[s])
 
+  // 타입별 레이블 (번역)
+  const typeLabels: Record<string, string> = {
+    editorial: t('typeEditorial'),
+    trend: t('typeTrend'),
+    card_news: t('typeCardNews'),
+  }
+
+  // 날짜 포맷 locale
+  const dateLocale = locale === 'en' ? 'en-US' : 'ko-KR'
+
   return (
     <>
       {/* 시즌 필터 */}
       <div className="bg-white pb-10">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] flex flex-wrap gap-2">
-          {['전체', ...seasons].map((s) => (
+          {[filterAll, ...seasons].map((s) => (
             <button
               key={s}
               onClick={() => setActiveSeason(s)}
@@ -71,7 +83,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] space-y-14">
           {sortedSeasons.length === 0 ? (
             <div className="flex items-center justify-center py-24">
-              <p className="font-body text-[16px] text-[#aaa]">해당 시즌의 리포트가 없습니다.</p>
+              <p className="font-body text-[16px] text-[#aaa]">{t('noReports')}</p>
             </div>
           ) : (
             sortedSeasons.map((season) => (
@@ -87,7 +99,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                   </h2>
                   <div className="flex-1 h-[1px] bg-[#ececec]" />
                   <span className="font-body text-[13px] text-[#bbb]">
-                    {grouped[season].length}편
+                    {grouped[season].length}{locale === 'en' ? ` ${t('countSuffix')}` : t('countSuffix')}
                   </span>
                 </div>
 
@@ -106,12 +118,12 @@ export default function ArchiveClient({ reports, seasons }: Props) {
 
                       {/* 날짜 */}
                       <span className="font-body text-[12px] text-[#bbb] w-24 flex-shrink-0">
-                        {new Date(report.published_at).toLocaleDateString('ko-KR')}
+                        {new Date(report.published_at).toLocaleDateString(dateLocale)}
                       </span>
 
                       {/* 뱃지 */}
                       <Badge variant={TYPE_BADGE[report.type]}>
-                        {TYPE_LABELS[report.type]}
+                        {typeLabels[report.type] ?? report.type}
                       </Badge>
 
                       {/* 제목 */}
@@ -122,7 +134,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                       {/* 읽기 시간 */}
                       {report.read_time && (
                         <span className="font-body text-[12px] text-[#bbb] flex-shrink-0">
-                          {report.read_time} 읽기
+                          {report.read_time} {t('readSuffix')}
                         </span>
                       )}
 

@@ -67,6 +67,21 @@
     },
     "exhibition": {
       "title": "EXHIBITION"
+    },
+    "detail": {
+      "typeDesign": "디자인",
+      "typeVideo": "영상",
+      "type3d": "3D",
+      "videoPlaceholder": "영상을 준비 중입니다",
+      "threeDPlaceholder": "3D 모델을 준비 중입니다",
+      "threeDHint": "마우스로 드래그하여 3D 모델을 회전할 수 있습니다",
+      "sectionIntro": "작품 소개",
+      "sectionAuthor": "작가",
+      "yearWork": "{year}년 작품",
+      "sectionTools": "사용 도구 / 기술",
+      "views": "조회",
+      "sectionTags": "태그",
+      "backToList": "작품 목록으로"
     }
   },
   "about": {
@@ -116,7 +131,12 @@
     "faculty": {
       "title": "FACULTY",
       "professors": "교수진",
-      "assistants": "조교"
+      "assistants": "조교",
+      "detail": {
+        "backToList": "교수진으로 돌아가기",
+        "education": "학력",
+        "career": "경력"
+      }
     },
     "curriculum": {
       "title": "교육 과정",
@@ -139,17 +159,52 @@
     "awards": {
       "title": "AWARDS",
       "description": "수상 실적",
-      "empty": "수상 내역이 없습니다."
+      "empty": "수상 내역이 없습니다.",
+      "detail": {
+        "backToList": "수상 목록으로",
+        "noImage": "이미지 없음",
+        "winner": "수상자",
+        "teamMembers": "팀원",
+        "awardYear": "수상 연도",
+        "host": "주최",
+        "category": "분야",
+        "sectionIntro": "수상 소개",
+        "sectionWinners": "수상자",
+        "representative": "대표 수상자",
+        "yearFormat": "{year}년",
+        "yearAndAward": "{year}년 · {awardName}",
+        "noDescription": "상세 내용이 준비 중입니다."
+      }
     },
     "project": {
       "title": "PROJECT",
       "description": "프로젝트",
-      "empty": "프로젝트가 없습니다."
+      "empty": "프로젝트가 없습니다.",
+      "detail": {
+        "backToList": "프로젝트 목록으로",
+        "noImage": "이미지 없음",
+        "typeIndustry": "산학협력",
+        "typeInternational": "해외교류",
+        "partner": "파트너",
+        "duration": "기간",
+        "participants": "참여 인원",
+        "skills": "활용 기술/역량",
+        "sectionIntro": "프로젝트 소개",
+        "sectionOutcome": "결과물·성과",
+        "sectionParticipants": "참여 학생",
+        "yearFormat": "{year}년"
+      }
     },
     "event": {
       "title": "EVENT",
       "description": "이벤트",
-      "empty": "이벤트가 없습니다."
+      "empty": "이벤트가 없습니다.",
+      "filterAll": "전체",
+      "noEvents": "해당 유형의 이벤트가 없습니다.",
+      "typeSpecial": "특강",
+      "typeWorkshop": "워크숍",
+      "typeCampusTour": "캠퍼스투어",
+      "typeOther": "기타"
     }
   },
   "ncr": {
@@ -164,7 +219,30 @@
     },
     "archive": {
       "title": "ARCHIVE",
-      "empty": "게시물이 없습니다."
+      "empty": "게시물이 없습니다.",
+      "filterAll": "전체",
+      "countSuffix": "편",
+      "readSuffix": "읽기",
+      "noReports": "해당 시즌의 리포트가 없습니다.",
+      "typeEditorial": "에디토리얼",
+      "typeTrend": "트렌드",
+      "typeCardNews": "카드뉴스",
+      "otherGroup": "기타"
+    },
+    "detail": {
+      "typeEditorial": "에디토리얼",
+      "typeTrend": "트렌드",
+      "typeCardNews": "카드뉴스",
+      "labelAuthor": "작성자",
+      "labelPublishedAt": "발행일",
+      "labelReadTime": "읽기 시간",
+      "sidebarInfo": "아티클 정보",
+      "sidebarType": "유형",
+      "sidebarSeason": "시즌",
+      "sidebarPublishedAt": "발행일",
+      "sidebarRelated": "관련 아티클",
+      "sectionTags": "태그",
+      "backToList": "리포트 목록으로"
     }
   },
   "info": {

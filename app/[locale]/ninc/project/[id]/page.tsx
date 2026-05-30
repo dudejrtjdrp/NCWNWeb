@@ -7,8 +7,8 @@ import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { notFound } from 'next/navigation'
 import { getProjectById } from '@/lib/supabase/queries/projects'
+import { getTranslations } from 'next-intl/server'
 
-const TYPE_LABEL = { industry: '산학협력', international: '해외교류' }
 const TYPE_STYLE = {
   industry: 'bg-nwcn-green text-nwcn-text-default',
   international: 'bg-nwcn-yellow text-nwcn-text-default',
@@ -22,6 +22,15 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const { id, locale } = await params
   const project = await getProjectById(id, locale)
   if (!project) notFound()
+
+  const t = await getTranslations({ locale, namespace: 'ninc.project.detail' })
+
+  const TYPE_LABEL = {
+    industry: t('typeIndustry'),
+    international: t('typeInternational'),
+  }
+
+  const yearLabel = t('yearFormat', { year: project.year })
 
   return (
     <SubPageLayout>
@@ -50,7 +59,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </h1>
 
           <p className="font-body text-sm text-nwcn-text-sub mb-10">
-            {project.year}년{project.duration ? ` · ${project.duration}` : ''}
+            {yearLabel}{project.duration ? ` · ${project.duration}` : ''}
           </p>
         </div>
         <div className="border-b border-black/10" />
@@ -70,31 +79,31 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       <rect x="2" y="3" width="20" height="14" rx="2" />
                       <path d="M8 21h8M12 17v4" />
                     </svg>
-                    <span className="font-body text-xs text-nwcn-text-sub">이미지 없음</span>
+                    <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
                   </div>
                 </div>
                 <div className="p-6 space-y-4">
                   {project.partner && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">파트너</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('partner')}</p>
                       <p className="font-body text-sm font-semibold text-nwcn-text-default">{project.partner}</p>
                     </div>
                   )}
                   {project.duration && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">기간</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('duration')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{project.duration}</p>
                     </div>
                   )}
                   {project.participants && project.participants.length > 0 && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">참여 인원</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('participants')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{project.participants.join(', ')}</p>
                     </div>
                   )}
                   {project.skills && project.skills.length > 0 && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">활용 기술/역량</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('skills')}</p>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {project.skills.map((skill) => (
                           <span key={skill} className="font-body text-xs px-2.5 py-1 bg-[#f0f0f0] text-nwcn-text-muted rounded-full">
@@ -113,7 +122,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               {project.description && (
                 <section className="mb-12">
                   <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
-                    프로젝트 소개
+                    {t('sectionIntro')}
                   </h2>
                   <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed">{project.description}</p>
                 </section>
@@ -121,7 +130,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               {project.outcome && (
                 <section className="mb-12">
                   <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
-                    결과물·성과
+                    {t('sectionOutcome')}
                   </h2>
                   <div className="bg-[#f5f5f5] rounded-xl p-5 flex items-start gap-4">
                     <div className="w-8 h-8 bg-nwcn-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -136,7 +145,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
               {project.participants && project.participants.length > 0 && (
                 <section className="mb-12">
                   <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
-                    참여 학생
+                    {t('sectionParticipants')}
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {project.participants.map((member) => (
@@ -162,7 +171,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            프로젝트 목록으로
+            {t('backToList')}
           </Link>
         </div>
       </div>

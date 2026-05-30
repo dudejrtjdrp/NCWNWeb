@@ -10,6 +10,7 @@
 
 import { createDbClient as createClient } from '@/lib/supabase/db'
 import { unstable_cache } from 'next/cache'
+import { applyLocaleList } from './_locale'
 
 export interface HomeNincCard {
   id: string
@@ -66,51 +67,55 @@ export const getHomeNincCards = unstable_cache(
 
 /**
  * 홈 NcrTrendSection용 아티클 2개 조회 (캐시 5분)
- *
- * 최적화: 2번 쿼리 → 1번 쿼리
- * - is_home_featured DESC 정렬로 featured 아티클을 먼저 가져옴
- * - 상위 4개를 가져온 뒤 featured가 있으면 최대 2개 선택, 없으면 최신 2개 선택
+ * locale='en'일 때 title_en / excerpt_en 컬럼을 우선 사용합니다.
  */
-export const getHomeNcrReports = unstable_cache(
-  async (): Promise<HomeNcrReportsResult> => {
-    try {
-      const supabase = createClient()
+function _getHomeNcrReports(locale: string) {
+  return unstable_cache(
+    async (): Promise<HomeNcrReportsResult> => {
+      try {
+        const supabase = createClient()
 
-      // is_home_featured DESC → published_at DESC 정렬로 단일 쿼리 처리
-      // featured 아티클이 앞에 오므로 클라이언트에서 분류만 하면 됨
-      const { data, error } = await supabase
-        .from('ncr_reports')
-        .select('id, title, type, thumbnail_url, published_at, season, excerpt, is_home_featured')
-        .eq('is_published', true)
-        .order('is_home_featured', { ascending: false })
-        .order('published_at',     { ascending: false })
-        .limit(4) // featured 최대 2개 + 최신 2개를 한 번에 가져옴
+        const { data, error } = await supabase
+          .from('ncr_reports')
+          .select('id, title, title_en, type, thumbnail_url, published_at, season, excerpt, excerpt_en, is_home_featured')
+          .eq('is_published', true)
+          .order('is_home_featured', { ascending: false })
+          .order('published_at',     { ascending: false })
+          .limit(4)
 
-      if (error) {
-        console.error('[getHomeNcrReports] Supabase error:', error.message)
+        if (error) {
+          console.error('[getHomeNcrReports] Supabase error:', error.message)
+          return { items: [], featuredCount: 0 }
+        }
+
+        if (!data || data.length === 0) {
+          return { items: [], featuredCount: 0 }
+        }
+
+        // locale 적용 (title_en / excerpt_en → title / excerpt)
+        const localized = applyLocaleList(data, ['title', 'excerpt'], locale)
+
+        // featured 아티클 분류
+        const featured = localized.filter((r) => r.is_home_featured)
+
+        if (featured.length > 0) {
+          const items = featured.slice(0, 2).map(({ is_home_featured: _, title_en: _te, excerpt_en: _ee, ...r }) => r)
+          return { items: items as HomeNcrReport[], featuredCount: items.length }
+        }
+
+        // featured 없음 → 최신 2개
+        const items = localized.slice(0, 2).map(({ is_home_featured: _, title_en: _te, excerpt_en: _ee, ...r }) => r)
+        return { items: items as HomeNcrReport[], featuredCount: 0 }
+      } catch (err) {
+        console.error('[getHomeNcrReports] Unexpected error:', err)
         return { items: [], featuredCount: 0 }
       }
+    },
+    [`home-ncr-reports-${locale}`],
+    { revalidate: 300, tags: ['home', 'ncr'] }
+  )
+}
 
-      if (!data || data.length === 0) {
-        return { items: [], featuredCount: 0 }
-      }
-
-      // featured 아티클 분류
-      const featured = data.filter((r) => r.is_home_featured)
-
-      if (featured.length > 0) {
-        const items = featured.slice(0, 2).map(({ is_home_featured: _, ...r }) => r)
-        return { items: items as HomeNcrReport[], featuredCount: items.length }
-      }
-
-      // featured 없음 → 최신 2개
-      const items = data.slice(0, 2).map(({ is_home_featured: _, ...r }) => r)
-      return { items: items as HomeNcrReport[], featuredCount: 0 }
-    } catch (err) {
-      console.error('[getHomeNcrReports] Unexpected error:', err)
-      return { items: [], featuredCount: 0 }
-    }
-  },
-  ['home-ncr-reports'],
-  { revalidate: 300, tags: ['home', 'ncr'] }
-)
+export function getHomeNcrReports(locale = 'ko') {
+  return _getHomeNcrReports(locale)()
+}

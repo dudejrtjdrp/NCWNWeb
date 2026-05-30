@@ -67,6 +67,21 @@
     },
     "exhibition": {
       "title": "EXHIBITION"
+    },
+    "detail": {
+      "typeDesign": "Design",
+      "typeVideo": "Video",
+      "type3d": "3D",
+      "videoPlaceholder": "Video coming soon",
+      "threeDPlaceholder": "3D model coming soon",
+      "threeDHint": "Click and drag to rotate the 3D model",
+      "sectionIntro": "About This Work",
+      "sectionAuthor": "Author",
+      "yearWork": "Work from {year}",
+      "sectionTools": "Tools & Technologies",
+      "views": "views",
+      "sectionTags": "Tags",
+      "backToList": "Back to Works"
     }
   },
   "about": {
@@ -116,7 +131,12 @@
     "faculty": {
       "title": "FACULTY",
       "professors": "Professors",
-      "assistants": "Assistants"
+      "assistants": "Assistants",
+      "detail": {
+        "backToList": "Back to Faculty",
+        "education": "Education",
+        "career": "Career"
+      }
     },
     "curriculum": {
       "title": "Curriculum",
@@ -139,17 +159,52 @@
     "awards": {
       "title": "AWARDS",
       "description": "Award Records",
-      "empty": "No awards found."
+      "empty": "No awards found.",
+      "detail": {
+        "backToList": "Back to Awards",
+        "noImage": "No image",
+        "winner": "Winner",
+        "teamMembers": "Team Members",
+        "awardYear": "Award Year",
+        "host": "Hosted by",
+        "category": "Category",
+        "sectionIntro": "About the Award",
+        "sectionWinners": "Winners",
+        "representative": "Representative Winner",
+        "yearFormat": "{year}",
+        "yearAndAward": "{year} · {awardName}",
+        "noDescription": "Details are being prepared."
+      }
     },
     "project": {
       "title": "PROJECT",
       "description": "Projects",
-      "empty": "No projects found."
+      "empty": "No projects found.",
+      "detail": {
+        "backToList": "Back to Projects",
+        "noImage": "No image",
+        "typeIndustry": "Industry Collaboration",
+        "typeInternational": "International Exchange",
+        "partner": "Partner",
+        "duration": "Duration",
+        "participants": "Participants",
+        "skills": "Skills & Competencies",
+        "sectionIntro": "Project Overview",
+        "sectionOutcome": "Outcomes & Results",
+        "sectionParticipants": "Participating Students",
+        "yearFormat": "{year}"
+      }
     },
     "event": {
       "title": "EVENT",
       "description": "Events",
-      "empty": "No events found."
+      "empty": "No events found.",
+      "filterAll": "All",
+      "noEvents": "No events found for this type.",
+      "typeSpecial": "Special Lecture",
+      "typeWorkshop": "Workshop",
+      "typeCampusTour": "Campus Tour",
+      "typeOther": "Other"
     }
   },
   "ncr": {
@@ -164,7 +219,30 @@
     },
     "archive": {
       "title": "ARCHIVE",
-      "empty": "No posts found."
+      "empty": "No posts found.",
+      "filterAll": "All",
+      "countSuffix": "issues",
+      "readSuffix": "read",
+      "noReports": "No reports found for this season.",
+      "typeEditorial": "Editorial",
+      "typeTrend": "Trend",
+      "typeCardNews": "Card News",
+      "otherGroup": "Other"
+    },
+    "detail": {
+      "typeEditorial": "Editorial",
+      "typeTrend": "Trend",
+      "typeCardNews": "Card News",
+      "labelAuthor": "Author",
+      "labelPublishedAt": "Published",
+      "labelReadTime": "Read Time",
+      "sidebarInfo": "Article Info",
+      "sidebarType": "Type",
+      "sidebarSeason": "Season",
+      "sidebarPublishedAt": "Published",
+      "sidebarRelated": "Related Articles",
+      "sectionTags": "Tags",
+      "backToList": "Back to Reports"
     }
   },
   "info": {

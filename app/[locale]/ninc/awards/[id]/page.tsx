@@ -8,6 +8,7 @@ import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { notFound } from 'next/navigation'
 import { getAwardById } from '@/lib/supabase/queries/awards'
+import { getTranslations } from 'next-intl/server'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
@@ -64,6 +65,12 @@ export default async function AwardDetailPage({ params }: PageProps) {
   const award = await getAwardById(id, locale)
   if (!award) notFound()
 
+  const t = await getTranslations({ locale, namespace: 'ninc.awards.detail' })
+
+  // 연도 표시: 한국어면 "2024년", 영어면 "2024"
+  const yearLabel = t('yearFormat', { year: award.year })
+  const yearAndAward = t('yearAndAward', { year: award.year, awardName: award.award_name })
+
   return (
     <SubPageLayout>
       {/* ── 상단 배너 (흰 배경) ── */}
@@ -95,7 +102,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
 
           {/* 연도 + 주최 */}
           <p className="font-body text-sm text-nwcn-text-sub mb-10">
-            {award.year}년{award.hosted_by ? ` · ${award.hosted_by}` : ''}
+            {yearLabel}{award.hosted_by ? ` · ${award.hosted_by}` : ''}
           </p>
         </div>
 
@@ -117,7 +124,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.5">
                       <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                     </svg>
-                    <span className="font-body text-xs text-nwcn-text-sub">이미지 없음</span>
+                    <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
                   </div>
                 </div>
 
@@ -125,31 +132,31 @@ export default async function AwardDetailPage({ params }: PageProps) {
                 <div className="p-6 space-y-4">
                   {award.winner && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">수상자</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('winner')}</p>
                       <p className="font-body text-sm font-semibold text-nwcn-text-default">{award.winner}</p>
                     </div>
                   )}
                   {award.team_members.length > 1 && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">팀원</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('teamMembers')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">
                         {award.team_members.join(', ')}
                       </p>
                     </div>
                   )}
                   <div>
-                    <p className="font-body text-xs text-nwcn-text-sub mb-1">수상 연도</p>
-                    <p className="font-body text-sm text-nwcn-text-muted">{award.year}년</p>
+                    <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('awardYear')}</p>
+                    <p className="font-body text-sm text-nwcn-text-muted">{yearLabel}</p>
                   </div>
                   {award.hosted_by && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">주최</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('host')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{award.hosted_by}</p>
                     </div>
                   )}
                   {award.category && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">분야</p>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('category')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{award.category}</p>
                     </div>
                   )}
@@ -162,17 +169,17 @@ export default async function AwardDetailPage({ params }: PageProps) {
               {/* 섹션: 수상 소개 */}
               <section className="mb-12">
                 <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
-                  수상 소개
+                  {t('sectionIntro')}
                 </h2>
                 <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed">
-                  {award.description ?? '상세 내용이 준비 중입니다.'}
+                  {award.description ?? t('noDescription')}
                 </p>
               </section>
 
               {/* 섹션: 수상자 정보 */}
               <section className="mb-12">
                 <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
-                  수상자
+                  {t('sectionWinners')}
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   {award.team_members.map((member) => (
@@ -188,7 +195,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                       <div>
                         <p className="font-body text-sm font-medium text-nwcn-text-default">{member}</p>
                         {member === award.winner && (
-                          <p className="font-body text-[11px] text-nwcn-text-sub">대표 수상자</p>
+                          <p className="font-body text-[11px] text-nwcn-text-sub">{t('representative')}</p>
                         )}
                       </div>
                     </div>
@@ -208,7 +215,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                     {award.competition}
                   </p>
                   <p className="font-body text-xs text-nwcn-text-sub">
-                    {award.year}년 · {award.award_name}
+                    {yearAndAward}
                   </p>
                 </div>
               </div>
@@ -227,7 +234,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
             <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            수상 목록으로
+            {t('backToList')}
           </Link>
         </div>
       </div>
