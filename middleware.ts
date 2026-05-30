@@ -81,17 +81,21 @@ export async function middleware(request: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
           cookies: {
-            getAll() {
-              return request.cookies.getAll()
+            // v0.3.0: 내부 스토리지는 get/set/remove 만 호출 (getAll/setAll 미사용)
+            get(name: string) {
+              return request.cookies.get(name)?.value
             },
-            setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
-              cookiesToSet.forEach(({ name, value }) =>
-                request.cookies.set(name, value)
-              )
+            set(name: string, value: string, options: CookieOptions) {
+              // 1) 다음 핸들러(Server Action 등)가 갱신된 쿠키를 볼 수 있도록 request에 반영
+              request.cookies.set(name, value)
+              // 2) 브라우저가 새 쿠키를 저장하도록 response에도 반영
               supabaseResponse = NextResponse.next({ request })
-              cookiesToSet.forEach(({ name, value, options }) =>
-                supabaseResponse.cookies.set(name, value, options)
-              )
+              supabaseResponse.cookies.set(name, value, options)
+            },
+            remove(name: string, options: CookieOptions) {
+              request.cookies.set(name, '')
+              supabaseResponse = NextResponse.next({ request })
+              supabaseResponse.cookies.set(name, '', options)
             },
           },
         }
