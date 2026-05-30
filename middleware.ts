@@ -41,10 +41,13 @@ function buildCSP(): string {
   const directives = [
     `default-src 'self'`,
     `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
-    `style-src 'self' 'unsafe-inline'`,
+    // Google Fonts(Nova Slim) + jsdelivr(Pretendard) 스타일시트 허용
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net`,
     `img-src 'self' data: blob: https://${supabaseHost} https://*.supabase.co https://www.figma.com`,
-    `font-src 'self'`,
-    `connect-src 'self' https://${supabaseHost} https://*.supabase.co`,
+    // Google Fonts 폰트 파일(gstatic) + jsdelivr 폰트 파일 허용
+    `font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net`,
+    // REST API + Realtime WebSocket(wss://) 허용
+    `connect-src 'self' https://${supabaseHost} https://*.supabase.co wss://${supabaseHost} wss://*.supabase.co`,
     `frame-ancestors 'none'`,
     `object-src 'none'`,
     `base-uri 'self'`,

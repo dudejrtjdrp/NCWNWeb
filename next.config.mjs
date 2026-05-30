@@ -4,6 +4,12 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Server Actions 파일 업로드 크기 제한 (actions.ts 검증 한도와 일치)
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
   images: {
     remotePatterns: [
       {

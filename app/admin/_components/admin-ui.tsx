@@ -126,6 +126,31 @@ export function Feedback({ result }: { result: ActionResult | null }) {
       </div>
     )
   }
+
+  // 세션 만료 에러 → 로그인 페이지로 이동
+  const isSessionExpired = result.error.includes('세션이 만료') || result.error.includes('인증이 필요')
+  if (isSessionExpired) {
+    return (
+      <div className="flex items-center justify-between gap-3 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+        <div className="flex items-center gap-3">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <p className="font-body text-sm text-red-400">{result.error} 다시 로그인해주세요.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => { window.location.href = '/admin/login' }}
+          className="flex-shrink-0 px-3 py-1.5 bg-red-500/20 border border-red-500/30 text-red-400 rounded-lg font-body text-xs hover:bg-red-500/30 transition-colors"
+        >
+          로그인
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">

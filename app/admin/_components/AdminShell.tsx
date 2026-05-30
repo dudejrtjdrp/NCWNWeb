@@ -106,6 +106,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     const supabase = createClient()
+
+    // 초기 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         window.location.href = '/admin/login'
@@ -113,6 +115,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         setAuthReady(true)
       }
     })
+
+    // 세션 변경(만료·로그아웃) 실시간 감지 → 로그인 페이지로 이동
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        if (event === 'SIGNED_OUT') {
+          window.location.href = '/admin/login'
+        }
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   if (!authReady) {

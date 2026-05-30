@@ -68,7 +68,16 @@ export async function signOut() {
  */
 async function requireAuth(supabase: ReturnType<typeof createClient>): Promise<{ error: string } | null> {
   const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) return { error: '인증이 필요합니다.' }
+  if (error) {
+    // 세션 만료·갱신 실패 시 상세 로그 → 브라우저에는 일반 메시지만 노출
+    logError('[requireAuth] getUser 오류:', error.message)
+    // 세션 만료인 경우 별도 안내
+    if (error.message.includes('session_not_found') || error.message.includes('invalid JWT')) {
+      return { error: '세션이 만료되었습니다. 다시 로그인해주세요.' }
+    }
+    return { error: '인증이 필요합니다.' }
+  }
+  if (!user) return { error: '인증이 필요합니다.' }
   return null
 }
 
