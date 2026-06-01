@@ -1,6 +1,6 @@
 # NWCN 웹사이트 UX 흐름 문서
 
-> 최종 업데이트: 2026-05-21  
+> 최종 업데이트: 2026-06-01  
 > 프레임워크: Next.js 14 (App Router) + TypeScript + Tailwind CSS  
 > 디자인 소스: Figma — `qsivnPCWhkDHrJZzuHpXWZ`
 
@@ -323,13 +323,21 @@ FacultyCard 디자인 스펙:
 - 좌측 수직 이름: rotate-90, Pretendard ExtraBold 36.5px, bg-clip-text gradient
 - 우측 상단 화살표 아이콘: inset[2.64%_5.52%_82.87%_74.48%], -scale-x-100
 
-교수 상세 페이지 (/about/faculty/[id]):
-- SubPageLayout 사용
-- 교수 사진 (카드 디자인 유지) + 정보 영역 (2열 레이아웃)
-- 한글 이름 + 영문 이름 + 직급 배지 + 이메일
-- 교수님의 한마디 (border-l-4 border-nwcn-green 인용문 스타일)
-- 학력/경력 (데이터 있을 경우 표시)
-- "교수진으로 돌아가기" 뒤로가기 링크
+교수 상세 페이지 (/about/faculty/[id]) — Figma 926:430 (배윤경/Desktop):
+- SubPageLayout 사용 (NavBar + Footer)
+- ProfessorDetailSection BASE 컴포넌트 통합 (모든 교수 공통 템플릿)
+- 섹션 1: FacultyDetailSection (bg-[#fcfcfc])
+    - 좌측: 프로필 사진 (349×466px) + 배경 타원 장식 + 이름/이메일
+    - 우측: CAREER 섹션 (Pretendard ExtraBold 26px 그린 헤딩 + 경력 목록)
+    - 이름 포맷: "이름 (역할라벨)" — roleLabel 있을 때 (e.g. "배윤경 (학과장)")
+- 섹션 2: InterviewSection (interview 데이터 있을 때만 렌더링)
+    - "INTERVIEW" 헤딩 (A2Z/brand font ExtraBold 28px, nwcn-green)
+    - Q&A 5개 (질문: Bold 24px black / 답변: Regular 20px #888)
+    - 답변 내 **bold** 마커 → <strong> 인라인 파싱
+    - 마무리 질문 + 대표 인용구 (36px Bold, 하이라이트 밑줄 장식)
+    - "FACULTY" 하단 링크 → /about/faculty 목록으로 복귀
+- interview 없는 교수: 기본 "교수진 목록으로" 뒤로가기 링크 노출
+- NWCN 대형 배경 장식 이미지 2개 (top-85px, top-709px)
 
 컴포넌트 구조:
   app/about/faculty/page.tsx
@@ -342,12 +350,18 @@ FacultyCard 디자인 스펙:
 
   app/about/faculty/[id]/page.tsx
     └── SubPageLayout
-          └── FacultyDetailPage (인라인)
-                ├── 뒤로 가기 링크
-                ├── 교수 사진 카드 (290×379 Figma 디자인 유지)
-                ├── 이름/직급/이메일
-                ├── 교수님의 한마디 (blockquote)
-                └── 학력/경력 (optional)
+          └── ProfessorDetailSection  (components/base/ProfessorDetailSection.tsx)
+                ├── [배경] NwcnBg × 2  (NWCN 로고 이미지 장식)
+                ├── FacultyDetailSection
+                │     ├── ProfileBgCircle  (CSS 타원 장식)
+                │     ├── 프로필 사진  (Next/Image 349×466px)
+                │     ├── 이름 + roleLabel + 이메일
+                │     └── CAREER 목록  (career[] 배열)
+                └── InterviewSection  (interview 있을 때만)
+                      ├── "INTERVIEW" 헤딩
+                      ├── InterviewQA × N  (parseAnswer: **bold** 파싱)
+                      ├── ClosingQuestion + QuoteHighlight 장식
+                      └── "FACULTY" 복귀 링크
 
 Props 인터페이스:
   FacultySection: className?
@@ -359,9 +373,20 @@ Props 인터페이스:
     photoUrl?: string       — 사진 URL (없으면 이니셜 플레이스홀더)
     colorVariant?: FacultyCardVariant
     className?: string
+  ProfessorDetailSection:
+    faculty: FacultyData    — lib/faculty-data.ts의 FacultyData 전체
+    className?: string
+
+FacultyData 추가 필드 (2026-06-01):
+  roleLabel?: string        — 괄호 내 역할 라벨 (e.g. "학과장")
+  interview?: FacultyInterview
+    qa: InterviewQA[]       — 질문/답변 배열 (**bold** 마커 지원)
+    closingQuestion: string — 마지막 질문
+    closingQuote: string    — 대표 인용구 (\n 줄바꿈)
+    closingHighlight?: string — 하이라이트 강조 단어
 
 데이터 출처:
-  FACULTY_LIST (components/base/FacultySection.tsx)
+  FACULTY_LIST (lib/faculty-data.ts)
   → TODO: Supabase fetch로 교체 (faculty 테이블)
 ```
 
@@ -553,3 +578,4 @@ Ghost hover bg: #cacaca
 | 2026-05-21 | About/Department 페이지 — Figma 291:76 디자인 전면 구현: DepartmentSection, AboutSubNav, CertificateSlider BASE 컴포넌트 신규 생성. ABOUT 히어로, 서브탭, 교육목표(01~05 지그재그), 세부교육목표(3카드), 교육방침(2 이미지), 졸업 후 진로(글래스모피즘 태그 14종), 자격증(가로형 슬라이드) 구현. department/page.tsx TARGET 리팩터링 완료. |
 | 2026-05-21 | About/Faculty 교수진 페이지 — Figma 427:889 디자인 구현: FacultyCard, FacultySection BASE 컴포넌트 신규 생성. 교수 카드 3종 colorVariant(green-solid/green-gradient/yellow), 호버 오버레이 애니메이션(scale+오버레이 "자세히 보기"), 교수 6인+조교 1인 그리드 레이아웃. /about/faculty/[id] 상세 페이지(사진+이름+한마디+학력/경력) 신규 추가. faculty/page.tsx TARGET 리팩터링 완료. |
 | 2026-05-26 | About/Curriculum 커리큘럼 페이지 — Figma 450:219 디자인 구현: CurriculumSection BASE 컴포넌트 신규 생성. 학년 탭(1~3학년) 클라이언트 상태 전환, 교양필수(#848900)/전공필수(#007042)/전공선택(#003F7D) 카테고리 섹션, 1~3학년 전 과목 데이터(총 29과목+설명) 포함. curriculum/page.tsx TARGET 리팩터링 완료 (placeholder → CurriculumSection 교체). docs/ux-flow.md 커리큘럼 섹션 추가. |
+| 2026-06-01 | About/Faculty/Detail 교수 상세 페이지 — Figma 926:430 (배윤경/Desktop) 전면 재구현: ProfessorDetailSection BASE 컴포넌트 신규 생성. FacultyDetailSection(프로필 사진+경력+이름/이메일), InterviewSection(5 Q&A+인용구+하이라이트 장식). lib/faculty-data.ts에 InterviewQA/FacultyInterview 타입 추가 및 배윤경 전체 인터뷰 데이터 적재. FacultyData에 roleLabel 필드 추가. faculty/[id]/page.tsx TARGET 리팩터링 완료 (인라인 → ProfessorDetailSection 교체). docs/ux-flow.md 업데이트. |
