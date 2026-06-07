@@ -39,7 +39,7 @@ export default function SubNav({ items, className }: SubNavProps) {
       className={cn('w-full bg-white border-b border-[#e8e8e8]', className)}
     >
       <nav
-        className="max-w-[1440px] mx-auto flex justify-center items-start gap-[75px]"
+        className="max-w-[1440px] mx-auto flex justify-center items-start gap-4 sm:gap-8 lg:gap-[75px] px-2 sm:px-4 overflow-x-auto scrollbar-hide"
         aria-label="서브 메뉴"
         data-node-id="427:831"
       >
@@ -49,11 +49,11 @@ export default function SubNav({ items, className }: SubNavProps) {
             <Link
               key={item.label}
               href={item.href}
-              className="flex flex-col items-center gap-[6px] p-[10px] transition-all duration-150"
+              className="flex flex-col items-center gap-[6px] p-2 sm:p-[10px] flex-shrink-0 transition-all duration-150"
             >
               <span
                 className={cn(
-                  'font-body text-[24px] leading-normal whitespace-nowrap transition-colors',
+                  'font-body text-[14px] sm:text-[18px] lg:text-[24px] leading-normal whitespace-nowrap transition-colors',
                   isActive
                     ? 'font-bold text-[#151515]'
                     : 'font-light text-[#888] hover:text-[#444]'

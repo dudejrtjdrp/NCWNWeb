@@ -66,7 +66,7 @@ export default function NincCardItem({
       {/* ── 이미지 영역 ── */}
       <div
         className="relative bg-[#efefef] overflow-hidden w-full"
-        style={{ height: '209px' }}
+        style={{ height: 'clamp(140px, 14.5vw, 209px)' }}
       >
         {thumbnail ? (
           <Image
@@ -111,7 +111,7 @@ export default function NincCardItem({
       {/* ── 캡션 영역: 이미지와 18px 간격 ── */}
       <div
         className={`bg-[#f9f9f9] flex items-center gap-2 px-4 transition-colors duration-300${href ? ' group-hover:bg-[#f0f0f0]' : ''}`}
-        style={{ height: '48px', marginTop: '18px' }}
+        style={{ minHeight: '48px', marginTop: 'clamp(10px, 1.25vw, 18px)' }}
         data-node-id="280:428"
       >
         <p className={`font-body font-medium text-[14px] text-nwcn-text-muted leading-normal flex-1 truncate transition-colors duration-300${href ? ' group-hover:text-nwcn-text-default' : ''}`}>

@@ -14,8 +14,8 @@ export default function InfoHero() {
   return (
     <div className="bg-white">
       <div
-        className="relative w-full max-w-[1440px] mx-auto overflow-hidden"
-        style={{ height: '420px' }}
+        className="relative w-full max-w-[1440px] mx-auto overflow-hidden flex items-center"
+        style={{ minHeight: 'clamp(220px, 30vw, 420px)' }}
       >
         {/* 배경 워터마크 */}
         <div
@@ -25,7 +25,7 @@ export default function InfoHero() {
         >
           <span
             className="font-brand font-black text-[#f4f4f4]"
-            style={{ fontSize: 'clamp(120px, 18vw, 280px)', lineHeight: 1 }}
+            style={{ fontSize: 'clamp(80px, 18vw, 280px)', lineHeight: 1 }}
           >
             INFO
           </span>
@@ -35,10 +35,7 @@ export default function InfoHero() {
         <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-nwcn-green via-nwcn-yellow to-transparent" />
 
         {/* 콘텐츠 */}
-        <div
-          className="absolute left-[79px] flex flex-col justify-center gap-5"
-          style={{ top: '50%', transform: 'translateY(-50%)' }}
-        >
+        <div className="px-4 sm:px-8 lg:px-[79px] flex flex-col justify-center gap-4 sm:gap-5 w-full">
           <AnimateOnScroll variant="fade-up" delay={0}>
             <p className="font-body font-semibold text-[12px] tracking-[0.2em] text-nwcn-green">
               {t('label')}

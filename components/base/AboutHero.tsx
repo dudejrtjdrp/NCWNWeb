@@ -11,22 +11,18 @@ const IMG_NWCN = '/images/department/nwcn-logo.png'
 export default function AboutHero() {
   return (
     <div className="bg-white">
-      {/* ── HERO h=805px ── */}
+      {/* ── HERO ── */}
       <div
-        className="relative w-full max-w-[1440px] mx-auto bg-white overflow-hidden"
-        style={{ height: '805px' }}
+        className="relative w-full max-w-[1440px] mx-auto bg-white overflow-hidden flex flex-col justify-center"
+        style={{ minHeight: 'clamp(300px, 50vw, 805px)' }}
       >
         {/* "ABOUT" 텍스트 */}
         <AnimateOnScroll
           variant="fade-up"
           delay={100}
           as="h1"
-          className="absolute whitespace-nowrap font-body font-extrabold text-[56px] leading-normal text-[#050505]"
-          style={{
-            left: 'calc(79.17% - 113px)',
-            top: '157px',
-            transform: 'translateY(-50%)',
-          }}
+          className="absolute right-[5%] sm:right-[10%] lg:right-[21%] top-[20%] font-body font-extrabold leading-normal text-[#050505]"
+          style={{ fontSize: 'clamp(32px, 5vw, 56px)' }}
         >
           ABOUT
         </AnimateOnScroll>
@@ -36,17 +32,13 @@ export default function AboutHero() {
           variant="fade"
           delay={200}
           duration={900}
-          className="absolute"
-          style={{ left: 0, top: 261, width: 1270, height: 350 }}
+          className="w-[88%] sm:w-[80%] lg:w-[1270px] mx-auto mt-[12%] sm:mt-[10%]"
         >
-          <div className="absolute" style={{ inset: '-0.86% -0.24%' }}>
-            <img
-              src={IMG_NWCN}
-              alt="NWCN 뉴미디어콘텐츠과"
-              className="block w-full h-full"
-              style={{ maxWidth: 'none' }}
-            />
-          </div>
+          <img
+            src={IMG_NWCN}
+            alt="NWCN 뉴미디어콘텐츠과"
+            className="block w-full h-auto"
+          />
         </AnimateOnScroll>
       </div>
     </div>

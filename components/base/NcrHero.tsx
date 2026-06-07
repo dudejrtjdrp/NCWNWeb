@@ -15,7 +15,7 @@ export default function NcrHero() {
     <div
       className="relative w-full overflow-hidden"
       style={{
-        height: '500px',
+        minHeight: 'clamp(320px, 35vw, 500px)',
         background: 'linear-gradient(135deg, #0d1a0f 0%, #151515 40%, #0a1a12 100%)',
       }}
     >
@@ -58,7 +58,7 @@ export default function NcrHero() {
       />
 
       {/* 콘텐츠 */}
-      <div className="absolute inset-0 flex flex-col justify-center px-[79px]">
+      <div className="absolute inset-0 flex flex-col justify-center px-4 sm:px-8 lg:px-[79px]">
         <AnimateOnScroll variant="fade-up" delay={0}>
           <p className="font-body font-semibold text-[12px] tracking-[0.25em] text-nwcn-green mb-6">
             {t('label')}

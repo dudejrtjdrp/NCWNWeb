@@ -39,15 +39,14 @@ export default function FacultySection({ className }: FacultySectionProps) {
 
       {/* ── 교수진 섹션 ── */}
       <section
-        className="flex flex-col items-center"
-        style={{ paddingTop: '80px', paddingBottom: '80px' }}
+        className="flex flex-col items-center py-12 sm:py-16 lg:py-[80px]"
         aria-labelledby="faculty-heading"
       >
         <AnimateOnScroll variant="fade-up" delay={0}>
           <SectionArrow />
           <h2
             id="faculty-heading"
-            className="font-body font-bold text-[24px] text-[#444] text-center mb-[60px]"
+            className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-8 sm:mb-[60px]"
             data-node-id="427:910"
           >
             {t('professors')}
@@ -55,7 +54,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
         </AnimateOnScroll>
 
         <div className="page-container w-full">
-          <div className="flex flex-wrap justify-center gap-[41px]">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-[41px]">
             {professors.map((faculty, i) => (
               <AnimateOnScroll
                 key={faculty.id}
@@ -78,22 +77,21 @@ export default function FacultySection({ className }: FacultySectionProps) {
 
       {/* ── 조교 섹션 ── */}
       <section
-        className="flex flex-col items-center"
-        style={{ paddingBottom: '120px' }}
+        className="flex flex-col items-center pb-16 sm:pb-20 lg:pb-[120px]"
         aria-labelledby="assistant-heading"
       >
         <AnimateOnScroll variant="fade-up" delay={0}>
           <SectionArrow />
           <h2
             id="assistant-heading"
-            className="font-body font-bold text-[24px] text-[#444] text-center mb-[60px]"
+            className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-8 sm:mb-[60px]"
             data-node-id="427:1250"
           >
             {t('assistants')}
           </h2>
         </AnimateOnScroll>
 
-        <div className="flex justify-center">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-[41px] page-container">
           {assistants.map((ta, i) => (
             <AnimateOnScroll key={ta.id} variant="fade-up" delay={i * 80}>
               <FacultyCard

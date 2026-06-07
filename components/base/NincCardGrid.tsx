@@ -47,14 +47,14 @@ export default function NincCardGrid({
   return (
     <div className="bg-white">
       {/* ── 섹션 타이틀 ── */}
-      <AnimateOnScroll variant="fade-up" className="text-center pt-[86px] pb-[28px]">
-        <p className="font-body font-light text-[24px] text-black leading-normal">
+      <AnimateOnScroll variant="fade-up" className="text-center pt-12 sm:pt-16 lg:pt-[86px] pb-4 sm:pb-6 lg:pb-[28px]">
+        <p className="font-body font-light text-[20px] sm:text-[22px] lg:text-[24px] text-black leading-normal">
           {sectionTitle}
         </p>
       </AnimateOnScroll>
 
       {/* ── 검색바 ── */}
-      <AnimateOnScroll variant="fade-up" delay={80} className="pb-[100px]">
+      <AnimateOnScroll variant="fade-up" delay={80} className="pb-10 sm:pb-16 lg:pb-[100px]">
         <SearchBar
           value={searchValue}
           onChange={onSearchChange}
@@ -64,18 +64,18 @@ export default function NincCardGrid({
       </AnimateOnScroll>
 
       {/* ── 카드 그리드 영역 ── */}
-      <div className="relative max-w-[1440px] mx-auto px-[87px] pb-20">
-        {/* 장식 요소들 */}
+      <div className="relative max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[87px] pb-16 sm:pb-20">
+        {/* 장식 요소들 (데스크탑만) */}
         <div
-          className="absolute left-0 pointer-events-none select-none"
-          style={{ top: '203px', width: '247px', height: '239px', transform: 'rotate(180deg)' }}
+          className="absolute left-0 pointer-events-none select-none hidden lg:block"
+          style={{ top: '203px', width: '180px', height: '174px', transform: 'rotate(180deg)' }}
           aria-hidden="true"
         >
           <img src={ASSETS.leftDecor} alt="" className="w-full h-full object-contain opacity-50" />
         </div>
         <div
-          className="absolute right-0 pointer-events-none select-none"
-          style={{ top: '647px', width: '247px', height: '239px', transform: 'scaleY(-1)' }}
+          className="absolute right-0 pointer-events-none select-none hidden lg:block"
+          style={{ top: '647px', width: '180px', height: '174px', transform: 'scaleY(-1)' }}
           aria-hidden="true"
         >
           <img src={ASSETS.rightDecor} alt="" className="w-full h-full object-contain opacity-50" />
@@ -87,8 +87,8 @@ export default function NincCardGrid({
             <p className="font-body text-[16px] text-nwcn-text-sub">{emptyMessage}</p>
           </AnimateOnScroll>
         ) : (
-          /* ── 3열 카드 그리드 ── */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-[35px] gap-y-[145px]">
+          /* ── 카드 그리드: 1열→2열→3열 ── */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-[35px] gap-y-16 sm:gap-y-24 lg:gap-y-[145px]">
             {items.map((item, i) => (
               <AnimateOnScroll
                 key={item.id}

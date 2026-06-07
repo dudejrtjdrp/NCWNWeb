@@ -25,8 +25,8 @@ export default async function AdmissionPage({ params }: PageProps) {
       <SubNav items={INFO_NAV_ITEMS} />
 
       {/* 섹션 타이틀 */}
-      <div className="bg-white pt-[60px] pb-[28px] text-center">
-        <p className="font-body font-light text-[24px] text-black">ADMISSION</p>
+      <div className="bg-white pt-10 sm:pt-14 lg:pt-[60px] pb-4 sm:pb-6 lg:pb-[28px] text-center">
+        <p className="font-body font-light text-[20px] sm:text-[22px] lg:text-[24px] text-black">ADMISSION</p>
       </div>
 
       <div className="bg-white pb-24">

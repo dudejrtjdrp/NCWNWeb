@@ -388,39 +388,14 @@ function CurriculumIcon() {
 /* ─── 과목 아이템 ─── */
 function CourseItem({ course }: { course: Course }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 35,
-      }}
-    >
+    <div className="flex flex-col gap-3 sm:gap-4 lg:gap-[35px]">
       {/* 과목명 + 학점 */}
-      <p
-        style={{
-          margin: 0,
-          fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-          fontWeight: 500,
-          fontSize: 18,
-          lineHeight: '27px',
-          color: '#050505',
-        }}
-      >
+      <p className="m-0 font-body font-medium text-[14px] sm:text-[16px] lg:text-[18px] leading-[1.5] lg:leading-[27px] text-[#050505]">
         {course.name}
       </p>
       {/* 과목 설명 */}
       {course.description && (
-        <p
-          style={{
-            margin: 0,
-            fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-            fontWeight: 500,
-            fontSize: 18,
-            lineHeight: '27px',
-            color: '#888',
-            whiteSpace: 'pre-wrap',
-          }}
-        >
+        <p className="m-0 font-body font-medium text-[13px] sm:text-[15px] lg:text-[18px] leading-[1.6] lg:leading-[27px] text-[#888] whitespace-pre-wrap">
           {course.description}
         </p>
       )}
@@ -431,28 +406,13 @@ function CourseItem({ course }: { course: Course }) {
 /* ─── 학기 블록 ─── */
 function SemesterBlock({ semester }: { semester: Semester }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 9,
-      }}
-    >
+    <div className="flex flex-col gap-2">
       {/* 학기 헤더 */}
-      <p
-        style={{
-          margin: 0,
-          fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-          fontWeight: 700,
-          fontSize: 18,
-          lineHeight: '27px',
-          color: '#050505',
-        }}
-      >
+      <p className="m-0 font-body font-bold text-[15px] sm:text-[16px] lg:text-[18px] leading-[27px] text-[#050505]">
         {semester.label}
       </p>
       {/* 과목 목록 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 52 }}>
+      <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[52px] mt-2">
         {semester.courses.map((course, idx) => (
           <CourseItem key={idx} course={course} />
         ))}
@@ -537,30 +497,14 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
 
   return (
     <div
-      className={className}
-      style={{
-        position: 'relative',
-        width: '100%',
-        maxWidth: 1440,
-        margin: '0 auto',
-        background: '#fff',
-      }}
+      className={`relative w-full max-w-[1440px] mx-auto bg-white ${className ?? ''}`}
       data-node-id="450:219"
     >
       {/* ══════════════════════════════════════════
           [1] 교육과정 아이콘 + 타이틀
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up">
-        <div
-          style={{
-            paddingTop: 100,
-            paddingBottom: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 10,
-          }}
-        >
+        <div className="pt-14 sm:pt-20 lg:pt-[100px] flex flex-col items-center gap-[10px]">
           <CurriculumIcon />
           <p
             style={{
@@ -583,13 +527,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up" delay={80}>
       <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 16,
-          paddingTop: 55,
-          paddingBottom: 81,
-        }}
+        className="flex justify-center gap-4 pt-8 sm:pt-10 lg:pt-[55px] pb-10 sm:pb-14 lg:pb-[81px]"
         role="tablist"
         aria-label="학년 선택"
       >
@@ -641,42 +579,23 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
             {idx > 0 && (
               /* 카테고리 간 구분선 */
               <div
-                style={{
-                  width: 'calc(100% - 376px)',
-                  marginLeft: 188,
-                  height: 1,
-                  background: '#E8E8E8',
-                  marginBottom: 81,
-                }}
+                className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-[#E8E8E8] mb-8 sm:mb-12 lg:mb-[81px]"
                 aria-hidden
               />
             )}
             <div
-              style={{
-                paddingLeft: 188,
-                paddingRight: 188,
-                paddingBottom: idx < currentData.categories.length - 1 ? 0 : 81,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 37,
-              }}
+              className={`px-4 sm:px-8 lg:px-[188px] ${idx < currentData.categories.length - 1 ? 'pb-0' : 'pb-10 sm:pb-12 lg:pb-[81px]'} flex flex-col gap-6 sm:gap-8 lg:gap-[37px]`}
             >
               {/* 카테고리 헤더 */}
               <p
-                style={{
-                  margin: 0,
-                  fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-                  fontWeight: 700,
-                  fontSize: 18,
-                  lineHeight: '27px',
-                  color: category.color,
-                }}
+                className="m-0 font-body font-bold text-[15px] sm:text-[16px] lg:text-[18px] leading-[27px]"
+                style={{ color: category.color }}
               >
                 {categoryLabelMap[category.title] ?? category.title}
               </p>
 
               {/* 학기 목록 */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 95 }}>
+              <div className="flex flex-col gap-10 sm:gap-14 lg:gap-[95px]">
                 {category.semesters.map((semester, sIdx) => {
                   const translatedSemester = {
                     ...semester,
@@ -693,13 +612,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
 
       {/* 하단 구분선 */}
       <div
-        style={{
-          width: 'calc(100% - 376px)',
-          marginLeft: 188,
-          height: 1,
-          background: '#E8E8E8',
-          marginTop: 0,
-        }}
+        className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-[#E8E8E8]"
         aria-hidden
       />
     </div>

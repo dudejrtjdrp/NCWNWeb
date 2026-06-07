@@ -2,28 +2,36 @@
  * BASE 컴포넌트: ProfessorDetailSection
  * Figma: ABOUT/Faculty/Detail/배윤경/Desktop (node-id: 926:430)
  *
- * ─ 화면 구성 ──────────────────────────────────────────
- * 1. FacultyDetailSection — 프로필 사진 + 경력(CAREER) + 이름/이메일
- * 2. InterviewSection     — 5개 Q&A + 마지막 인용 문구
- * 3. 하단 FACULTY 목록 복귀 링크
- * ──────────────────────────────────────────────────────
+ * ─ 레이어 구조 (Figma 동일) ────────────────────────────────
+ *  [페이지 래퍼 bg-white]
+ *    ├─ NWCN bg #1 : absolute, top=0, width=88.16%, height=350px — 프로필 섹션 위
+ *    ├─ 여백(spacer)  : NWCN bg가 보이는 흰 영역
+ *    ├─ #fcfcfc 프로필 섹션 (z-10) ← NWCN bg 위에 떠있는 흰 블록
+ *    │    ├─ ProfileBgCircle SVG (rotation baked-in) : absolute left=9.44%, top=40px
+ *    │    ├─ 프로필 사진               : absolute left=13.75%, top=30px   (photo z-10)
+ *    │    ├─ 이름/이메일               : absolute left=13.54%, top=520px
+ *    │    └─ CAREER                   : absolute left=52.43%, top=69px
+ *    ├─ NWCN bg #2 : 프로필↔인터뷰 사이 흰 여백에 보임
+ *    └─ 인터뷰 섹션 (z-10, gradient)
  *
- * ─ 컴포넌트 규칙 ──────────────────────────────────────
- * - 순수 UI 컴포넌트 (기능 로직 없음)
- * - 모든 데이터는 props(FacultyData)로 전달
- * - 모든 교수진에게 동일한 템플릿 적용 가능
- * ──────────────────────────────────────────────────────
+ * ─ Figma 측정값 (1440px 기준) ──────────────────────────────
+ *  ProfileBgCircle SVG (398×358, rotation baked):
+ *    container left=136(9.44%), top=40, w=524(36.39%), h≈495
+ *    → SVG를 36.39% width, height=auto로 렌더 (rotate 추가 없음)
+ *  ProfileImage: left=198(13.75%), top=30, w=349(24.24%), h=466
+ *  ProfileInfo:  left=195(13.54%), top=520
+ *  CareerSection: left=755(52.43%), top=69, w=498(34.58%)
+ * ──────────────────────────────────────────────────────────
  */
 
 import Image from 'next/image'
 import Link from 'next/link'
 import type { FacultyData } from '@/lib/faculty-data'
 
-/* ── 에셋 경로 ── */
 const IMG_NWCN_BG = '/images/department/nwcn-logo.png'
 
 /* ──────────────────────────────────────────────────────
-   텍스트 파싱 유틸 — **bold** 마커 → <strong>
+   텍스트 파싱 — **bold** 마커 → <strong>
    ────────────────────────────────────────────────────── */
 function parseInlineText(text: string) {
   const parts = text.split(/(\*\*[^*]+\*\*)/)
@@ -39,103 +47,24 @@ function parseInlineText(text: string) {
 }
 
 function parseAnswer(answer: string) {
-  return answer.split('\n\n').map((para, pi) => (
+  const paras = answer.split('\n\n')
+  return paras.map((para, pi) => (
     <p
       key={pi}
-      className="leading-[26px] text-[20px] font-body font-normal text-[#888] whitespace-pre-wrap"
-      style={{ marginBottom: pi < answer.split('\n\n').length - 1 ? '0' : undefined }}
+      className="text-[clamp(14px,1.39vw,20px)] font-body font-normal text-[#888]"
+      style={{ lineHeight: '26px' }}
     >
       {parseInlineText(para)}
     </p>
   ))
 }
 
-/* ──────────────────────────────────────────────────────
-   ProfileBgCircle — Figma의 타원형 배경 장식 (CSS 재현)
-   ────────────────────────────────────────────────────── */
-function ProfileBgCircle() {
-  return (
-    <div
-      className="absolute pointer-events-none select-none"
-      style={{
-        left: '136px',
-        top: '40px',
-        width: '524px',
-        height: '495px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-      aria-hidden="true"
-    >
-      <div
-        style={{
-          width: '470px',
-          height: '253px',
-          transform: 'rotate(-39.56deg)',
-          border: '2px solid rgba(9, 245, 147, 0.35)',
-          borderRadius: '50%',
-          background: 'radial-gradient(ellipse at center, rgba(9,245,147,0.08) 0%, transparent 70%)',
-        }}
-      />
-    </div>
-  )
-}
-
-/* ──────────────────────────────────────────────────────
-   NWCN 배경 장식 텍스트 이미지
-   ────────────────────────────────────────────────────── */
-function NwcnBg({ top }: { top: number }) {
-  return (
-    <div
-      className="absolute left-0 pointer-events-none select-none overflow-hidden"
-      style={{ top, width: '1270px', height: '350px' }}
-      aria-hidden="true"
-    >
-      <img
-        src={IMG_NWCN_BG}
-        alt=""
-        className="block w-full h-full"
-        style={{ maxWidth: 'none', objectFit: 'fill' }}
-      />
-    </div>
-  )
-}
-
-/* ──────────────────────────────────────────────────────
-   QuoteHighlight — 인용문 강조 밑줄 장식 (CSS 재현)
-   ────────────────────────────────────────────────────── */
-function QuoteHighlight({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="relative inline">
-      {/* 하이라이트 밑줄 장식 */}
-      <span
-        className="absolute bottom-[-4px] left-0 right-0 pointer-events-none"
-        style={{
-          height: '10px',
-          background: 'linear-gradient(90deg, #E3E94D 0%, #09F593 100%)',
-          borderRadius: '2px',
-          opacity: 0.6,
-          transform: 'rotate(-0.28deg)',
-        }}
-        aria-hidden="true"
-      />
-      <span className="relative">{children}</span>
-    </span>
-  )
-}
-
-/* ──────────────────────────────────────────────────────
-   Props 인터페이스
-   ────────────────────────────────────────────────────── */
+/* ── Props ── */
 export interface ProfessorDetailSectionProps {
   faculty: FacultyData
   className?: string
 }
 
-/* ──────────────────────────────────────────────────────
-   메인 컴포넌트
-   ────────────────────────────────────────────────────── */
 export default function ProfessorDetailSection({
   faculty,
   className,
@@ -143,109 +72,143 @@ export default function ProfessorDetailSection({
   const displayName = faculty.roleLabel
     ? `${faculty.nameKo} (${faculty.roleLabel})`
     : faculty.nameKo
-
   const hasInterview = !!faculty.interview
 
   return (
-    <div
-      className={`bg-white relative overflow-hidden ${className ?? ''}`}
-      data-node-id="926:430"
-    >
-      {/* ══ 배경 NWCN 로고 데코레이션 ══ */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <NwcnBg top={85} />
-        <NwcnBg top={709} />
+    /* ─────────────────────────────────────────────────────────
+       최상위 래퍼: 흰 배경, 상대위치
+       NWCN 배경 이미지들이 absolute 로 배치됨
+       ───────────────────────────────────────────────────────── */
+    <div className={`relative bg-white overflow-x-hidden ${className ?? ''}`}>
+
+      {/* ══ NWCN 배경 #1 ══
+          Figma: left=0, top=85(page) → 여기서는 top=0(컴포넌트 최상단)
+          width=88.16%(1269/1440), height=350px
+          z-0 → 프로필 섹션(z-10) 뒤에 위치 */}
+      <div
+        className="absolute left-0 top-0 pointer-events-none select-none"
+        style={{ width: '88.16%', height: '350px', zIndex: 0 }}
+        aria-hidden="true"
+      >
+        <div className="absolute" style={{ inset: '-0.86% -0.24%' }}>
+          <img
+            src={IMG_NWCN_BG}
+            alt=""
+            className="block w-full h-full"
+            style={{ maxWidth: 'none', objectFit: 'fill' }}
+          />
+        </div>
       </div>
 
-      {/* ══ 1. FacultyDetailSection ══ */}
+      {/* ══ 상단 여백 (NWCN bg가 보이는 흰 영역) ══
+          모바일: 20px, 데스크탑: 80px */}
+      <div className="relative h-[20px] lg:h-[80px]" style={{ zIndex: 10 }} />
+
+      {/* ══════════════════════════════════════════════════════
+          프로필 섹션
+          Figma 926:447 — bg-[#fcfcfc], 1440×649px
+          z-10 → NWCN bg 위에 떠있는 흰 블록
+          ══════════════════════════════════════════════════════ */}
       <section
-        className="relative mx-auto bg-[#fcfcfc]"
-        style={{
-          maxWidth: '1440px',
-          minHeight: '649px',
-          paddingTop: '40px',
-          paddingBottom: '40px',
-        }}
-        data-node-id="926:447"
+        className="relative bg-[#fcfcfc]"
+        style={{ minHeight: 'clamp(400px, 45vw, 649px)', zIndex: 10 }}
         aria-label="교수 프로필"
       >
-        {/* ── 데스크탑: flex 2열 레이아웃 ── */}
-        <div className="relative flex flex-col md:flex-row items-start gap-10 md:gap-0 px-6 md:px-0">
+        {/* ── 데스크탑 레이아웃 (lg+) ── */}
+        <div
+          className="hidden lg:block relative mx-auto"
+          style={{ maxWidth: 1440, minHeight: 'clamp(400px, 45vw, 649px)', height: 'clamp(400px, 45vw, 649px)' }}
+        >
+          {/* ── ProfileBgCircle ──────────────────────────────
+              Figma: container left=136(9.44%), top=40, w=524(36.39%), h≈495
+              SVG 398×358 — rotation은 SVG 내부에 이미 baked-in → CSS rotation 없음
+              width를 container 너비(36.39%)로 설정, height는 비율 유지
+              z-0: 사진(z-10) 뒤에 위치
+              ─────────────────────────────────────────────── */}
+          <img
+            src="/images/faculty/ProfileBgCircle.svg"
+            alt=""
+            aria-hidden="true"
+            className="absolute pointer-events-none select-none"
+            style={{
+              left: '15.44%',
+              top: '6.2%',
+              width: '30%',
+              height: 'auto',
+              zIndex: 0,
+            }}
+          />
 
-          {/* ── 프로필 영역 (좌측) ── */}
+          {/* ── 프로필 사진 ──────────────────────────────────
+              Figma: left≈198px(13.75%), top=30, w=349(24.24%), h=466
+              aspect-ratio 349:466 → vw 기반으로 반응형 스케일
+              z-10: 타원 위에 표시
+              ─────────────────────────────────────────────── */}
           <div
-            className="relative flex-shrink-0 md:ml-[136px] flex flex-col items-start"
-            data-node-id="926:451"
+            className="absolute overflow-hidden"
+            style={{
+              left: '13.75%',
+              top: '4.6%',
+              width: '24.24%',
+              aspectRatio: '349 / 466',
+              zIndex: 10,
+            }}
           >
-            {/* 타원형 배경 장식 (데스크탑만) */}
-            <div className="relative" style={{ width: '349px', minHeight: '466px' }}>
-              <ProfileBgCircle />
-
-              {/* 프로필 사진 */}
-              <div
-                className="relative overflow-hidden rounded-[4px] shadow-md"
-                style={{ width: '349px', height: '466px' }}
-                data-node-id="926:454"
-              >
-                {faculty.photoUrl ? (
-                  <Image
-                    src={faculty.photoUrl}
-                    alt={`${faculty.nameKo} ${faculty.role} 프로필 사진`}
-                    fill
-                    className="object-cover object-top"
-                    priority
-                    unoptimized
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
-                    <span className="font-body font-extrabold text-[96px] text-black/10 leading-none">
-                      {faculty.nameKo[0]}
-                    </span>
-                  </div>
-                )}
+            {faculty.photoUrl ? (
+              <Image
+                src={faculty.photoUrl}
+                alt={`${faculty.nameKo} ${faculty.roleLabel ?? faculty.role} 프로필 사진`}
+                fill
+                className="object-cover object-top"
+                priority
+                unoptimized
+              />
+            ) : (
+              <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
+                <span className="font-body font-extrabold text-[96px] text-black/10 leading-none">
+                  {faculty.nameKo[0]}
+                </span>
               </div>
-            </div>
-
-            {/* 이름 + 이메일 */}
-            <div
-              className="mt-6 md:mt-8 flex flex-col gap-1"
-              data-node-id="926:455"
-            >
-              <h1
-                className="font-body font-bold text-[24px] text-black leading-normal"
-                data-node-id="926:456"
-                lang="ko"
-              >
-                {displayName}
-              </h1>
-              {faculty.email && (
-                <a
-                  href={`mailto:${faculty.email}`}
-                  className="font-body font-normal text-[20px] text-[#888] leading-normal hover:text-nwcn-green transition-colors"
-                  data-node-id="926:457"
-                >
-                  {faculty.email}
-                </a>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* ── CAREER 영역 (우측) ── */}
+          {/* ── 이름 + 이메일 ─────────────────────────────────
+              Figma: left=195(13.54%), top=520
+              ─────────────────────────────────────────────── */}
+          <div
+            className="absolute flex flex-col gap-[10px]"
+            style={{ left: '13.54%', top: '80%', zIndex: 10 }}
+          >
+            <h1
+              className="font-body font-bold text-[24.415px] text-black leading-normal"
+            >
+              {displayName}
+            </h1>
+            {faculty.email && (
+              <a
+                href={`mailto:${faculty.email}`}
+                className="font-body font-normal text-[24px] text-[#888] leading-normal hover:text-nwcn-green transition-colors"
+              >
+                {faculty.email}
+              </a>
+            )}
+          </div>
+
+          {/* ── CAREER ───────────────────────────────────────
+              Figma: left=755(52.43%), top=69, w=498(34.58%)
+              items-end: 오른쪽 정렬 (Figma와 동일)
+              ─────────────────────────────────────────────── */}
           {faculty.career && faculty.career.length > 0 && (
             <div
-              className="flex-1 flex flex-col gap-5 md:ml-[75px] md:mt-[69px] md:max-w-[498px]"
-              data-node-id="926:448"
+              className="absolute flex flex-col gap-[21px] items-end"
+              style={{ left: '52.43%', top: '10.6%', width: '34.58%', zIndex: 10 }}
             >
-              <p
-                className="font-body font-extrabold text-[26px] text-nwcn-green leading-normal"
-                data-node-id="926:449"
-              >
+              <p className="font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full">
                 CAREER
               </p>
               <div
-                className="flex flex-col font-body font-normal text-[20px] text-[#050505]"
+                className="w-full font-body font-normal text-[20px] text-[#050505]"
                 style={{ lineHeight: '34.467px' }}
-                data-node-id="926:450"
               >
                 {faculty.career.map((item, i) => (
                   <p key={i}>{item}</p>
@@ -254,65 +217,126 @@ export default function ProfessorDetailSection({
             </div>
           )}
         </div>
+
+        {/* ── 모바일 레이아웃 (<lg) ── */}
+        <div className="lg:hidden px-6 pt-10 pb-12 flex flex-col gap-8">
+          {/* 사진 */}
+          <div
+            className="relative w-full max-w-[300px] mx-auto overflow-hidden"
+            style={{ aspectRatio: '349/466' }}
+          >
+            {faculty.photoUrl ? (
+              <Image
+                src={faculty.photoUrl}
+                alt={`${faculty.nameKo} 프로필 사진`}
+                fill
+                className="object-cover object-top"
+                priority
+                unoptimized
+              />
+            ) : (
+              <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
+                <span className="font-body font-extrabold text-[60px] text-black/10 leading-none">
+                  {faculty.nameKo[0]}
+                </span>
+              </div>
+            )}
+          </div>
+          {/* 이름 + 이메일 */}
+          <div className="flex flex-col gap-2">
+            <h1 className="font-body font-bold text-[20px] text-black leading-normal">
+              {displayName}
+            </h1>
+            {faculty.email && (
+              <a
+                href={`mailto:${faculty.email}`}
+                className="font-body font-normal text-[15px] text-[#888] leading-normal hover:text-nwcn-green transition-colors"
+              >
+                {faculty.email}
+              </a>
+            )}
+          </div>
+          {/* CAREER */}
+          {faculty.career && faculty.career.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <p className="font-body font-extrabold text-[20px] text-nwcn-green leading-normal">
+                CAREER
+              </p>
+              <div
+                className="font-body font-normal text-[14px] text-[#050505]"
+                style={{ lineHeight: 1.75 }}
+              >
+                {faculty.career.map((item, i) => <p key={i}>{item}</p>)}
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
-      {/* ══ 2. InterviewSection ══ */}
-      {hasInterview && faculty.interview && (
-        <>
-          {/* 배경 그라디언트 */}
+      {/* ══ NWCN 배경 #2 ══
+          Figma: top=709(page) → 프로필 섹션 아래 여백에 위치
+          relative 섹션으로 높이를 확보하고 absolute NWCN bg 배치 */}
+      {hasInterview && (
+        <div className="relative" style={{ height: 80, zIndex: 5 }}>
           <div
-            className="absolute left-0 right-0 pointer-events-none"
-            style={{
-              top: '1059px',
-              height: '2031px',
-              background: 'linear-gradient(to bottom, #fcfcfc, #ffffff)',
-            }}
+            className="absolute left-0 top-0 pointer-events-none select-none"
+            style={{ width: '88.16%', height: '350px', zIndex: 0 }}
             aria-hidden="true"
-          />
-
-          <section
-            className="relative mx-auto flex flex-col items-center"
-            style={{
-              maxWidth: '1440px',
-              paddingTop: '74px',
-              paddingBottom: '165px',
-              paddingLeft: 'clamp(24px, 13.06%, 188px)',
-              paddingRight: 'clamp(24px, 13.06%, 188px)',
-            }}
-            data-node-id="926:459"
-            aria-label="교수 인터뷰"
           >
-            <div className="w-full flex flex-col gap-[108px] items-center">
+            <div className="absolute" style={{ inset: '-0.86% -0.24%' }}>
+              <img
+                src={IMG_NWCN_BG}
+                alt=""
+                className="block w-full h-full"
+                style={{ maxWidth: 'none', objectFit: 'fill' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* ── 인터뷰 콘텐츠 ── */}
-              <div className="w-full flex flex-col gap-[153px] items-center">
+      {/* ══════════════════════════════════════════════════════
+          인터뷰 섹션
+          Figma 926:459 — pt=74, pb=165, px=188
+          bg: gradient #fcfcfc → white
+          z-10 → NWCN bg #2 위에 위치
+          ══════════════════════════════════════════════════════ */}
+      {hasInterview && faculty.interview ? (
+        <section
+          className="relative"
+          style={{
+            background: 'linear-gradient(to bottom, #fcfcfc, #ffffff)',
+            zIndex: 10,
+          }}
+          aria-label="교수 인터뷰"
+        >
+          <div
+            className="mx-auto flex flex-col items-center"
+            style={{
+              maxWidth: 1440,
+              paddingTop: 'clamp(40px, 5.14vw, 74px)',
+              paddingBottom: 'clamp(60px, 11.46vw, 165px)',
+              paddingLeft: 'clamp(24px, 13.06vw, 188px)',
+              paddingRight: 'clamp(24px, 13.06vw, 188px)',
+            }}
+          >
+            {/* gap: content ↔ FACULTY 링크 = 108px */}
+            <div className="w-full flex flex-col items-center gap-[clamp(60px,7.5vw,108px)]">
 
-                {/* 헤더 + Q&A */}
-                <div className="w-full flex flex-col gap-[57px] items-start">
+              {/* interview content: Q&A ↔ Closing gap = 153px */}
+              <div className="w-full flex flex-col items-center gap-[clamp(60px,10.63vw,153px)]">
 
-                  {/* "INTERVIEW" 헤딩 */}
-                  <p
-                    className="font-brand font-extrabold text-[28px] text-nwcn-green leading-normal w-full"
-                    data-node-id="926:462"
-                  >
+                {/* INTERVIEW 헤딩 + Q&A list — gap=57px */}
+                <div className="w-full flex flex-col gap-[clamp(28px,3.96vw,57px)] items-start">
+                  <p className="font-brand font-extrabold text-[clamp(20px,1.94vw,28px)] text-nwcn-green leading-normal w-full">
                     INTERVIEW
                   </p>
 
-                  {/* Q&A 목록 */}
-                  <div
-                    className="w-full flex flex-col gap-[57px] items-start"
-                    data-node-id="926:463"
-                  >
+                  <div className="w-full flex flex-col gap-[clamp(28px,3.96vw,57px)] items-start">
                     {faculty.interview.qa.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="flex flex-col gap-[49px] w-full"
-                        data-node-id={`926:${464 + idx * 3}`}
-                      >
+                      <div key={idx} className="w-full flex flex-col gap-[clamp(20px,3.4vw,49px)]">
                         {/* 질문 */}
-                        <p
-                          className="font-body font-bold text-[24px] text-black leading-normal max-w-[1061px]"
-                        >
+                        <p className="font-body font-bold text-[clamp(16px,1.67vw,24px)] text-black leading-normal">
                           {item.question}
                         </p>
                         {/* 답변 */}
@@ -324,88 +348,58 @@ export default function ProfessorDetailSection({
                   </div>
                 </div>
 
-                {/* ── 마무리 인용 ── */}
-                <div
-                  className="w-full flex flex-col items-center gap-[62px]"
-                  data-node-id="926:479"
-                >
+                {/* ── 마무리 (ClosingGroup) ── */}
+                <div className="w-full flex flex-col items-center gap-[clamp(32px,4.31vw,62px)]">
                   {/* 마지막 질문 */}
-                  <p
-                    className="font-body font-bold text-[24px] text-black text-center leading-normal max-w-[544px]"
-                    data-node-id="926:480"
-                  >
+                  <p className="font-body font-bold text-[clamp(16px,1.67vw,24px)] text-black text-center leading-normal max-w-[544px]">
                     {faculty.interview.closingQuestion}
                   </p>
 
-                  {/* 인용 문구 + 하이라이트 */}
-                  <div
-                    className="relative w-full flex flex-col items-center"
-                    data-node-id="926:481"
-                  >
-                    {/* 하이라이트 장식 (인용 문구 뒤에 배치되어 특정 단어 강조) */}
-                    {faculty.interview.closingHighlight && (
-                      <div
-                        className="absolute pointer-events-none select-none"
-                        style={{
-                          top: '39px',
-                          left: '50%',
-                          transform: 'translateX(-10%)',
-                          width: '248px',
-                          height: '58px',
-                          background: 'linear-gradient(90deg, #E3E94D 0%, #09F593 60%, #E3E94D 100%)',
-                          borderRadius: '4px',
-                          opacity: 0.35,
-                          rotate: '-0.28deg',
-                        }}
-                        aria-hidden="true"
-                      />
-                    )}
-
-                    {/* 인용 문구 */}
-                    <p
-                      className="relative font-body font-bold text-[36px] text-black text-center leading-normal max-w-[916px] z-10"
-                      data-node-id="926:483"
-                    >
-                      {faculty.interview.closingQuote.split('\n').map((line, li) => (
-                        <span key={li}>
-                          {faculty.interview!.closingHighlight && line.includes(faculty.interview!.closingHighlight)
-                            ? line.split(faculty.interview!.closingHighlight).map((part, pi, arr) => (
-                                <span key={pi}>
-                                  {part}
-                                  {pi < arr.length - 1 && (
-                                    <QuoteHighlight>
-                                      {faculty.interview!.closingHighlight}
-                                    </QuoteHighlight>
-                                  )}
-                                </span>
-                              ))
-                            : line}
-                          {li < faculty.interview!.closingQuote.split('\n').length - 1 && <br />}
-                        </span>
-                      ))}
-                    </p>
+                  {/* 인용 문구 + 하이라이트 SVG overlay */}
+                  <div className="w-full flex justify-center">
+                    <div className="relative max-w-[916px] w-full">
+                      {faculty.interview.closingHighlight && (
+                        <img
+                          src={`/images/faculty/${faculty.id}-highlight.svg`}
+                          alt=""
+                          aria-hidden="true"
+                          className="absolute pointer-events-none select-none"
+                          style={{
+                            top: faculty.interview.closingHighlightStyle?.top ?? 39,
+                            left: 'clamp(60px,15.97vw,230px)',
+                            width: 'clamp(120px,17.23vw,248px)',
+                            height: 'auto',
+                            transform: 'rotate(-0.28deg)',
+                            zIndex: 0,
+                          }}
+                        />
+                      )}
+                      <p className="relative font-body font-bold text-[clamp(20px,2.5vw,36px)] text-black text-center leading-normal z-10">
+                        {faculty.interview.closingQuote.split('\n').map((line, li, arr) => (
+                          <span key={li}>
+                            {line}
+                            {li < arr.length - 1 && <br />}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* ── 목록 복귀 링크 ── */}
+              {/* FACULTY 복귀 링크 */}
               <Link
                 href="/about/faculty"
-                className="font-body font-normal text-[20px] text-[#888] text-center leading-[26px] hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-[clamp(14px,1.39vw,20px)] text-[#888] text-center leading-[26px] hover:text-nwcn-green transition-colors"
                 aria-label="교수진 목록으로 돌아가기"
-                data-node-id="926:484"
-                data-annotations="클릭하면 다시 목록으로 돌아감"
               >
                 FACULTY
               </Link>
             </div>
-          </section>
-        </>
-      )}
-
-      {/* ══ 인터뷰 없을 때 — 기본 뒤로가기 ══ */}
-      {!hasInterview && (
-        <div className="flex justify-center py-16">
+          </div>
+        </section>
+      ) : (
+        <div className="relative flex justify-center py-16" style={{ zIndex: 10 }}>
           <Link
             href="/about/faculty"
             className="inline-flex items-center gap-2 font-body text-[14px] text-[#888] hover:text-nwcn-green transition-colors group"
@@ -413,10 +407,7 @@ export default function ProfessorDetailSection({
           >
             <svg
               className="w-4 h-4 transition-transform group-hover:-translate-x-1"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
               aria-hidden="true"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

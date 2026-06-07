@@ -37,7 +37,7 @@ export default async function NincSection({ className = '' }: NincSectionProps) 
 
   return (
     <section
-      className={`relative bg-white py-[80px] ${className}`}
+      className={`relative bg-white py-12 sm:py-16 lg:py-[80px] ${className}`}
       style={{ overflowX: 'clip' }}
       data-node-id="376:1492"
       aria-label="Now In NewCon"
@@ -83,7 +83,7 @@ export default async function NincSection({ className = '' }: NincSectionProps) 
         data-node-id="376:1489"
       >
         <div
-          className="flex items-center gap-[78px] overflow-x-auto scrollbar-hide px-8 py-12"
+          className="flex items-center gap-8 sm:gap-[52px] lg:gap-[78px] overflow-x-auto scrollbar-hide px-4 sm:px-8 py-8 sm:py-12"
           data-node-id="376:1488"
         >
           {displayCards.map((card, i) => {
@@ -107,7 +107,10 @@ export default async function NincSection({ className = '' }: NincSectionProps) 
                 variant="fade-up"
                 delay={i * 100}
                 className="relative flex-shrink-0 py-2"
-                style={{ width: card.card_width, height: card.card_height } as React.CSSProperties}
+                style={{
+                  width: `clamp(${Math.round(card.card_width * 0.55)}px, ${(card.card_width / 1440 * 100).toFixed(2)}vw, ${card.card_width}px)`,
+                  height: `clamp(${Math.round(card.card_height * 0.55)}px, ${(card.card_height / 1440 * 100).toFixed(2)}vw, ${card.card_height}px)`,
+                } as React.CSSProperties}
               >
                 {card.link_href ? (
                   <Link

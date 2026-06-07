@@ -47,36 +47,37 @@ export default function Footer({ className = '' }: FooterProps) {
   return (
     <footer
       className={`relative overflow-hidden ${className}`}
-      style={{ background: '#151515', minHeight: '442px' }}
+      style={{ background: '#151515' }}
       data-node-id="376:637"
       aria-label="사이트 푸터"
     >
-      <div className="max-w-[1440px] mx-auto px-[79px] py-[71px] relative h-full">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] py-12 lg:py-[71px] relative">
 
         {/* ── 상단 영역 ── */}
-        <div className="flex justify-between items-start mb-0" style={{ height: '183px' }}>
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-10 lg:pb-[60px]">
           {/* 로고 */}
-          <div style={{ width: '129px', height: '114px' }} data-node-id="376:652">
+          <div className="shrink-0" data-node-id="376:652">
             <Image
               src="/images/common/NewConLogo.svg"
               alt="NewCon 로고"
               width={129}
               height={114}
               unoptimized
+              className="w-[80px] h-auto sm:w-[100px] lg:w-[129px]"
             />
           </div>
 
-          {/* 연락처 정보 (우측) */}
+          {/* 연락처 정보 */}
           <div
-            className="flex flex-wrap gap-x-[76px] gap-y-[23px] w-[242px]"
+            className="flex flex-wrap gap-x-8 gap-y-4 sm:gap-x-[76px] sm:gap-y-[23px]"
             data-node-id="376:903"
           >
             {CONTACT_INFO.map(({ labelKey, value }) => (
-              <div key={labelKey} className="flex flex-col gap-[3px]" style={{ minWidth: '73px' }}>
-                <p className="font-body font-medium text-[#323131]" style={{ fontSize: '14px' }}>
+              <div key={labelKey} className="flex flex-col gap-1">
+                <p className="font-body font-medium text-[#323131] text-[13px] sm:text-[14px]">
                   {t(labelKey as Parameters<typeof t>[0])}
                 </p>
-                <p className="font-body font-normal text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
+                <p className="font-body font-normal text-white text-[11px] sm:text-[11.6px] leading-tight">
                   {value}
                 </p>
               </div>
@@ -85,24 +86,22 @@ export default function Footer({ className = '' }: FooterProps) {
         </div>
 
         {/* ── Divider ── */}
-        <div className="relative w-full" style={{ height: '1px', marginTop: '183px' }} data-node-id="376:650">
-          <div className="absolute inset-0 border-t border-white/10" />
-        </div>
+        <div className="w-full border-t border-white/10" data-node-id="376:650" />
 
         {/* ── 하단 영역 ── */}
-        <div className="flex justify-between items-start pt-[32px]">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pt-6 sm:pt-8 pb-6">
           {/* 주소 + Copyright */}
-          <div className="flex flex-col gap-[16px] w-[300px]" data-node-id="376:1616">
-            <p className="font-body font-medium text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
+          <div className="flex flex-col gap-3" data-node-id="376:1616">
+            <p className="font-body font-medium text-white text-[11px] sm:text-[11.6px] leading-tight">
               {t('address')}
             </p>
-            <p className="font-body font-medium text-white" style={{ fontSize: '11.6px', lineHeight: '98.69%' }}>
+            <p className="font-body font-medium text-white text-[11px] sm:text-[11.6px] leading-tight">
               {t('copyright')}
             </p>
           </div>
 
           {/* SNS 링크 */}
-          <div className="flex flex-col gap-[12px] items-start" data-node-id="452:264">
+          <div className="flex flex-row sm:flex-col gap-4 sm:gap-3 items-start" data-node-id="452:264">
             {SNS_LINKS.map(({ key, href, icon }) => (
               <a
                 key={key}
@@ -112,7 +111,7 @@ export default function Footer({ className = '' }: FooterProps) {
                 className="flex items-center gap-[9px] text-white hover:opacity-70 transition-opacity"
               >
                 <Image src={icon} alt="" width={19} height={19} unoptimized aria-hidden="true" />
-                <span className="font-body font-medium whitespace-nowrap" style={{ fontSize: '12.62px' }}>
+                <span className="font-body font-medium whitespace-nowrap text-[12px] sm:text-[12.62px]">
                   {t(key)}
                 </span>
               </a>
@@ -121,7 +120,7 @@ export default function Footer({ className = '' }: FooterProps) {
         </div>
 
         {/* 개인정보처리방침 링크 */}
-        <div className="absolute bottom-6 right-[79px]">
+        <div className="pb-2">
           <Link
             href="/info/privacy"
             className="font-body text-[11px] text-white/30 hover:text-white/60 transition-colors"

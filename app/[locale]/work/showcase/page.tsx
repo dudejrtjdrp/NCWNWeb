@@ -32,8 +32,8 @@ export default async function ShowcasePage({ params }: { params: Promise<{ local
       <SubNav items={WORK_NAV_ITEMS} />
 
       {/* 섹션 타이틀 */}
-      <div className="bg-white pt-[60px] pb-[28px] text-center">
-        <p className="font-body font-light text-[24px] text-black">SHOWCASE</p>
+      <div className="bg-white pt-10 sm:pt-14 lg:pt-[60px] pb-4 sm:pb-6 lg:pb-[28px] text-center">
+        <p className="font-body font-light text-[20px] sm:text-[22px] lg:text-[24px] text-black">SHOWCASE</p>
       </div>
 
       {/* 필터 + 그리드 + 페이지네이션 (Client Component) */}

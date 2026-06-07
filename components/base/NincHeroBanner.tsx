@@ -28,7 +28,7 @@ export default function NincHeroBanner({
     <div
       className={`relative w-full overflow-hidden ${className}`}
       style={{
-        height: '725px',
+        minHeight: 'clamp(280px, 40vw, 725px)',
         background: imgError
           ? 'linear-gradient(160deg, #1a3d2b 0%, #0d2219 50%, #060f0c 100%)'
           : '#1a1a1a',
@@ -51,21 +51,21 @@ export default function NincHeroBanner({
 
       {/* ── 그라디언트 오버레이들 ── */}
       <div
-        className="absolute inset-x-0 top-0 h-[201px] pointer-events-none"
+        className="absolute inset-x-0 top-0 h-[30%] pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(40,76,61,0), #303030)' }}
         aria-hidden="true"
       />
       <div
-        className="absolute inset-x-0 pointer-events-none"
-        style={{ top: '85px', height: '640px', background: 'linear-gradient(to bottom, rgba(40,76,61,0), #303030)' }}
+        className="absolute inset-x-0 bottom-0 h-[60%] pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, rgba(40,76,61,0), #303030)' }}
         aria-hidden="true"
       />
 
       {/* ── 콘텐츠 ── */}
-      <div className="absolute inset-0 flex flex-col justify-between px-[87px] pt-[75px] pb-[20px]">
+      <div className="absolute inset-0 flex flex-col justify-between px-4 sm:px-8 lg:px-[87px] pt-[40px] sm:pt-[60px] lg:pt-[75px] pb-5 sm:pb-6 lg:pb-[20px]">
         <AnimateOnScroll variant="fade-up" delay={100} threshold={0}>
           <p
-            className="font-body font-light text-[24px] text-white leading-normal whitespace-nowrap"
+            className="font-body font-light text-[18px] sm:text-[20px] lg:text-[24px] text-white leading-normal"
             data-node-id="280:406"
           >
             {pageName}
@@ -74,7 +74,7 @@ export default function NincHeroBanner({
 
         <AnimateOnScroll variant="fade-up" delay={200} threshold={0}>
           <p
-            className="font-brand font-normal text-[37px] text-white leading-normal whitespace-nowrap"
+            className="font-brand font-normal text-[22px] sm:text-[28px] lg:text-[37px] text-white leading-normal"
             data-node-id="543:397"
           >
             {tagline}

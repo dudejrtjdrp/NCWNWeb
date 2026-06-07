@@ -23,7 +23,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
     <section className={`bg-white ${className}`} aria-label="What is NewCon?">
       {/* What is NewCon? 헤더 */}
       <div
-        className="flex flex-col items-center pt-[60px] pb-[40px]"
+        className="flex flex-col items-center pt-10 sm:pt-14 lg:pt-[60px] pb-8 sm:pb-10 lg:pb-[40px]"
         data-node-id="376:663"
       >
         {['What', 'is', 'NewCon?'].map((word, i) => (

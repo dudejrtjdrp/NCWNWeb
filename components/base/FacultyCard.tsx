@@ -115,7 +115,7 @@ export default function FacultyCard({
     <Link
       href={`/about/faculty/${id}`}
       className={cn(
-        'group relative block w-[290px] h-[379px] rounded-[5.21px] overflow-hidden',
+        'group relative block w-[200px] h-[261px] sm:w-[245px] sm:h-[320px] lg:w-[290px] lg:h-[379px] rounded-[5.21px] overflow-hidden',
         'shadow-[0px_4px_5.5px_rgba(0,0,0,0.25)]',
         'transition-transform duration-300 ease-out hover:scale-[1.04] hover:shadow-[0px_8px_20px_rgba(0,0,0,0.30)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2',

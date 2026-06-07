@@ -91,7 +91,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
         style={{ height: '64px' }}
         data-node-id="376:517"
       >
-        <div className="relative h-full max-w-[1440px] mx-auto">
+        <div className="relative h-full max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
           {/* 로고 — Figma: 중앙 정렬 */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link href="/" aria-label={t('home')}>
@@ -99,10 +99,9 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
             </Link>
           </div>
 
-          {/* 메뉴 — Figma: 우측 정렬 right 79px */}
+          {/* 메뉴 — 우측 정렬 (page-container 패딩 기반) */}
           <nav
-            className="hidden lg:flex absolute top-1/2 -translate-y-1/2 items-center"
-            style={{ right: '79px' }}
+            className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-[79px] items-center"
           >
             {NAV_ITEMS.map((item) => {
               const active = isTopSection(item.href)
@@ -171,7 +170,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
           </nav>
 
           {/* 언어 전환 버튼 (데스크탑) */}
-          <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2" style={{ left: '79px' }}>
+          <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 left-[79px]">
             <LocaleSwitcher isLight={isLight} />
           </div>
 

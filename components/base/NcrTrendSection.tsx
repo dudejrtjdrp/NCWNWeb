@@ -115,8 +115,8 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
             >
               {/* 썸네일 */}
               <div
-                className="relative rounded-[7.912px] overflow-hidden"
-                style={{ height: '445px' }}
+                className="relative rounded-[7.912px] overflow-hidden w-full"
+                style={{ height: 'clamp(220px, 35vw, 445px)' }}
                 data-node-id="376:1494"
               >
                 {mainCard.thumbnail_url ? (
@@ -148,7 +148,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
               {/* 제목 */}
               <p
                 className="font-body font-semibold"
-                style={{ fontSize: '31.429px', color: '#09F593', lineHeight: 'normal' }}
+                style={{ fontSize: 'clamp(20px, 2.5vw, 31.429px)', color: '#09F593', lineHeight: 'normal' }}
                 data-node-id="427:874"
               >
                 {mainCard.title}
@@ -202,7 +202,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
                 {/* 서브 썸네일 */}
                 <div
                   className="relative w-full rounded-[7.912px] overflow-hidden"
-                  style={{ height: '430px' }}
+                  style={{ height: 'clamp(200px, 30vw, 430px)' }}
                   data-node-id="376:669"
                 >
                   {subCard.thumbnail_url ? (
