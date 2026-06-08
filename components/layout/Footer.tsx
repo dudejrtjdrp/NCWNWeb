@@ -16,19 +16,7 @@
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-
-const SNS_LINKS = [
-  {
-    key: 'youtube' as const,
-    href: 'https://www.youtube.com/channel/UCo9nQUcZ8W1yvUVxApWRMQw',
-    icon: '/images/common/youtube.svg',
-  },
-  {
-    key: 'instagram' as const,
-    href: 'https://www.instagram.com/2026newcon/',
-    icon: '/images/common/instagram.svg',
-  },
-]
+import { FOOTER_SNS_LINKS } from '@/constants/social-links'
 
 export interface FooterProps {
   className?: string
@@ -101,8 +89,8 @@ export default function Footer({ className = '' }: FooterProps) {
           </div>
 
           {/* SNS 링크 */}
-          <div className="flex flex-row sm:flex-col gap-4 sm:gap-3 items-start" data-node-id="452:264">
-            {SNS_LINKS.map(({ key, href, icon }) => (
+          <div className="flex flex-row flex-wrap sm:flex-col gap-4 sm:gap-3 items-start" data-node-id="452:264">
+            {FOOTER_SNS_LINKS.map(({ key, href, icon }) => (
               <a
                 key={key}
                 href={href}
@@ -112,7 +100,7 @@ export default function Footer({ className = '' }: FooterProps) {
               >
                 <Image src={icon} alt="" width={19} height={19} unoptimized aria-hidden="true" />
                 <span className="font-body font-medium whitespace-nowrap text-[12px] sm:text-[12.62px]">
-                  {t(key)}
+                  {t(key as Parameters<typeof t>[0])}
                 </span>
               </a>
             ))}
