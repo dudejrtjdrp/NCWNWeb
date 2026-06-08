@@ -1023,6 +1023,7 @@ export async function saveExhibition(_: unknown, formData: FormData): Promise<Ac
   const yearStr     = formData.get('year')          as string
   const description = (formData.get('description') as string)?.trim()
   const theme       = (formData.get('theme')       as string)?.trim()
+  const link        = (formData.get('link')        as string)?.trim()
   const poster      = formData.get('poster')       as File | null
 
   if (!title) return { error: '전시 제목은 필수입니다.' }
@@ -1051,6 +1052,7 @@ export async function saveExhibition(_: unknown, formData: FormData): Promise<Ac
     title, year,
     description: description || null,
     theme:       theme || null,
+    link:        link || null,
     poster_url,
   })
 
@@ -1075,6 +1077,7 @@ export async function updateExhibition(id: string, formData: FormData): Promise<
   const yearStr     = formData.get('year')          as string
   const description = (formData.get('description') as string)?.trim()
   const theme       = (formData.get('theme')       as string)?.trim()
+  const link        = (formData.get('link')        as string)?.trim()
   const poster      = formData.get('poster')       as File | null
 
   if (!title) return { error: '전시 제목은 필수입니다.' }
@@ -1096,6 +1099,7 @@ export async function updateExhibition(id: string, formData: FormData): Promise<
     title, year,
     description: description || null,
     theme:       theme || null,
+    link:        link || null,
   }
 
   if (poster && poster.size > 0) {

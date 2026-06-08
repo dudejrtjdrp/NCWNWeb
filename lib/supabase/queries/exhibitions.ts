@@ -12,6 +12,7 @@ export interface ExhibitionItem {
   description: string | null
   theme: string | null
   poster_url: string | null
+  link: string | null
   created_at: string
 }
 

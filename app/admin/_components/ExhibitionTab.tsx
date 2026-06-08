@@ -15,6 +15,7 @@ interface ExhibitionItem {
   theme: string | null
   description: string | null
   poster_url: string | null
+  link: string | null
 }
 
 function ExhibitionForm({
@@ -59,6 +60,7 @@ function ExhibitionForm({
           </div>
         </div>
         <div><Label>테마 / 슬로건</Label><Input name="theme" defaultValue={exhibition?.theme ?? ''} placeholder="전시 테마나 슬로건" /></div>
+        <div><Label>전시 링크 (선택)</Label><Input name="link" type="url" defaultValue={exhibition?.link ?? ''} placeholder="https://exhibition.example.com" /></div>
         <div><Label>전시 설명</Label><Textarea name="description" defaultValue={exhibition?.description ?? ''} placeholder="전시 소개 및 내용..." rows={4} /></div>
         <div>
           <Label>포스터 이미지{exhibition ? ' (새 파일 선택 시 교체)' : ''}</Label>
@@ -91,7 +93,7 @@ export default function ExhibitionTab() {
     const supabase = createClient()
     const { data } = await supabase
       .from('exhibitions')
-      .select('id, title, year, theme, description, poster_url')
+      .select('id, title, year, theme, description, poster_url, link')
       .order('year', { ascending: false })
       .limit(30)
     setExhibitions((data ?? []) as ExhibitionItem[])
@@ -136,7 +138,10 @@ export default function ExhibitionTab() {
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-body text-sm font-semibold text-white truncate">{ex.title}</p>
-                <p className="font-body text-xs text-white/30">{ex.year}년{ex.theme ? ` · ${ex.theme}` : ''}</p>
+                <p className="font-body text-xs text-white/30">
+                  {ex.year}년{ex.theme ? ` · ${ex.theme}` : ''}
+                  {ex.link && <span className="ml-2 text-nwcn-green/60">🔗 링크 있음</span>}
+                </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
