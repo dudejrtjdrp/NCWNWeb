@@ -3,7 +3,7 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import WorkHero from '@/components/base/WorkHero'
 import SubNav from '@/components/common/SubNav'
 import { WORK_NAV_ITEMS } from '@/constants/nav-items'
-import { getShowcaseWorks } from '@/lib/supabase/queries/works'
+import { getShowcaseWorks, getWorkFilterTags } from '@/lib/supabase/queries/works'
 import ShowcaseClient from './ShowcaseClient'
 
 export const metadata: Metadata = {
@@ -21,7 +21,10 @@ export const metadata: Metadata = {
 
 export default async function ShowcasePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const works = await getShowcaseWorks(locale)
+  const [works, filterTags] = await Promise.all([
+    getShowcaseWorks(locale),
+    getWorkFilterTags(),
+  ])
 
   return (
     <SubPageLayout>
@@ -37,7 +40,7 @@ export default async function ShowcasePage({ params }: { params: Promise<{ local
       </div>
 
       {/* 필터 + 그리드 + 페이지네이션 (Client Component) */}
-      <ShowcaseClient initialWorks={works} />
+      <ShowcaseClient initialWorks={works} filterTags={filterTags} />
     </SubPageLayout>
   )
 }

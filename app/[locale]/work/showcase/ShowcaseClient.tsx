@@ -1,15 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Pagination from '@/components/ui/Pagination'
 import Badge from '@/components/ui/Badge'
-import { useFilter } from '@/hooks/useFilter'
 import { usePagination } from '@/hooks/usePagination'
 import type { WorkListItem as WorkItem } from '@/lib/supabase/queries/works'
-
-const TECH_FILTERS = ['전체', 'Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
 
 const TAG_COLORS: Record<string, 'new' | 'hot' | 'number' | 'green' | 'yellow' | 'outline' | 'gray'> = {
   Video: 'new',
@@ -24,14 +21,17 @@ const PAGE_SIZE = 9
 
 interface Props {
   initialWorks: WorkItem[]
+  filterTags: string[]
 }
 
-export default function ShowcaseClient({ initialWorks }: Props) {
+export default function ShowcaseClient({ initialWorks, filterTags }: Props) {
   const [activeFilter, setActiveFilter] = useState('전체')
 
-  const { filtered } = useFilter(initialWorks, (w) =>
-    activeFilter === '전체' || w.tech_stack.includes(activeFilter)
-  )
+  // useFilter 훅은 query 기반이라 activeFilter와 맞지 않음 → useMemo로 직접 처리
+  const filtered = useMemo(() => {
+    if (activeFilter === '전체') return initialWorks
+    return initialWorks.filter((w) => w.tech_stack.includes(activeFilter))
+  }, [initialWorks, activeFilter])
 
   const { page, setPage, totalPages, paged, reset } = usePagination(filtered, PAGE_SIZE)
 
@@ -40,12 +40,15 @@ export default function ShowcaseClient({ initialWorks }: Props) {
     reset()
   }
 
+  // 필터 버튼 목록: '전체' + admin에서 설정한 태그
+  const filterButtons = ['전체', ...filterTags]
+
   return (
     <>
       {/* 필터 바 */}
       <div className="bg-white pb-10">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] flex flex-wrap gap-2">
-          {TECH_FILTERS.map((f) => (
+          {filterButtons.map((f) => (
             <button
               key={f}
               onClick={() => handleFilterChange(f)}
