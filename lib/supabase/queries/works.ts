@@ -97,3 +97,31 @@ export async function getWorkById(id: string, locale: string = 'ko'): Promise<Wo
   if (!item) return null
   return applyLocale(item, ['title', 'description'], locale)
 }
+
+/** 기존 하드코딩 필터값 — settings에 데이터 없을 때 fallback (마이그레이션 보호) */
+export const DEFAULT_WORK_FILTER_TAGS = ['Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
+
+/** 쇼케이스 필터 태그 목록 (settings 테이블 — 캐시 1분, 없으면 기본값 반환) */
+export async function getWorkFilterTags(): Promise<string[]> {
+  const fetcher = unstable_cache(
+    async (): Promise<string[]> => {
+      try {
+        const supabase = createClient()
+        const { data } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'work_filter_tags')
+          .maybeSingle()
+        const val = data?.value
+        if (Array.isArray(val) && (val as string[]).length > 0) return val as string[]
+        // settings에 데이터 없으면 기존 하드코딩 값 반환 (마이그레이션 fallback)
+        return DEFAULT_WORK_FILTER_TAGS
+      } catch {
+        return DEFAULT_WORK_FILTER_TAGS
+      }
+    },
+    ['work-filter-tags'],
+    { revalidate: 60, tags: ['work-filter-tags'] }
+  )
+  return fetcher()
+}

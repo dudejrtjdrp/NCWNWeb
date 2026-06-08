@@ -1170,7 +1170,7 @@ export async function upsertSettings(key: string, value: unknown): Promise<Actio
 
   if (error) {
     logError('[upsertSettings] 설정 저장 실패', error.message)
-    return { error: '설정 저장 중 오류가 발생했습니다.' }
+    return { error: `설정 저장 실패: ${error.message}` }
   }
 
   revalidatePath('/')
@@ -1184,4 +1184,35 @@ export async function saveArticleTypes(types: { value: string; label: string }[]
 
 export async function saveProjectTypes(types: { value: string; label: string }[]): Promise<ActionResult> {
   return upsertSettings('project_types', types)
+}
+
+export async function saveArticleFilterTags(tags: string[]): Promise<ActionResult> {
+  const result = await upsertSettings('article_filter_tags', tags)
+  if ('success' in result) {
+    revalidateTag('article-filter-tags')
+  }
+  return result
+}
+
+/** 최초 1회만 실행 — settings에 work_filter_tags 없을 때 기본값 시드 (인증 불필요) */
+export async function migrateWorkFilterTags(defaults: string[]): Promise<void> {
+  try {
+    const supabase = createClient()
+    // 이미 있으면 건드리지 않음
+    const { data } = await supabase.from('settings').select('value').eq('key', 'work_filter_tags').maybeSingle()
+    if (data?.value) return
+    await supabase.from('settings').upsert({ key: 'work_filter_tags', value: defaults }, { onConflict: 'key' })
+    revalidateTag('work-filter-tags')
+  } catch {
+    // 마이그레이션 실패는 조용히 무시 (운영에 영향 없음)
+  }
+}
+
+export async function saveWorkFilterTags(tags: string[]): Promise<ActionResult> {
+  const result = await upsertSettings('work_filter_tags', tags)
+  if ('success' in result) {
+    revalidateTag('work-filter-tags')
+    revalidatePath('/work/showcase')
+  }
+  return result
 }
