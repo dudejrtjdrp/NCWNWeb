@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { saveWork, updateWork, deleteWork } from '../actions'
+import { saveWork, updateWork, deleteWork, saveWorkFilterTags } from '../actions'
 import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
+import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
+
+const DEFAULT_WORK_FILTER_TAGS = ['Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
 
 interface WorkItem {
   id: string
@@ -21,14 +24,62 @@ interface WorkItem {
   created_at: string
 }
 
-function WorkForm({ work, onSuccess, onCancel }: { work: WorkItem | null; onSuccess: () => void; onCancel: () => void }) {
+// ── 작업물 폼 ─────────────────────────────────────────────
+function WorkForm({
+  work,
+  onSuccess,
+  onCancel,
+}: {
+  work: WorkItem | null
+  onSuccess: () => void
+  onCancel: () => void
+}) {
   const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useLoadingTransition()
+  const [selectedTags, setSelectedTags] = useState<string[]>(work?.tech_stack ?? [])
+  const [filterTags, setFilterTags] = useState<string[]>([])
+  const [tagsLoaded, setTagsLoaded] = useState(false)
+  const [newTag, setNewTag] = useState('')
   const thumbnailRef = useRef<File | null>(null)
+
+  // settings에서 필터 태그 로드
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('settings').select('value').eq('key', 'work_filter_tags').maybeSingle()
+      .then(({ data }) => {
+        const val = data?.value
+        setFilterTags(Array.isArray(val) && (val as string[]).length > 0 ? val as string[] : DEFAULT_WORK_FILTER_TAGS)
+        setTagsLoaded(true)
+      })
+  }, [])
+
+  // work 변경 시 selectedTags 초기화
+  useEffect(() => {
+    setSelectedTags(work?.tech_stack ?? [])
+  }, [work?.id])
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
+  const addNewTag = async () => {
+    const t = newTag.trim()
+    if (!t || filterTags.includes(t)) return
+    const updated = [...filterTags, t]
+    setFilterTags(updated)
+    setSelectedTags((prev) => [...prev, t])
+    setNewTag('')
+    // 마스터 목록(settings)에도 반영
+    await saveWorkFilterTags(updated)
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    formData.delete('tech_stack')
+    formData.set('tech_stack', selectedTags.join(', '))
     if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
     setResult(null)
     startTransition(async () => {
@@ -44,10 +95,69 @@ function WorkForm({ work, onSuccess, onCancel }: { work: WorkItem | null; onSucc
     <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
       <h4 className="font-body font-semibold text-sm text-white">{work ? '작업물 수정' : '새 작업물 추가'}</h4>
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div><Label>작가명 *</Label><Input name="author" defaultValue={work?.author ?? ''} placeholder="작가/학생 이름" required /></div>
           <div><Label>제작 연도 *</Label><Input name="year" type="number" defaultValue={work?.year ?? new Date().getFullYear()} required /></div>
-          <div><Label>기술 스택 (쉼표 구분)</Label><Input name="tech_stack" defaultValue={work?.tech_stack?.join(', ') ?? ''} placeholder="Video, Motion, AI" /></div>
+        </div>
+
+        {/* 카테고리 태그 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>카테고리 태그</Label>
+            <span className="font-body text-[11px] text-white/25">유형관리 탭에서 마스터 목록 편집</span>
+          </div>
+          {!tagsLoaded ? (
+            <div className="py-2"><LoadingSpinner /></div>
+          ) : (
+            <>
+              {/* 기존 태그 토글 선택 */}
+              <div className="flex flex-wrap gap-2">
+                {filterTags.map((tag) => {
+                  const checked = selectedTags.includes(tag)
+                  return (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      className={[
+                        'px-3 py-1.5 rounded-full font-body text-xs transition-all',
+                        checked
+                          ? 'bg-nwcn-green text-nwcn-text-default font-semibold'
+                          : 'border border-white/15 text-white/40 hover:border-white/30 hover:text-white/70',
+                      ].join(' ')}
+                    >
+                      {tag}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* 새 태그 인라인 추가 */}
+              <div className="flex gap-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="새 태그 추가 (Enter)"
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void addNewTag() } }}
+                  className="flex-1 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => void addNewTag()}
+                  disabled={!newTag.trim() || filterTags.includes(newTag.trim())}
+                  className="px-3 py-2 border border-white/10 rounded-xl font-body text-xs text-white/40 hover:text-white hover:border-white/20 disabled:opacity-30 transition-colors whitespace-nowrap"
+                >
+                  + 추가
+                </button>
+              </div>
+
+              {selectedTags.length > 0 && (
+                <p className="font-body text-[11px] text-white/30">
+                  선택됨: {selectedTags.join(', ')}
+                </p>
+              )}
+            </>
+          )}
         </div>
 
         <LangTab
@@ -82,6 +192,7 @@ function WorkForm({ work, onSuccess, onCancel }: { work: WorkItem | null; onSucc
   )
 }
 
+// ── 메인 WorkTab ───────────────────────────────────────────
 export default function WorkTab() {
   const [works, setWorks] = useState<WorkItem[]>([])
   const [loadingList, setLoadingList] = useState(true)
@@ -97,7 +208,7 @@ export default function WorkTab() {
       .from('showcase_works')
       .select('id, title, title_en, author, year, tech_stack, thumbnail_url, description, description_en, created_at')
       .order('created_at', { ascending: false })
-      .limit(30)
+      .limit(50)
     setWorks((data ?? []) as WorkItem[])
     setLoadingList(false)
     hideLoading()
@@ -125,7 +236,11 @@ export default function WorkTab() {
       </div>
 
       {(showForm || editingId) && (
-        <WorkForm work={editingWork} onSuccess={handleSuccess} onCancel={handleClose} />
+        <WorkForm
+          work={editingWork}
+          onSuccess={handleSuccess}
+          onCancel={handleClose}
+        />
       )}
 
       {loadingList ? <LoadingSpinner /> : works.length === 0 ? (

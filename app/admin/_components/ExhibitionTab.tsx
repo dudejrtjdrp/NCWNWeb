@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveExhibition, updateExhibition, deleteExhibition } from '../actions'
 import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
+import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import type { ActionResult } from '../actions'
 
 interface ExhibitionItem {
@@ -26,7 +27,7 @@ function ExhibitionForm({
   onCancel: () => void
 }) {
   const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useLoadingTransition()
   const posterRef = useRef<File | null>(null)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

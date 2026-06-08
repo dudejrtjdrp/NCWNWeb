@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useTransition, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveEvent, updateEvent, deleteEvent } from '../actions'
 import { Label, Input, Textarea, Sel, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
+import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -30,7 +31,7 @@ function EventForm({
   onCancel: () => void
 }) {
   const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useLoadingTransition()
 
   const toDateVal = (iso: string | null | undefined) =>
     iso ? iso.split('T')[0] : ''

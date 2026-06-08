@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveAward, updateAward, deleteAward } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
+import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -27,7 +28,7 @@ const AWARD_GRADES = ['대상','금상','은상','동상','장려상','우수상
 
 function AwardForm({ award, onSuccess, onCancel }: { award: AwardItem | null; onSuccess: () => void; onCancel: () => void }) {
   const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useLoadingTransition()
   const thumbnailRef = useRef<File | null>(null)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

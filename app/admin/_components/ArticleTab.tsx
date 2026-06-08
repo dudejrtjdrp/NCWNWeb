@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { saveArticle, updateArticle, deleteArticle } from '../actions'
+import { saveArticle, updateArticle, deleteArticle, saveArticleFilterTags } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
+import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -33,6 +34,131 @@ const ARTICLE_TYPE_LABEL: Record<string, string> = {
   card_news: '카드뉴스',
 }
 
+// ── 태그 피커 ────────────────────────────────────────────
+function TagPicker({
+  value,
+  onChange,
+}: {
+  value: string[]
+  onChange: (tags: string[]) => void
+}) {
+  const supabase = createClient()
+  const [knownTags, setKnownTags] = useState<string[]>([])
+  const [input, setInput] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  // 기존 아티클 태그 로드
+  useEffect(() => {
+    supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'article_filter_tags')
+      .maybeSingle()
+      .then(({ data }) => {
+        const val = data?.value
+        if (Array.isArray(val)) setKnownTags(val as string[])
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const toggle = (tag: string) => {
+    onChange(value.includes(tag) ? value.filter((t) => t !== tag) : [...value, tag])
+  }
+
+  const addNew = async () => {
+    const t = input.trim()
+    if (!t) return
+    setInput('')
+    // 선택에 추가
+    const nextSelected = value.includes(t) ? value : [...value, t]
+    onChange(nextSelected)
+    // 기존 태그 목록에도 추가 (중복 제외)
+    if (!knownTags.includes(t)) {
+      const nextKnown = [...knownTags, t]
+      setKnownTags(nextKnown)
+      setSaving(true)
+      await saveArticleFilterTags(nextKnown)
+      setSaving(false)
+    }
+  }
+
+  const removeKnown = async (tag: string) => {
+    const nextKnown = knownTags.filter((k) => k !== tag)
+    setKnownTags(nextKnown)
+    onChange(value.filter((v) => v !== tag))
+    await saveArticleFilterTags(nextKnown)
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* 기존 태그 토글 */}
+      {knownTags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {knownTags.map((tag) => {
+            const on = value.includes(tag)
+            return (
+              <span key={tag} className="flex items-center gap-0.5 group">
+                <button
+                  type="button"
+                  onClick={() => toggle(tag)}
+                  className={[
+                    'px-3 py-1.5 rounded-l-full font-body text-xs transition-all',
+                    on
+                      ? 'bg-nwcn-green text-nwcn-text-default font-semibold'
+                      : 'border border-white/15 text-white/40 hover:border-white/30 hover:text-white/70',
+                  ].join(' ')}
+                >
+                  {tag}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeKnown(tag)}
+                  title={`"${tag}" 태그 삭제`}
+                  className={[
+                    'px-1.5 py-1.5 rounded-r-full font-body text-[10px] transition-all opacity-0 group-hover:opacity-100',
+                    on
+                      ? 'bg-nwcn-green/70 text-nwcn-text-default hover:bg-red-500 hover:text-white'
+                      : 'border border-white/15 border-l-0 text-white/20 hover:text-red-400 hover:border-red-500/30',
+                  ].join(' ')}
+                >
+                  ×
+                </button>
+              </span>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 새 태그 입력 */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNew() } }}
+          placeholder="새 태그 입력 후 Enter 또는 추가 버튼"
+          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 font-body text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-nwcn-green/50 transition-colors"
+        />
+        <button
+          type="button"
+          onClick={addNew}
+          disabled={!input.trim() || saving}
+          className="px-4 py-2.5 border border-white/10 rounded-xl font-body text-sm text-white/50 hover:text-white hover:border-white/20 disabled:opacity-30 transition-colors whitespace-nowrap"
+        >
+          {saving ? '저장 중…' : '+ 추가'}
+        </button>
+      </div>
+
+      {/* 선택된 태그 표시 */}
+      {value.length > 0 && (
+        <p className="font-body text-[11px] text-white/30">
+          선택됨: {value.join(', ')}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function ArticleForm({
   article,
   allArticles,
@@ -45,8 +171,9 @@ function ArticleForm({
   onCancel: () => void
 }) {
   const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useLoadingTransition()
   const [selectedRelated, setSelectedRelated] = useState<string[]>(article?.related_ids ?? [])
+  const [selectedTags, setSelectedTags] = useState<string[]>(article?.tags ?? [])
   const [relatedSearch, setRelatedSearch] = useState('')
   const thumbnailRef = useRef<File | null>(null)
 
@@ -104,6 +231,7 @@ function ArticleForm({
     const formData = new FormData(e.currentTarget)
     if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
     formData.set('related_ids', selectedRelated.join(','))
+    formData.set('tags', selectedTags.join(','))
     setResult(null)
     startTransition(async () => {
       const res = article
@@ -186,7 +314,10 @@ function ArticleForm({
           }
         />
 
-        <div><Label>태그 (쉼표 구분)</Label><Input name="tags" defaultValue={article?.tags?.join(', ') ?? ''} placeholder="AI, 미디어, 콘텐츠산업" /></div>
+        <div>
+          <Label>태그</Label>
+          <TagPicker value={selectedTags} onChange={setSelectedTags} />
+        </div>
 
         <div>
           <Label>관련 아티클 (최대 2개 선택)</Label>

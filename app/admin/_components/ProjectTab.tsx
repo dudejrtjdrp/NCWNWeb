@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useTransition, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveProject, updateProject, deleteProject } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
+import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
@@ -26,7 +27,7 @@ const PROJECT_TYPE_LABEL: Record<string, string> = { industry: '산학협력', i
 
 function ProjectForm({ project, onSuccess, onCancel }: { project: ProjectItem | null; onSuccess: () => void; onCancel: () => void }) {
   const [result, setResult] = useState<ActionResult | null>(null)
-  const [isPending, startTransition] = useTransition()
+  const [isPending, startTransition] = useLoadingTransition()
   const thumbnailRef = useRef<File | null>(null)
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
