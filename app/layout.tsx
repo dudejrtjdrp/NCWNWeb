@@ -7,6 +7,7 @@
 import type { Viewport } from 'next'
 import { getLocale } from 'next-intl/server'
 import { LoadingProvider } from '@/components/providers/LoadingProvider'
+import { NavigationProgress } from '@/components/providers/NavigationProgress'
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -21,7 +22,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
-        <LoadingProvider>{children}</LoadingProvider>
+        <LoadingProvider>
+          <NavigationProgress />
+          {children}
+        </LoadingProvider>
       </body>
     </html>
   )
