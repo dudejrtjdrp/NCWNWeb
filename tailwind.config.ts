@@ -22,6 +22,16 @@ const config: Config = {
           'text-default': '#050505',
           'text-muted': '#323131',
           'text-sub': '#B9B8B6',
+          // 강조 hover (primary 버튼)
+          'green-deep': '#133728',
+          // 중립(회색) 스케일 — 반복되던 hex를 토큰화
+          'surface': '#f7f7f7',
+          'surface-2': '#f0f0f0',
+          'border-light': '#ececec',
+          'border-muted': '#dddddd',
+          'gray-text': '#555555',
+          'gray-muted': '#999999',
+          'gray-faint': '#aaaaaa',
         },
       },
       fontFamily: {

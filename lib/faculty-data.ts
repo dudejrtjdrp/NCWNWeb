@@ -36,6 +36,8 @@ export interface FacultyData {
   /** 괄호 내 역할 라벨 (e.g., "학과장") */
   roleLabel?: string
   photoUrl: string
+  /** 타원(배경 원)과 프로필 사진이 합쳐진 이미지 — 있으면 상세 페이지에서 타원+사진 대신 사용 */
+  combinedImageUrl?: string
   colorVariant: FacultyCardVariant
   quote: string
   email?: string
@@ -51,6 +53,14 @@ function photoUrl(id: string): string {
   return `/images/faculty/${id}.png`
 }
 
+/**
+ * combinedImageUrl: 타원 배경과 프로필 사진이 하나로 합쳐진 이미지 경로
+ * /public/images/faculty/professor/[id].png
+ */
+function combinedUrl(id: string): string {
+  return `/images/faculty/professor/${id}.png`
+}
+
 export const FACULTY_LIST: FacultyData[] = [
   /* ── 교수진 ── */
   {
@@ -60,6 +70,7 @@ export const FACULTY_LIST: FacultyData[] = [
     role: '교수',
     roleLabel: '학과장',
     photoUrl: photoUrl('bae-yun-gyeong'),
+    combinedImageUrl: combinedUrl('bae-yun-gyeong'),
     colorVariant: 'green-solid',
     quote: '창의성과 기술이 만나는 곳, 뉴미디어콘텐츠과에서 여러분의 꿈을 펼치세요.',
     email: 'vision7yk@dima.ac.kr',
@@ -113,6 +124,7 @@ export const FACULTY_LIST: FacultyData[] = [
     nameKo: '이석희',
     role: '교수',
     photoUrl: photoUrl('lee-seock-hee'),
+    combinedImageUrl: combinedUrl('lee-seock-hee'),
     colorVariant: 'green-solid',
     quote: '콘텐츠를 통해 세상과 소통하는 창작자로 성장하길 응원합니다.',
     email: 'seoklee@dima.ac.kr',
@@ -156,6 +168,7 @@ export const FACULTY_LIST: FacultyData[] = [
     nameKo: '이주헌',
     role: '교수',
     photoUrl: photoUrl('lee-ju-heon'),
+    combinedImageUrl: combinedUrl('lee-ju-heon'),
     colorVariant: 'green-gradient',
     quote: '새로운 기술과 예술의 융합으로 미래 미디어를 선도하는 인재를 양성합니다.',
     email: 'vincelee@dima.ac.kr',
@@ -202,6 +215,7 @@ export const FACULTY_LIST: FacultyData[] = [
     role: '교수',
     roleLabel: '겸임교수',
     photoUrl: photoUrl('ahn-jong-gu'),
+    combinedImageUrl: combinedUrl('ahn-jong-gu'),
     colorVariant: 'green-solid',
     quote: '실무 중심의 교육으로 현장에서 즉시 활약할 수 있는 전문가를 키웁니다.',
     email: 'ray.ahn@dima.ac.kr',
@@ -248,6 +262,7 @@ export const FACULTY_LIST: FacultyData[] = [
     role: '교수',
     roleLabel: '겸임교수',
     photoUrl: photoUrl('yuk-sim-woong'),
+    combinedImageUrl: combinedUrl('yuk-sim-woong'),
     colorVariant: 'green-gradient',
     quote: '디지털 시대의 변화를 이끄는 창의적 콘텐츠 크리에이터를 함께 만들어갑니다.',
     email: 'youkksw0@naver.com',

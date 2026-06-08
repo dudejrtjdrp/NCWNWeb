@@ -62,6 +62,7 @@ export default function Button({
 }: ButtonProps) {
   const classes = cn(
     'inline-flex items-center gap-2 font-body transition-all duration-200 active:scale-95',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2',
     variants[variant],
     sizes[size],
     className

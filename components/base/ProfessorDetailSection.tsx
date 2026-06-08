@@ -119,58 +119,81 @@ export default function ProfessorDetailSection({
           className="hidden lg:block relative mx-auto"
           style={{ maxWidth: 1440, minHeight: 'clamp(400px, 45vw, 649px)', height: 'clamp(400px, 45vw, 649px)' }}
         >
-          {/* ── ProfileBgCircle ──────────────────────────────
-              Figma: container left=136(9.44%), top=40, w=524(36.39%), h≈495
-              SVG 398×358 — rotation은 SVG 내부에 이미 baked-in → CSS rotation 없음
-              width를 container 너비(36.39%)로 설정, height는 비율 유지
-              z-0: 사진(z-10) 뒤에 위치
-              ─────────────────────────────────────────────── */}
-          <img
-            src="/images/faculty/ProfileBgCircle.svg"
-            alt=""
-            aria-hidden="true"
-            className="absolute pointer-events-none select-none"
-            style={{
-              left: '15.44%',
-              top: '6.2%',
-              width: '30%',
-              height: 'auto',
-              zIndex: 0,
-            }}
-          />
-
-          {/* ── 프로필 사진 ──────────────────────────────────
-              Figma: left≈198px(13.75%), top=30, w=349(24.24%), h=466
-              aspect-ratio 349:466 → vw 기반으로 반응형 스케일
-              z-10: 타원 위에 표시
-              ─────────────────────────────────────────────── */}
-          <div
-            className="absolute overflow-hidden"
-            style={{
-              left: '13.75%',
-              top: '4.6%',
-              width: '24.24%',
-              aspectRatio: '349 / 466',
-              zIndex: 10,
-            }}
-          >
-            {faculty.photoUrl ? (
-              <Image
-                src={faculty.photoUrl}
-                alt={`${faculty.nameKo} ${faculty.roleLabel ?? faculty.role} 프로필 사진`}
-                fill
-                className="object-cover object-top"
-                priority
-                unoptimized
+          {faculty.combinedImageUrl ? (
+            /* ── 합쳐진 이미지 (타원 + 프로필 사진) ────────────
+               타원과 사진의 상대 위치가 이미 이미지에 baked-in 되어 있어
+               별도 타원 SVG 없이 그룹 bounding box 위치에 그대로 배치
+               Figma group bbox: left=136(9.44%), top=30(4.6%), w=524(36.39%)
+               이미지 비율 525:506 → height auto
+               ─────────────────────────────────────────────── */
+            <img
+              src={faculty.combinedImageUrl}
+              alt={`${faculty.nameKo} ${faculty.roleLabel ?? faculty.role} 프로필 사진`}
+              className="absolute pointer-events-none select-none"
+              style={{
+                left: '9.44%',
+                top: '4.6%',
+                width: '36.39%',
+                height: 'auto',
+                zIndex: 10,
+              }}
+            />
+          ) : (
+            <>
+              {/* ── ProfileBgCircle ──────────────────────────────
+                  Figma: container left=136(9.44%), top=40, w=524(36.39%), h≈495
+                  SVG 398×358 — rotation은 SVG 내부에 이미 baked-in → CSS rotation 없음
+                  width를 container 너비(36.39%)로 설정, height는 비율 유지
+                  z-0: 사진(z-10) 뒤에 위치
+                  ─────────────────────────────────────────────── */}
+              <img
+                src="/images/faculty/ProfileBgCircle.svg"
+                alt=""
+                aria-hidden="true"
+                className="absolute pointer-events-none select-none"
+                style={{
+                  left: '15.44%',
+                  top: '6.2%',
+                  width: '30%',
+                  height: 'auto',
+                  zIndex: 0,
+                }}
               />
-            ) : (
-              <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
-                <span className="font-body font-extrabold text-[96px] text-black/10 leading-none">
-                  {faculty.nameKo[0]}
-                </span>
+
+              {/* ── 프로필 사진 ──────────────────────────────────
+                  Figma: left≈198px(13.75%), top=30, w=349(24.24%), h=466
+                  aspect-ratio 349:466 → vw 기반으로 반응형 스케일
+                  z-10: 타원 위에 표시
+                  ─────────────────────────────────────────────── */}
+              <div
+                className="absolute overflow-hidden"
+                style={{
+                  left: '13.75%',
+                  top: '4.6%',
+                  width: '24.24%',
+                  aspectRatio: '349 / 466',
+                  zIndex: 10,
+                }}
+              >
+                {faculty.photoUrl ? (
+                  <Image
+                    src={faculty.photoUrl}
+                    alt={`${faculty.nameKo} ${faculty.roleLabel ?? faculty.role} 프로필 사진`}
+                    fill
+                    className="object-cover object-top"
+                    priority
+                    unoptimized
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
+                    <span className="font-body font-extrabold text-[96px] text-black/10 leading-none">
+                      {faculty.nameKo[0]}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* ── 이름 + 이메일 ─────────────────────────────────
               Figma: left=195(13.54%), top=520
@@ -221,27 +244,36 @@ export default function ProfessorDetailSection({
         {/* ── 모바일 레이아웃 (<lg) ── */}
         <div className="lg:hidden px-6 pt-10 pb-12 flex flex-col gap-8">
           {/* 사진 */}
-          <div
-            className="relative w-full max-w-[300px] mx-auto overflow-hidden"
-            style={{ aspectRatio: '349/466' }}
-          >
-            {faculty.photoUrl ? (
-              <Image
-                src={faculty.photoUrl}
-                alt={`${faculty.nameKo} 프로필 사진`}
-                fill
-                className="object-cover object-top"
-                priority
-                unoptimized
-              />
-            ) : (
-              <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
-                <span className="font-body font-extrabold text-[60px] text-black/10 leading-none">
-                  {faculty.nameKo[0]}
-                </span>
-              </div>
-            )}
-          </div>
+          {faculty.combinedImageUrl ? (
+            /* 합쳐진 이미지 (타원 + 사진) — 비율 525:506 유지 */
+            <img
+              src={faculty.combinedImageUrl}
+              alt={`${faculty.nameKo} 프로필 사진`}
+              className="w-full max-w-[360px] mx-auto h-auto pointer-events-none select-none"
+            />
+          ) : (
+            <div
+              className="relative w-full max-w-[300px] mx-auto overflow-hidden"
+              style={{ aspectRatio: '349/466' }}
+            >
+              {faculty.photoUrl ? (
+                <Image
+                  src={faculty.photoUrl}
+                  alt={`${faculty.nameKo} 프로필 사진`}
+                  fill
+                  className="object-cover object-top"
+                  priority
+                  unoptimized
+                />
+              ) : (
+                <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
+                  <span className="font-body font-extrabold text-[60px] text-black/10 leading-none">
+                    {faculty.nameKo[0]}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
           {/* 이름 + 이메일 */}
           <div className="flex flex-col gap-2">
             <h1 className="font-body font-bold text-[20px] text-black leading-normal">

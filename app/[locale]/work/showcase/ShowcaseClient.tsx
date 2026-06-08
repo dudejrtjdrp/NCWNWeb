@@ -53,7 +53,7 @@ export default function ShowcaseClient({ initialWorks }: Props) {
                 'px-5 py-2 rounded-full font-body text-[14px] font-medium transition-all duration-200',
                 activeFilter === f
                   ? 'bg-nwcn-text-default text-white'
-                  : 'border border-[#ddd] text-[#555] hover:border-nwcn-text-default hover:text-nwcn-text-default',
+                  : 'border border-nwcn-border-muted text-nwcn-gray-text hover:border-nwcn-text-default hover:text-nwcn-text-default',
               ].join(' ')}
             >
               {f}
@@ -67,15 +67,15 @@ export default function ShowcaseClient({ initialWorks }: Props) {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
           {paged.length === 0 ? (
             <div className="flex items-center justify-center py-24">
-              <p className="font-body text-[16px] text-[#aaa]">검색 결과가 없습니다</p>
+              <p className="font-body text-[16px] text-nwcn-gray-faint">검색 결과가 없습니다</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-[35px] gap-y-10">
               {paged.map((work) => (
                 <Link key={work.id} href={`/work/${work.id}`} className="block group">
-                  <article className="border border-[#ececec] rounded-2xl overflow-hidden hover:shadow-lg hover:border-nwcn-green/30 transition-all duration-300">
+                  <article className="border border-nwcn-border-light rounded-2xl overflow-hidden hover:shadow-lg hover:border-nwcn-green/30 transition-all duration-300">
                     {/* 썸네일 */}
-                    <div className="aspect-[4/3] bg-[#f7f7f7] relative overflow-hidden">
+                    <div className="aspect-[4/3] bg-nwcn-surface relative overflow-hidden">
                       {work.thumbnail_url ? (
                         <Image
                           src={work.thumbnail_url}

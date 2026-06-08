@@ -22,16 +22,24 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose()
+      }
+      document.addEventListener('keydown', onKeyDown)
+      return () => {
+        document.body.style.overflow = ''
+        document.removeEventListener('keydown', onKeyDown)
+      }
     }
+    document.body.style.overflow = ''
     return () => { document.body.style.overflow = '' }
-  }, [isOpen])
+  }, [isOpen, onClose])
 
   return (
     <>
       {/* 오버레이 */}
       <div
+        aria-hidden="true"
         className={cn(
           'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300',
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -41,6 +49,10 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
 
       {/* 드로어 */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="모바일 메뉴"
+        aria-hidden={!isOpen}
         className={cn(
           'fixed top-0 right-0 z-50 h-full w-80 bg-nwcn-dark-2 border-l border-white/10 transition-transform duration-300 ease-out',
           isOpen ? 'translate-x-0' : 'translate-x-full'

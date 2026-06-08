@@ -111,13 +111,26 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                   className="relative"
                   onMouseEnter={() => setActiveDropdown(item.label)}
                   onMouseLeave={() => setActiveDropdown(null)}
+                  onFocus={() => item.children && setActiveDropdown(item.label)}
+                  onBlur={(e) => {
+                    // 포커스가 같은 메뉴 그룹 밖으로 이동할 때만 닫음
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      setActiveDropdown((cur) => (cur === item.label ? null : cur))
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setActiveDropdown(null)
+                  }}
                 >
                   <Link
                     href={item.href}
+                    aria-haspopup={item.children ? 'menu' : undefined}
+                    aria-expanded={item.children ? activeDropdown === item.label : undefined}
                     className={cn(
                       'flex items-center px-3 py-2',
                       'font-body font-normal text-[16px] leading-normal whitespace-nowrap',
                       'transition-colors duration-150',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2 rounded',
                       active
                         ? 'text-nwcn-green'
                         : isLight
@@ -151,6 +164,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                             className={cn(
                               'block px-4 py-2.5 font-body text-[13px] whitespace-nowrap',
                               'transition-colors duration-100',
+                              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-nwcn-green',
                               pathname === child.href
                                 ? 'text-nwcn-green bg-nwcn-green/5'
                                 : isLight

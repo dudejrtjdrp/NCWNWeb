@@ -121,6 +121,18 @@
     height: auto;
     display: block;
   }
+
+  /* 키보드 포커스 기본 표시 (마우스 클릭에는 안 보이고 Tab 탐색 시에만 표시) */
+  a:focus-visible,
+  button:focus-visible,
+  [role='button']:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-green);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 /* ── 유틸리티 ───────────────────────────────────── */
