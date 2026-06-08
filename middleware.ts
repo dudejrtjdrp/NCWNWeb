@@ -47,7 +47,7 @@ function buildCSP(): string {
     // Google Fonts 폰트 파일(gstatic) + jsdelivr 폰트 파일 허용
     `font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net`,
     // REST API + Realtime WebSocket(wss://) 허용
-    `connect-src 'self' https://${supabaseHost} https://*.supabase.co wss://${supabaseHost} wss://*.supabase.co`,
+    `connect-src 'self' https://${supabaseHost} https://*.supabase.co wss://${supabaseHost} wss://*.supabase.co https://cdn.jsdelivr.net`,
     `frame-ancestors 'none'`,
     `object-src 'none'`,
     `base-uri 'self'`,
