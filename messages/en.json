@@ -301,7 +301,7 @@
       "directions": [
         { "icon": "🚗", "label": "Gyeongbu", "value": "Exit Anseong IC → Route 38 → Campus (~22km)" },
         { "icon": "🚗", "label": "Jungbu", "value": "Exit Iljuk IC → Route 38 → Campus (~10km)" },
-        { "icon": "🚌", "label": "Bus", "value": "Intercity bus available (see integrated booking system)" }
+        { "icon": "🚌", "label": "Bus", "value": "Gangnam Station → Bus 4402 → Dong-A Arts Univ. stop" }
       ]
     },
     "privacy": {
