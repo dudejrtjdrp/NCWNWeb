@@ -4,20 +4,7 @@ import SubNav from '@/components/common/SubNav'
 import Button from '@/components/ui/Button'
 import { INFO_NAV_ITEMS } from '@/constants/nav-items'
 import { getTranslations } from 'next-intl/server'
-import dynamic from 'next/dynamic'
-
-const KakaoMap = dynamic(() => import('@/components/map/KakaoMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex-1 min-h-[260px] rounded-2xl bg-[#f7f7f7] border border-[#e8e8e8] flex flex-col items-center justify-center gap-3">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d0d0d0" strokeWidth="1.5">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-      <p className="font-body text-[13px] text-[#ccc]">지도 로딩 중...</p>
-    </div>
-  ),
-})
+import SchoolMap from '@/components/map/SchoolMap'
 
 interface ContactItem {
   label: string
@@ -123,7 +110,7 @@ export default async function ContactPage({ params }: PageProps) {
 
               {/* 지도 */}
               <div className="flex-1 min-h-[260px] rounded-2xl overflow-hidden border border-[#e8e8e8]">
-                <KakaoMap />
+                <SchoolMap />
               </div>
 
               {/* 교통 안내 */}
