@@ -440,7 +440,7 @@ export async function saveArticle(_: unknown, formData: FormData): Promise<Actio
 
   if (error) {
     logError('[saveArticle] DB 저장 실패', error.message)
-    return { error: '저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+    return { error: `저장 실패: ${error.message}` }
   }
 
   revalidatePath('/ncr-trend/latest')
@@ -530,7 +530,7 @@ export async function updateArticle(id: string, formData: FormData): Promise<Act
   const { error } = await supabase.from('ncr_reports').update(updateData).eq('id', id)
   if (error) {
     logError('[updateArticle] DB 수정 실패', error.message)
-    return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }
+    return { error: `수정 실패: ${error.message}` }
   }
 
   revalidatePath('/ncr-trend/latest')
