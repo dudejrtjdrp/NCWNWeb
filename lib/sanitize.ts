@@ -2,46 +2,53 @@
  * 아티클 본문 HTML sanitize (서버 렌더링용)
  *
  * 블로그형 에디터가 저장한 HTML을 상세페이지에서 안전하게 렌더하기 위해
- * isomorphic-dompurify로 정화한다. 유튜브/비메오 iframe 임베드는 허용한다.
+ * sanitize-html로 정화한다. (jsdom 비의존 — Next 서버 번들 호환)
+ * 유튜브/비메오 iframe 임베드와 글꼴·글자 크기 인라인 스타일을 허용한다.
  */
 
-import DOMPurify from 'isomorphic-dompurify'
+import sanitizeHtml from 'sanitize-html'
 
-const ALLOWED_IFRAME_HOSTS = [
-  'www.youtube.com',
-  'youtube.com',
-  'www.youtube-nocookie.com',
-  'player.vimeo.com',
-]
-
-let hookRegistered = false
-function ensureHook() {
-  if (hookRegistered) return
-  hookRegistered = true
-  // 허용된 호스트가 아닌 iframe은 제거
-  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
-    if (data.tagName !== 'iframe') return
-    const el = node as Element
-    const src = el.getAttribute('src') || ''
-    try {
-      const host = new URL(src).hostname
-      if (!ALLOWED_IFRAME_HOSTS.includes(host)) el.remove()
-    } catch {
-      el.remove()
-    }
-  })
-}
-
-/** 본문 HTML 정화 — 허용 태그/속성 + 유튜브·비메오 iframe */
+/** 본문 HTML 정화 — 허용 태그/속성 + 유튜브·비메오 iframe + 폰트 스타일 */
 export function sanitizeArticleHtml(html: string): string {
-  ensureHook()
-  return DOMPurify.sanitize(html, {
-    ADD_TAGS: ['iframe'],
-    ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'target', 'data-embed'],
-    ALLOWED_ATTR: [
-      'href', 'src', 'alt', 'title', 'class', 'style', 'target', 'rel',
-      'allow', 'allowfullscreen', 'frameborder', 'data-embed', 'width', 'height',
+  return sanitizeHtml(html, {
+    allowedTags: [
+      'p', 'br', 'span', 'div', 'hr',
+      'h1', 'h2', 'h3', 'h4',
+      'strong', 'b', 'em', 'i', 'u', 's', 'del', 'mark',
+      'ul', 'ol', 'li', 'blockquote',
+      'a', 'img', 'iframe',
+      'figure', 'figcaption', 'code', 'pre',
     ],
+    allowedAttributes: {
+      a: ['href', 'name', 'target', 'rel'],
+      img: ['src', 'alt', 'title', 'class', 'width', 'height'],
+      iframe: ['src', 'allow', 'allowfullscreen', 'frameborder', 'width', 'height', 'data-embed'],
+      div: ['class'],
+      span: ['class'],
+      p: ['class'],
+      '*': ['style'],
+    },
+    allowedStyles: {
+      '*': {
+        'font-size': [/^\d+(?:px|em|rem|%)$/],
+        'font-family': [/^[\w\s",.()-]+$/],
+        color: [/^#(?:[0-9a-fA-F]{3}){1,2}$/, /^rgba?\([\d\s,.%]+\)$/],
+        'text-align': [/^(?:left|right|center|justify)$/],
+      },
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+    // 유튜브·비메오 iframe만 허용 (그 외 호스트는 제거)
+    allowedIframeHostnames: [
+      'www.youtube.com',
+      'youtube.com',
+      'www.youtube-nocookie.com',
+      'player.vimeo.com',
+    ],
+    allowIframeRelativeUrls: false,
+    transformTags: {
+      // 외부 링크는 새 탭 + 안전 속성 강제
+      a: sanitizeHtml.simpleTransform('a', { rel: 'noopener noreferrer', target: '_blank' }, true),
+    },
   })
 }
 
