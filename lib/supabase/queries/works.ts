@@ -13,6 +13,8 @@ import { applyLocale, applyLocaleList } from './_locale'
 
 export type WorkType = 'video' | 'design' | '3d'
 
+export interface RelatedLink { label: string; url: string }
+
 export interface WorkItem {
   id: string
   title: string
@@ -25,6 +27,7 @@ export interface WorkItem {
   video_embed: string | null
   model_embed: string | null
   images: string[] | null
+  related_links: RelatedLink[] | null
   view_count: number
   created_at: string
   // 영어 원문 (admin 편집용)

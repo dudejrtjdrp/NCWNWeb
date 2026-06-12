@@ -155,6 +155,27 @@ function validateImage(file: File): string | null {
   return validateFileUpload(file, { maxSizeBytes: 10 * 1024 * 1024 })
 }
 
+// ── 관련 링크 파싱 ────────────────────────────────────────
+// 폼에서 JSON 문자열(`[{label,url}]`)로 전달받아 검증·정규화한다.
+export interface RelatedLink { label: string; url: string }
+
+function parseRelatedLinks(raw: string | null): RelatedLink[] {
+  if (!raw) return []
+  try {
+    const arr = JSON.parse(raw)
+    if (!Array.isArray(arr)) return []
+    return arr
+      .map((x) => ({
+        label: String(x?.label ?? '').trim().slice(0, 100),
+        url: String(x?.url ?? '').trim().slice(0, 500),
+      }))
+      .filter((x) => /^https?:\/\//i.test(x.url)) // http(s) URL만 허용
+      .slice(0, 10) // 최대 10개
+  } catch {
+    return []
+  }
+}
+
 // ════════════════════════════════════════════════════════
 // WORK
 // ════════════════════════════════════════════════════════
@@ -172,6 +193,7 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
   const description_en = (formData.get('description_en') as string)?.trim()
   const techRaw        = (formData.get('tech_stack')     as string)?.trim()
   const thumbnail      = formData.get('thumbnail')       as File | null
+  const related_links  = parseRelatedLinks(formData.get('related_links') as string | null)
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
@@ -208,6 +230,7 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
     title_en:       title_en || null,
     description_en: description_en || null,
     tech_stack,
+    related_links,
     thumbnail_url,
     view_count: 0,
   })
@@ -237,6 +260,7 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
   const description_en = (formData.get('description_en') as string)?.trim()
   const techRaw        = (formData.get('tech_stack')     as string)?.trim()
   const thumbnail      = formData.get('thumbnail')       as File | null
+  const related_links  = parseRelatedLinks(formData.get('related_links') as string | null)
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
@@ -259,7 +283,7 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
     : []
 
   const updateData: Record<string, unknown> = {
-    title, author, year, tech_stack,
+    title, author, year, tech_stack, related_links,
     description:    description || null,
     title_en:       title_en || null,
     description_en: description_en || null,

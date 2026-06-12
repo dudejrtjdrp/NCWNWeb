@@ -270,6 +270,33 @@ export default async function WorkDetailPage({ params }: PageProps) {
                   </div>
                 </div>
 
+                {/* 관련 링크 */}
+                {work.related_links && work.related_links.length > 0 && (
+                  <>
+                    <div className="border-t border-white/10" />
+                    <div>
+                      <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionLinks')}</p>
+                      <div className="flex flex-col gap-2">
+                        {work.related_links.map((link, i) => (
+                          <a
+                            key={i}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-2 font-body text-sm text-white/60 hover:text-nwcn-green transition-colors"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                            <span className="truncate group-hover:underline">{link.label || link.url}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="border-t border-white/10" />
 
                 {/* 조회수 */}

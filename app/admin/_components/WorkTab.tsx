@@ -11,6 +11,8 @@ import type { ActionResult } from '../actions'
 
 const DEFAULT_WORK_FILTER_TAGS = ['Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
 
+interface RelatedLink { label: string; url: string }
+
 interface WorkItem {
   id: string
   title: string
@@ -21,6 +23,7 @@ interface WorkItem {
   thumbnail_url: string | null
   description: string | null
   description_en: string | null
+  related_links: RelatedLink[] | null
   created_at: string
 }
 
@@ -40,7 +43,14 @@ function WorkForm({
   const [filterTags, setFilterTags] = useState<string[]>([])
   const [tagsLoaded, setTagsLoaded] = useState(false)
   const [newTag, setNewTag] = useState('')
+  const [relatedLinks, setRelatedLinks] = useState<RelatedLink[]>(work?.related_links ?? [])
   const thumbnailRef = useRef<File | null>(null)
+
+  const addRelatedLink = () => setRelatedLinks((prev) => [...prev, { label: '', url: '' }])
+  const updateRelatedLink = (i: number, field: keyof RelatedLink, val: string) =>
+    setRelatedLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, [field]: val } : l)))
+  const removeRelatedLink = (i: number) =>
+    setRelatedLinks((prev) => prev.filter((_, idx) => idx !== i))
 
   // settings에서 필터 태그 로드
   useEffect(() => {
@@ -81,6 +91,11 @@ function WorkForm({
     formData.delete('tech_stack')
     formData.set('tech_stack', selectedTags.join(', '))
     if (thumbnailRef.current) formData.set('thumbnail', thumbnailRef.current)
+    // 관련 링크: url이 있는 항목만 JSON으로 직렬화
+    const cleanedLinks = relatedLinks
+      .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
+      .filter((l) => l.url)
+    formData.set('related_links', JSON.stringify(cleanedLinks))
     setResult(null)
     startTransition(async () => {
       const res = work
@@ -175,6 +190,48 @@ function WorkForm({
           }
         />
 
+        {/* 관련 링크 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>관련 링크</Label>
+            <span className="font-body text-[11px] text-white/25">유튜브·비핸스·인스타 등 외부 링크 (최대 10개)</span>
+          </div>
+          {relatedLinks.length > 0 && (
+            <div className="space-y-2">
+              {relatedLinks.map((link, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <Input
+                    value={link.label}
+                    onChange={(e) => updateRelatedLink(i, 'label', e.target.value)}
+                    placeholder="표시 이름 (예: 유튜브)"
+                    className="w-40 text-xs"
+                  />
+                  <Input
+                    value={link.url}
+                    onChange={(e) => updateRelatedLink(i, 'url', e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeRelatedLink(i)}
+                    className="px-2.5 py-2 border border-white/10 rounded-xl font-body text-xs text-white/30 hover:text-red-400 hover:border-red-500/30 transition-colors"
+                    aria-label="링크 삭제"
+                  >×</button>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={addRelatedLink}
+            disabled={relatedLinks.length >= 10}
+            className="px-3 py-2 border border-white/10 rounded-xl font-body text-xs text-white/40 hover:text-white hover:border-white/20 disabled:opacity-30 transition-colors"
+          >
+            + 링크 추가
+          </button>
+        </div>
+
         <div>
           <Label>썸네일 이미지{work ? ' (새 파일 선택 시 교체)' : ''}</Label>
           <FileDropZone accept="image/*" label="대표 썸네일 이미지 (권장: 4:3)" onFiles={(files) => { thumbnailRef.current = files[0] }} />
@@ -206,7 +263,7 @@ export default function WorkTab() {
     const supabase = createClient()
     const { data } = await supabase
       .from('showcase_works')
-      .select('id, title, title_en, author, year, tech_stack, thumbnail_url, description, description_en, created_at')
+      .select('id, title, title_en, author, year, tech_stack, thumbnail_url, description, description_en, related_links, created_at')
       .order('created_at', { ascending: false })
       .limit(50)
     setWorks((data ?? []) as WorkItem[])
