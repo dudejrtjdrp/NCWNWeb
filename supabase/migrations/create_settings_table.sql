@@ -42,6 +42,7 @@ ON CONFLICT (key) DO NOTHING;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
 -- 읽기: 누구나 가능 (필터 태그 목록은 공개 데이터)
+DROP POLICY IF EXISTS "settings_read_public" ON settings;
 CREATE POLICY "settings_read_public"
   ON settings FOR SELECT
   TO anon, authenticated
@@ -49,6 +50,7 @@ CREATE POLICY "settings_read_public"
 
 -- 쓰기: 로그인한 관리자(authenticated)만 가능
 -- actions.ts는 anon 키 + 세션 쿠키로 authenticated role로 동작
+DROP POLICY IF EXISTS "settings_write_authenticated" ON settings;
 CREATE POLICY "settings_write_authenticated"
   ON settings FOR ALL
   TO authenticated
