@@ -1,16 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import Badge from '@/components/ui/Badge'
-import { getNcrReports } from '@/lib/supabase/queries/ncr'
-
-const TYPE_LABELS = {
-  editorial: '에디토리얼',
-  trend: '트렌드',
-  card_news: '카드뉴스',
-}
+import { getNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 
 export default async function NcrTrendPreview() {
-  const reports = await getNcrReports()
+  const [reports, articleTypes] = await Promise.all([getNcrReports(), getArticleTypes()])
+  const TYPE_LABELS: Record<string, string> = Object.fromEntries(
+    articleTypes.map((at) => [at.value, at.label])
+  )
   const preview = reports.slice(0, 3)
 
   return (
@@ -60,7 +57,7 @@ export default async function NcrTrendPreview() {
               {/* 콘텐츠 */}
               <div className="p-5">
                 <Badge variant="green" className="mb-3">
-                  {TYPE_LABELS[report.type]}
+                  {TYPE_LABELS[report.type] ?? report.type}
                 </Badge>
                 <h3 className="font-body text-base text-white font-medium leading-snug mb-3 group-hover:text-nwcn-green transition-colors">
                   {report.title}

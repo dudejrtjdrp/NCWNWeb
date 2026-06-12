@@ -23,13 +23,11 @@ import {
   checkTextLength,
 } from '@/lib/server/validation'
 import { logError } from '@/lib/server/logger'
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
-import {
-  getR2Client,
-  R2_BUCKET,
-  buildPublicUrl,
-  extractKeyFromUrl,
-} from '@/lib/r2/client'
+// NOTE: 이미지 스토리지는 현재 Supabase Storage를 사용한다.
+// Cloudflare R2 코드(lib/r2/client.ts)는 추후 마이그레이션을 위해 보존되어 있으며,
+// R2 자격증명이 .env.local에 설정되면 아래 업로드/삭제 헬퍼를 R2 구현으로 교체한다.
+// import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+// import { getR2Client, R2_BUCKET, buildPublicUrl, extractKeyFromUrl } from '@/lib/r2/client'
 
 // ── 반환 타입 ─────────────────────────────────────────────
 export type ActionResult = { success: true; redirectTo?: string } | { error: string }
@@ -88,62 +86,66 @@ async function requireAuth(supabase: ReturnType<typeof createClient>): Promise<{
   return null
 }
 
-// ── Storage 업로드 헬퍼 (Cloudflare R2) ────────────────────
+// ── Storage 업로드 헬퍼 (Supabase Storage) ─────────────────
 //
-// R2는 단일 버킷(R2_BUCKET) + key prefix 구조를 사용한다.
-// 기존 Supabase 버킷명(work-thumbnails / ncr-thumbnails / ninc-images)을
-// 그대로 `bucket` 인자로 받아 key prefix(`${bucket}/${path}`)로 재활용하므로
-// 호출부는 수정할 필요가 없다. 첫 인자(supabase)는 호환을 위해 유지(미사용).
+// 버킷: work-thumbnails / ncr-thumbnails / ninc-images
+// (Supabase Dashboard → Storage에 public 버킷으로 존재해야 한다.)
+//
+// ※ 추후 Cloudflare R2로 이전 시 이 두 헬퍼만 lib/r2/client.ts 기반 구현으로
+//   교체하면 호출부는 수정 없이 동작한다.
 
 /**
- * Cloudflare R2에 파일을 업로드하고 public URL을 반환합니다.
+ * Supabase Storage에 파일을 업로드하고 public URL을 반환합니다.
  * 실패 시 null을 반환합니다 (호출부에서 처리).
  */
 async function uploadToStorage(
-  _supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createClient>,
   bucket: string,
   path: string,
   file: File
 ): Promise<string | null> {
-  const key = `${bucket}/${path}`
   try {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    await getR2Client().send(
-      new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: key,
-        Body: buffer,
-        ContentType: file.type || 'image/webp',
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, buffer, {
+        upsert: true,
+        contentType: file.type || 'image/webp',
       })
-    )
 
-    return buildPublicUrl(key)
+    if (error) {
+      logError(`[Storage] ${bucket}/${path} 업로드 실패:`, error.message)
+      return null
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path)
+    return publicUrl
   } catch (err) {
-    logError(`[R2] ${key} 업로드 실패:`, err)
+    logError(`[Storage] ${bucket}/${path} 예외:`, err)
     return null
   }
 }
 
 /**
- * R2 public URL에서 object key를 추출해 파일을 삭제합니다.
+ * Supabase Storage에서 public URL로부터 경로를 추출해 파일을 삭제합니다.
  * update 시 기존 파일 정리에 사용 (스토리지 비용 절감).
  */
 async function deleteFromStorage(
-  _supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createClient>,
   bucket: string,
   publicUrl: string
 ): Promise<void> {
   try {
-    const key = extractKeyFromUrl(publicUrl)
-    if (!key) return // R2 도메인이 아니면(레거시 Supabase URL 등) 건너뜀
-    await getR2Client().send(
-      new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key })
-    )
+    const marker = `/storage/v1/object/public/${bucket}/`
+    const idx = publicUrl.indexOf(marker)
+    if (idx === -1) return // 해당 버킷 URL이 아니면(레거시 R2 URL 등) 건너뜀
+    const filePath = decodeURIComponent(publicUrl.slice(idx + marker.length))
+    await supabase.storage.from(bucket).remove([filePath])
   } catch (err) {
     // 삭제 실패는 치명적이지 않으므로 경고만 기록
-    logError(`[R2] 기존 파일 삭제 실패 (bucket: ${bucket})`, err)
+    logError(`[Storage] 기존 파일 삭제 실패 (bucket: ${bucket})`, err)
   }
 }
 
@@ -1192,7 +1194,11 @@ export async function upsertSettings(key: string, value: unknown): Promise<Actio
 }
 
 export async function saveArticleTypes(types: { value: string; label: string }[]): Promise<ActionResult> {
-  return upsertSettings('article_types', types)
+  const result = await upsertSettings('article_types', types)
+  if ('success' in result) {
+    revalidateTag('article-types')
+  }
+  return result
 }
 
 export async function saveProjectTypes(types: { value: string; label: string }[]): Promise<ActionResult> {

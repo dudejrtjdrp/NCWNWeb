@@ -11,6 +11,39 @@ import { createDbClient as createClient } from '@/lib/supabase/db'
 import { unstable_cache } from 'next/cache'
 import { applyLocale, applyLocaleList } from './_locale'
 
+export interface ArticleType { value: string; label: string }
+
+/** 기본 아티클 유형 — settings에 데이터 없을 때 fallback */
+export const DEFAULT_ARTICLE_TYPES: ArticleType[] = [
+  { value: 'editorial', label: '에디토리얼' },
+  { value: 'trend', label: '트렌드' },
+  { value: 'card_news', label: '카드뉴스' },
+]
+
+/** 아티클 유형 목록 (settings 테이블 — 캐시 1분, 없으면 기본값) */
+export async function getArticleTypes(): Promise<ArticleType[]> {
+  const fetcher = unstable_cache(
+    async (): Promise<ArticleType[]> => {
+      try {
+        const supabase = createClient()
+        const { data } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'article_types')
+          .maybeSingle()
+        const val = data?.value
+        if (Array.isArray(val) && (val as ArticleType[]).length > 0) return val as ArticleType[]
+        return DEFAULT_ARTICLE_TYPES
+      } catch {
+        return DEFAULT_ARTICLE_TYPES
+      }
+    },
+    ['article-types'],
+    { revalidate: 60, tags: ['article-types'] }
+  )
+  return fetcher()
+}
+
 export interface NcrReportItem {
   id: string
   title: string

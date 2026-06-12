@@ -124,7 +124,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                     {t('sectionIntro')}
                   </h2>
-                  <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed">{project.description}</p>
+                  <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed whitespace-pre-wrap">{project.description}</p>
                 </section>
               )}
               {project.outcome && (
@@ -138,7 +138,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
-                    <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed">{project.outcome}</p>
+                    <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed whitespace-pre-wrap">{project.outcome}</p>
                   </div>
                 </section>
               )}

@@ -28,10 +28,17 @@ interface ArticleListItem {
   thumbnail_url: string | null
 }
 
-const ARTICLE_TYPE_LABEL: Record<string, string> = {
-  editorial: '에디토리얼',
-  trend: '트렌드',
-  card_news: '카드뉴스',
+interface ArticleType { value: string; label: string }
+
+const DEFAULT_ARTICLE_TYPES: ArticleType[] = [
+  { value: 'editorial', label: '에디토리얼' },
+  { value: 'trend', label: '트렌드' },
+  { value: 'card_news', label: '카드뉴스' },
+]
+
+/** 유형 목록 → { value: label } 맵 (설정에 없는 값은 value 그대로 표시) */
+function buildTypeLabelMap(types: ArticleType[]): Record<string, string> {
+  return Object.fromEntries(types.map((t) => [t.value, t.label]))
 }
 
 // ── 태그 피커 ────────────────────────────────────────────
@@ -162,11 +169,15 @@ function TagPicker({
 function ArticleForm({
   article,
   allArticles,
+  articleTypes,
+  typeLabels,
   onSuccess,
   onCancel,
 }: {
   article: ArticleListItem | null
   allArticles: ArticleListItem[]
+  articleTypes: ArticleType[]
+  typeLabels: Record<string, string>
   onSuccess: () => void
   onCancel: () => void
 }) {
@@ -279,10 +290,10 @@ function ArticleForm({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label>아티클 유형 *</Label>
-            <Sel name="type" defaultValue={article?.type ?? 'editorial'} required>
-              <option value="editorial">에디토리얼</option>
-              <option value="trend">트렌드</option>
-              <option value="card_news">카드뉴스</option>
+            <Sel name="type" defaultValue={article?.type ?? articleTypes[0]?.value ?? 'editorial'} required>
+              {articleTypes.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
             </Sel>
           </div>
           <div><Label>시즌</Label><Input name="season" defaultValue={article?.season ?? ''} placeholder="Season 3" /></div>
@@ -366,7 +377,7 @@ function ArticleForm({
                       <div className="flex-1 min-w-0">
                         <p className="font-body text-xs font-medium text-white truncate">{a.title}</p>
                         <p className="font-body text-[10px] text-white/30">
-                          {ARTICLE_TYPE_LABEL[a.type] ?? a.type} · {a.season ?? '시즌 없음'} · {new Date(a.published_at).toLocaleDateString('ko-KR')}
+                          {typeLabels[a.type] ?? a.type} · {a.season ?? '시즌 없음'} · {new Date(a.published_at).toLocaleDateString('ko-KR')}
                         </p>
                       </div>
                     </button>
@@ -408,7 +419,7 @@ function ArticleForm({
   )
 }
 
-function ArticleRow({ article, onRefresh, onEdit }: { article: ArticleListItem; onRefresh: () => void; onEdit: () => void }) {
+function ArticleRow({ article, typeLabels, onRefresh, onEdit }: { article: ArticleListItem; typeLabels: Record<string, string>; onRefresh: () => void; onEdit: () => void }) {
   const [featuredPending, setFeaturedPending] = useState(false)
   const [featuredErr, setFeaturedErr] = useState<string | null>(null)
 
@@ -452,7 +463,7 @@ function ArticleRow({ article, onRefresh, onEdit }: { article: ArticleListItem; 
             )}
           </div>
           <p className="font-body text-xs text-white/30">
-            {ARTICLE_TYPE_LABEL[article.type] ?? article.type} · {article.season ?? '—'} · {new Date(article.published_at).toLocaleDateString('ko-KR')}
+            {typeLabels[article.type] ?? article.type} · {article.season ?? '—'} · {new Date(article.published_at).toLocaleDateString('ko-KR')}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -493,8 +504,21 @@ export default function ArticleTab() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [articleTypes, setArticleTypes] = useState<ArticleType[]>(DEFAULT_ARTICLE_TYPES)
 
   const { showLoading, hideLoading } = useLoading()
+
+  // 유형 관리(설정)에서 등록한 아티클 유형 로드
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('settings').select('value').eq('key', 'article_types').maybeSingle()
+      .then(({ data }) => {
+        const val = data?.value
+        if (Array.isArray(val) && val.length > 0) setArticleTypes(val as ArticleType[])
+      })
+  }, [])
+
+  const typeLabels = buildTypeLabelMap(articleTypes)
 
   const fetchArticles = useCallback(async () => {
     showLoading()
@@ -540,7 +564,7 @@ export default function ArticleTab() {
       </div>
 
       {(showForm || editingId) && (
-        <ArticleForm article={editingArticle} allArticles={articles} onSuccess={handleSuccess} onCancel={handleClose} />
+        <ArticleForm article={editingArticle} allArticles={articles} articleTypes={articleTypes} typeLabels={typeLabels} onSuccess={handleSuccess} onCancel={handleClose} />
       )}
 
       {fetchError && (
@@ -560,6 +584,7 @@ export default function ArticleTab() {
             <ArticleRow
               key={a.id}
               article={a}
+              typeLabels={typeLabels}
               onRefresh={fetchArticles}
               onEdit={() => { setShowForm(false); setEditingId(a.id) }}
             />

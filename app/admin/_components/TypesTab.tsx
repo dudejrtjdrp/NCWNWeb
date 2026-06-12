@@ -101,6 +101,56 @@ function WorkFilterSection() {
   )
 }
 
+// ── 편집 가능한 유형 행 ────────────────────────────────────
+function TypeRow({
+  type,
+  pending,
+  onSaveLabel,
+  onDelete,
+}: {
+  type: { value: string; label: string }
+  pending: boolean
+  onSaveLabel: (label: string) => void
+  onDelete: () => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(type.label)
+
+  const commit = () => {
+    const next = draft.trim()
+    if (next && next !== type.label) onSaveLabel(next)
+    setEditing(false)
+  }
+
+  return (
+    <div className="flex items-center gap-3 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
+      <code className="font-mono text-xs text-nwcn-green bg-nwcn-green/10 px-2 py-0.5 rounded">{type.value}</code>
+      {editing ? (
+        <input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit() } if (e.key === 'Escape') { setDraft(type.label); setEditing(false) } }}
+          onBlur={commit}
+          disabled={pending}
+          className="flex-1 bg-white/5 border border-nwcn-green/40 rounded-lg px-3 py-1.5 font-body text-sm text-white focus:outline-none"
+        />
+      ) : (
+        <span className="font-body text-sm text-white flex-1">{type.label}</span>
+      )}
+      {editing ? (
+        <button onClick={commit} disabled={pending}
+          className="font-body text-xs text-nwcn-green hover:brightness-125 disabled:opacity-30 transition-colors">저장</button>
+      ) : (
+        <button onClick={() => { setDraft(type.label); setEditing(true) }} disabled={pending}
+          className="font-body text-xs text-white/30 hover:text-white disabled:opacity-30 transition-colors">수정</button>
+      )}
+      <button onClick={onDelete} disabled={pending}
+        className="font-body text-xs text-white/20 hover:text-red-400 disabled:opacity-30 transition-colors">삭제</button>
+    </div>
+  )
+}
+
 // ── 메인 TypesTab ─────────────────────────────────────────
 export default function TypesTab() {
   const [articleTypes, setArticleTypes] = useState(DEFAULT_ARTICLE_TYPES)
@@ -142,12 +192,17 @@ export default function TypesTab() {
     saveArticleImmediate([...articleTypes, { value: newAV.trim(), label: newAL.trim() }])
     setNewAV(''); setNewAL('')
   }
+  const editArticleLabel = (value: string, label: string) =>
+    saveArticleImmediate(articleTypes.map((t) => (t.value === value ? { ...t, label } : t)))
+
   const addProjectType = () => {
     if (!newPV.trim() || !newPL.trim()) return
     if (projectTypes.some((t) => t.value === newPV.trim())) return
     saveProjectImmediate([...projectTypes, { value: newPV.trim(), label: newPL.trim() }])
     setNewPV(''); setNewPL('')
   }
+  const editProjectLabel = (value: string, label: string) =>
+    saveProjectImmediate(projectTypes.map((t) => (t.value === value ? { ...t, label } : t)))
 
   return (
     <div className="space-y-10">
@@ -172,16 +227,13 @@ export default function TypesTab() {
           <>
             <div className="space-y-2">
               {articleTypes.map((t) => (
-                <div key={t.value} className="flex items-center gap-3 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
-                  <code className="font-mono text-xs text-nwcn-green bg-nwcn-green/10 px-2 py-0.5 rounded">{t.value}</code>
-                  <span className="font-body text-sm text-white flex-1">{t.label}</span>
-                  <button
-                    onClick={() => saveArticleImmediate(articleTypes.filter((x) => x.value !== t.value))}
-                    disabled={articlePending}
-                    className="font-body text-xs text-white/20 hover:text-red-400 disabled:opacity-30 transition-colors">
-                    삭제
-                  </button>
-                </div>
+                <TypeRow
+                  key={t.value}
+                  type={t}
+                  pending={articlePending}
+                  onSaveLabel={(label) => editArticleLabel(t.value, label)}
+                  onDelete={() => saveArticleImmediate(articleTypes.filter((x) => x.value !== t.value))}
+                />
               ))}
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -209,16 +261,13 @@ export default function TypesTab() {
           <>
             <div className="space-y-2">
               {projectTypes.map((t) => (
-                <div key={t.value} className="flex items-center gap-3 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
-                  <code className="font-mono text-xs text-nwcn-green bg-nwcn-green/10 px-2 py-0.5 rounded">{t.value}</code>
-                  <span className="font-body text-sm text-white flex-1">{t.label}</span>
-                  <button
-                    onClick={() => saveProjectImmediate(projectTypes.filter((x) => x.value !== t.value))}
-                    disabled={projectPending}
-                    className="font-body text-xs text-white/20 hover:text-red-400 disabled:opacity-30 transition-colors">
-                    삭제
-                  </button>
-                </div>
+                <TypeRow
+                  key={t.value}
+                  type={t}
+                  pending={projectPending}
+                  onSaveLabel={(label) => editProjectLabel(t.value, label)}
+                  onDelete={() => saveProjectImmediate(projectTypes.filter((x) => x.value !== t.value))}
+                />
               ))}
             </div>
             <div className="grid grid-cols-2 gap-3">

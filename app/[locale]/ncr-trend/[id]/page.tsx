@@ -8,7 +8,7 @@ import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import Badge from '@/components/ui/Badge'
 import { notFound } from 'next/navigation'
-import { getNcrReportById, getRelatedNcrReports } from '@/lib/supabase/queries/ncr'
+import { getNcrReportById, getRelatedNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 import { getTranslations } from 'next-intl/server'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
@@ -101,12 +101,14 @@ export default async function ArticleDetailPage({ params }: PageProps) {
   const t = await getTranslations({ locale, namespace: 'ncr.detail' })
   const relatedArticles = await getRelatedNcrReports(article.related_ids ?? [], locale)
 
-  // 타입 레이블 (번역)
-  const TYPE_LABELS: Record<string, string> = {
-    editorial: t('typeEditorial'),
-    trend: t('typeTrend'),
-    card_news: t('typeCardNews'),
-  }
+  // 타입 레이블 — 유형 관리(설정)에서 등록한 라벨 + 기본 유형은 번역 우선
+  const articleTypes = await getArticleTypes()
+  const TYPE_LABELS: Record<string, string> = Object.fromEntries(
+    articleTypes.map((at) => [at.value, at.label])
+  )
+  TYPE_LABELS.editorial = t('typeEditorial')
+  TYPE_LABELS.trend = t('typeTrend')
+  TYPE_LABELS.card_news = t('typeCardNews')
 
   // 날짜 포맷
   const dateLocale = locale === 'en' ? 'en-US' : 'ko-KR'
@@ -156,7 +158,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
               NCR TREND
             </Link>
             <span>/</span>
-            <Badge variant="green">{TYPE_LABELS[article.type]}</Badge>
+            <Badge variant="green">{TYPE_LABELS[article.type] ?? article.type}</Badge>
           </nav>
 
           {/* 시즌 */}
@@ -270,7 +272,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   <div className="space-y-3">
                     <div>
                       <p className="font-body text-[11px] text-nwcn-text-sub">{t('sidebarType')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{TYPE_LABELS[article.type]}</p>
+                      <p className="font-body text-sm text-nwcn-text-muted">{TYPE_LABELS[article.type] ?? article.type}</p>
                     </div>
                     {article.season && (
                       <div>
@@ -299,7 +301,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                           className="block p-3 rounded-xl border border-black/8 hover:border-nwcn-text-sub/40 transition-colors group"
                         >
                           <p className="font-body text-[11px] text-nwcn-green mb-1">
-                            {TYPE_LABELS[rel.type]}
+                            {TYPE_LABELS[rel.type] ?? rel.type}
                           </p>
                           <p className="font-body text-sm text-nwcn-text-muted group-hover:text-nwcn-text-default transition-colors leading-snug">
                             {rel.title}

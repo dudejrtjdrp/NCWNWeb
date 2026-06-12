@@ -6,7 +6,7 @@ import Badge from '@/components/ui/Badge'
 import Link from 'next/link'
 import Image from 'next/image'
 import { NCR_NAV_ITEMS } from '@/constants/nav-items'
-import { getNcrReports } from '@/lib/supabase/queries/ncr'
+import { getNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 
 export const metadata: Metadata = {
   title: 'NCR TREND — 최신 아티클',
@@ -21,11 +21,6 @@ export const metadata: Metadata = {
   },
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  editorial: '에디토리얼',
-  trend: '트렌드',
-  card_news: '카드뉴스',
-}
 const TYPE_BADGE: Record<string, 'new' | 'hot' | 'number'> = {
   editorial: 'new',
   trend: 'hot',
@@ -34,7 +29,12 @@ const TYPE_BADGE: Record<string, 'new' | 'hot' | 'number'> = {
 
 export default async function LatestReportPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const reports = await getNcrReports(locale)
+  const [reports, articleTypes] = await Promise.all([getNcrReports(locale), getArticleTypes()])
+
+  // 유형 관리(설정) 기반 라벨 맵 — 등록된 모든 유형 지원
+  const TYPE_LABELS: Record<string, string> = Object.fromEntries(
+    articleTypes.map((at) => [at.value, at.label])
+  )
 
   const featured = reports[0]
   const rest = reports.slice(1)
@@ -83,7 +83,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                 {/* 내용 */}
                 <div className="flex-1 p-10 flex flex-col justify-center">
                   <div className="flex items-center gap-3 mb-5">
-                    <Badge variant={TYPE_BADGE[featured.type]}>{TYPE_LABELS[featured.type]}</Badge>
+                    <Badge variant={TYPE_BADGE[featured.type] ?? 'new'}>{TYPE_LABELS[featured.type] ?? featured.type}</Badge>
                     {featured.season && (
                       <span className="font-body text-[12px] text-[#aaa]">{featured.season}</span>
                     )}
@@ -135,7 +135,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                   {/* 내용 */}
                   <div className="p-6 bg-white">
                     <div className="flex items-center gap-2 mb-3">
-                      <Badge variant={TYPE_BADGE[report.type]}>{TYPE_LABELS[report.type]}</Badge>
+                      <Badge variant={TYPE_BADGE[report.type] ?? 'new'}>{TYPE_LABELS[report.type] ?? report.type}</Badge>
                       {report.season && (
                         <span className="font-body text-[11px] text-[#bbb]">{report.season}</span>
                       )}
