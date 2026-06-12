@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveArticle, updateArticle, deleteArticle, saveArticleFilterTags } from '../actions'
-import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { Label, Input, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
+import RichTextEditor from '@/components/admin/RichTextEditor'
 import type { ActionResult } from '../actions'
 
 interface ArticleListItem {
@@ -186,6 +187,8 @@ function ArticleForm({
   const [selectedRelated, setSelectedRelated] = useState<string[]>(article?.related_ids ?? [])
   const [selectedTags, setSelectedTags] = useState<string[]>(article?.tags ?? [])
   const [relatedSearch, setRelatedSearch] = useState('')
+  const [content, setContent] = useState<string>(article?.content ?? '')
+  const [contentEn, setContentEn] = useState<string>(article?.content_en ?? '')
   const thumbnailRef = useRef<File | null>(null)
 
   const [isFeatured, setIsFeatured] = useState<boolean>(article?.is_home_featured ?? false)
@@ -307,8 +310,9 @@ function ArticleForm({
               <div><Label>제목 *</Label><Input name="title" defaultValue={article?.title ?? ''} placeholder="아티클 제목" required /></div>
               <div><Label>요약 설명</Label><Input name="excerpt" defaultValue={article?.excerpt ?? ''} placeholder="한 줄 요약 (목록에 표시)" /></div>
               <div>
-                <Label>본문 내용 (마크다운 지원)</Label>
-                <Textarea name="content" defaultValue={article?.content ?? ''} placeholder={"## 소제목\n\n본문 내용을 입력하세요..."} rows={10} />
+                <Label>본문 내용 (블로그 에디터)</Label>
+                <input type="hidden" name="content" value={content} />
+                <RichTextEditor value={content} onChange={setContent} placeholder="본문을 작성하세요. 이미지·영상도 삽입할 수 있습니다…" />
               </div>
             </div>
           }
@@ -318,8 +322,9 @@ function ArticleForm({
               <div><Label>Excerpt (English)</Label><Input name="excerpt_en" defaultValue={article?.excerpt_en ?? ''} placeholder="One-line summary in English" /></div>
               <div><Label>Description (English)</Label><Input name="description_en" defaultValue={article?.description_en ?? ''} placeholder="Short description in English" /></div>
               <div>
-                <Label>Content (English, Markdown)</Label>
-                <Textarea name="content_en" defaultValue={article?.content_en ?? ''} placeholder={"## Heading\n\nContent in English..."} rows={10} />
+                <Label>Content (English, blog editor)</Label>
+                <input type="hidden" name="content_en" value={contentEn} />
+                <RichTextEditor value={contentEn} onChange={setContentEn} placeholder="Write the content in English…" />
               </div>
             </div>
           }

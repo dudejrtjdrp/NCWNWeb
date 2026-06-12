@@ -176,6 +176,29 @@ function parseRelatedLinks(raw: string | null): RelatedLink[] {
   }
 }
 
+// ── 아티클 본문 인라인 이미지 업로드 ──────────────────────
+// 블로그형 에디터에서 본문 중간에 삽입하는 이미지를 업로드하고 URL을 반환한다.
+export async function uploadArticleImage(
+  formData: FormData
+): Promise<{ url: string } | { error: string }> {
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const file = formData.get('file') as File | null
+  if (!file || file.size === 0) return { error: '파일이 없습니다.' }
+
+  const fileErr = validateImage(file)
+  if (fileErr) return { error: fileErr }
+
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'webp'
+  const path = `content/${crypto.randomUUID()}.${ext}`
+  const url = await uploadToStorage(supabase, 'ncr-thumbnails', path, file)
+  if (!url) return { error: '이미지 업로드에 실패했습니다.' }
+
+  return { url }
+}
+
 // ════════════════════════════════════════════════════════
 // WORK
 // ════════════════════════════════════════════════════════

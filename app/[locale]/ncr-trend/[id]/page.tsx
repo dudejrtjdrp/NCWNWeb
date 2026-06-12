@@ -10,6 +10,8 @@ import Badge from '@/components/ui/Badge'
 import { notFound } from 'next/navigation'
 import { getNcrReportById, getRelatedNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 import { getTranslations } from 'next-intl/server'
+import { sanitizeArticleHtml, isHtmlContent } from '@/lib/sanitize'
+import Image from 'next/image'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
@@ -223,25 +225,43 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             {/* ── 메인 본문 ── */}
             <article className="lg:col-span-3">
               {/* 썸네일 이미지 영역 */}
-              <div className="aspect-[16/7] bg-[#efefef] rounded-2xl mb-12 flex items-center justify-center overflow-hidden">
-                <div className="flex flex-col items-center gap-3 opacity-20">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <polyline points="21 15 16 10 5 21" />
-                  </svg>
-                  <span className="font-brand text-2xl text-nwcn-text-muted">NCR</span>
-                </div>
-              </div>
-
-              {/* 본문 텍스트 */}
-              <div className="max-w-[680px]">
-                {article.content ? renderContent(article.content) : (
-                  <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed">
-                    {article.excerpt}
-                  </p>
+              <div className="aspect-[16/7] bg-[#efefef] rounded-2xl mb-12 flex items-center justify-center overflow-hidden relative">
+                {article.thumbnail_url ? (
+                  <Image
+                    src={article.thumbnail_url}
+                    alt={article.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 75vw"
+                    className="object-cover"
+                    priority
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-3 opacity-20">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                    <span className="font-brand text-2xl text-nwcn-text-muted">NCR</span>
+                  </div>
                 )}
               </div>
+
+              {/* 본문 — 블로그 HTML(이미지·영상 임베드) 또는 레거시 마크다운 */}
+              {article.content ? (
+                isHtmlContent(article.content) ? (
+                  <div
+                    className="article-body max-w-[680px]"
+                    dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
+                  />
+                ) : (
+                  <div className="max-w-[680px]">{renderContent(article.content)}</div>
+                )
+              ) : (
+                <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed max-w-[680px]">
+                  {article.excerpt}
+                </p>
+              )}
 
               {/* 태그 */}
               {article.tags.length > 0 && (
