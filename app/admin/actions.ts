@@ -193,10 +193,24 @@ export async function uploadArticleImage(
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'webp'
   const path = `content/${crypto.randomUUID()}.${ext}`
-  const url = await uploadToStorage(supabase, 'ncr-thumbnails', path, file)
-  if (!url) return { error: '이미지 업로드에 실패했습니다.' }
 
-  return { url }
+  // 실제 스토리지 오류 메시지를 그대로 노출 (버킷 부재/권한 등 진단용)
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const { data, error } = await supabase.storage
+      .from('ncr-thumbnails')
+      .upload(path, buffer, { upsert: true, contentType: file.type || 'image/webp' })
+    if (error) {
+      logError('[uploadArticleImage] 업로드 실패', error.message)
+      return { error: `이미지 업로드 실패: ${error.message}` }
+    }
+    const { data: { publicUrl } } = supabase.storage.from('ncr-thumbnails').getPublicUrl(data.path)
+    return { url: publicUrl }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logError('[uploadArticleImage] 예외', msg)
+    return { error: `이미지 업로드 예외: ${msg}` }
+  }
 }
 
 // ════════════════════════════════════════════════════════
