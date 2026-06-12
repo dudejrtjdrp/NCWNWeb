@@ -34,6 +34,10 @@ export function sanitizeArticleHtml(html: string): string {
         'font-family': [/^[\w\s",.()-]+$/],
         color: [/^#(?:[0-9a-fA-F]{3}){1,2}$/, /^rgba?\([\d\s,.%]+\)$/],
         'text-align': [/^(?:left|right|center|justify)$/],
+        // 이미지 크기 조절 결과 (width %/px)
+        width: [/^\d+(?:px|%)$/],
+        'max-width': [/^\d+(?:px|%)$/],
+        height: [/^auto$/, /^\d+(?:px|%)$/],
       },
     },
     allowedSchemes: ['http', 'https', 'mailto'],

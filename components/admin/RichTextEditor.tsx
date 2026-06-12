@@ -15,10 +15,10 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextStyle from '@tiptap/extension-text-style'
 import FontFamily from '@tiptap/extension-font-family'
-import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import { FontSize, Embed } from '@/lib/tiptap/extensions'
+import ResizableImage from '@/lib/tiptap/ResizableImage'
 import { uploadArticleImage } from '@/app/admin/actions'
 
 const FONT_FAMILIES = [
@@ -207,7 +207,7 @@ export default function RichTextEditor({
       TextStyle,
       FontFamily,
       FontSize,
-      Image.configure({ inline: false, HTMLAttributes: { class: 'article-img' } }),
+      ResizableImage.configure({ inline: false, HTMLAttributes: { class: 'article-img' } }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
       Embed,
       Placeholder.configure({ placeholder: placeholder ?? '본문을 작성하세요…' }),
