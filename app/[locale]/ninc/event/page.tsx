@@ -32,8 +32,8 @@ export default async function EventPage({ params }: { params: Promise<{ locale: 
   const events = await getEvents(locale)
 
   return (
-    <SubPageLayout>
-      {/* 히어로 배너 */}
+    <SubPageLayout headerVariant="transparent" overlapHeader>
+      {/* 히어로 배너 (확대 + 투명 네비바) */}
       <NincHeroBanner
         pageName="EVENT"
         heroImageUrl="/images/ninc/event-hero.png"

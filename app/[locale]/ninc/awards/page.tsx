@@ -6,6 +6,8 @@
 import type { Metadata } from 'next'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import NincHeroBanner from '@/components/base/NincHeroBanner'
+import SubNav from '@/components/common/SubNav'
+import { NINC_NAV_ITEMS } from '@/constants/nav-items'
 import { getAwards } from '@/lib/supabase/queries/awards'
 import AwardsClient from './AwardsClient'
 
@@ -37,15 +39,18 @@ export default async function AwardsPage({ params }: { params: Promise<{ locale:
   const awards = await getAwards(locale)
 
   return (
-    <SubPageLayout>
-      {/* 1. 히어로 배너 */}
+    <SubPageLayout headerVariant="transparent" overlapHeader>
+      {/* 1. 히어로 배너 (확대 + 투명 네비바) */}
       <NincHeroBanner
         pageName="AWARDS"
         heroImageUrl={HERO_IMAGE_URL}
         tagline={AwardsTagline}
       />
 
-      {/* 2. 검색 + 그리드 + 페이지네이션 (Client Component) */}
+      {/* 2. 서브 탭 */}
+      <SubNav items={NINC_NAV_ITEMS} />
+
+      {/* 3. 검색 + 그리드 + 페이지네이션 (Client Component) */}
       <AwardsClient initialAwards={awards} />
     </SubPageLayout>
   )
