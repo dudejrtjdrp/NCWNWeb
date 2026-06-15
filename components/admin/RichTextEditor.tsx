@@ -190,6 +190,38 @@ function Toolbar({ editor }: { editor: Editor }) {
   )
 }
 
+/** 문자열이 HTML 마크업(블로그 에디터 출력)을 포함하는지 간단 판별 */
+function looksLikeHtml(s: string): boolean {
+  return /<\/?[a-z][\s\S]*>/i.test(s)
+}
+
+/**
+ * 레거시 평문(개행 기반) → HTML 변환
+ *
+ * 과거 평문으로 저장된 본문을 에디터에 그대로 넣으면 Tiptap이 HTML로 파싱하면서
+ * 개행(\n)·빈 줄이 사라져 여러 문단이 한 문단처럼 보이는 문제가 있었다.
+ * 빈 줄(\n\n+)을 단락 구분으로, 단락 내 단일 개행을 <br>로 변환해 원본 구조를 보존한다.
+ */
+function plainTextToHtml(text: string): string {
+  const escape = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split(/\n{2,}/)
+    .map((para) => {
+      const inner = escape(para).replace(/\n/g, '<br>')
+      return `<p>${inner.trim() === '' ? '<br>' : inner}</p>`
+    })
+    .join('')
+}
+
+/** 에디터에 안전하게 로드할 수 있는 HTML로 정규화 (HTML은 그대로, 평문은 변환) */
+function toEditorContent(value: string): string {
+  if (!value) return ''
+  return looksLikeHtml(value) ? value : plainTextToHtml(value)
+}
+
 export default function RichTextEditor({
   value,
   onChange,
@@ -212,7 +244,7 @@ export default function RichTextEditor({
       Embed,
       Placeholder.configure({ placeholder: placeholder ?? '본문을 작성하세요…' }),
     ],
-    content: value || '',
+    content: toEditorContent(value),
     editorProps: {
       attributes: {
         class: 'article-editor focus:outline-none min-h-[320px] px-5 py-4',
@@ -222,11 +254,13 @@ export default function RichTextEditor({
   })
 
   // 외부 value가 바뀌면(예: 수정 대상 전환) 에디터 내용 동기화
+  // 평문 레거시 본문은 toEditorContent로 변환해 비교/주입한다.
   useEffect(() => {
     if (!editor) return
+    const next = toEditorContent(value)
     const current = editor.getHTML()
-    if (value !== current && (value || '') !== '<p></p>') {
-      editor.commands.setContent(value || '', false)
+    if (next !== current && next !== '<p></p>') {
+      editor.commands.setContent(next, false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor])

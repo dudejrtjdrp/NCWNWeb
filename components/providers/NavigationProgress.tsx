@@ -20,7 +20,11 @@ function NavigationListener() {
   useEffect(() => {
     const original = history.pushState.bind(history)
     history.pushState = (...args: Parameters<typeof history.pushState>) => {
-      showLoading()
+      // Next 내부 HistoryUpdater는 useInsertionEffect 안에서 pushState를 호출한다.
+      // 여기서 showLoading()(setState)를 동기 호출하면
+      // "useInsertionEffect must not schedule updates" 경고가 발생하므로
+      // 마이크로태스크로 지연시켜 insertion effect 단계 밖에서 상태를 갱신한다.
+      queueMicrotask(() => showLoading())
       return original(...args)
     }
     return () => { history.pushState = original }
