@@ -11,6 +11,7 @@ import { notFound } from 'next/navigation'
 import { getNcrReportById, getRelatedNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 import { getTranslations } from 'next-intl/server'
 import { sanitizeArticleHtml, isHtmlContent } from '@/lib/sanitize'
+import { breadcrumbLd } from '@/lib/seo/structured-data'
 import Image from 'next/image'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
@@ -143,12 +144,22 @@ export default async function ArticleDetailPage({ params }: PageProps) {
     inLanguage: locale === 'en' ? 'en-US' : 'ko-KR',
   }
 
+  /** BreadcrumbList JSON-LD — 페이지 계층 경로 */
+  const breadcrumbJsonLd = breadcrumbLd([
+    { name: 'NCR TREND', path: '/ncr-trend/latest' },
+    { name: article.title, path: `/ncr-trend/${article.id}` },
+  ])
+
   return (
     <SubPageLayout>
-      {/* JSON-LD 구조화 데이터 */}
+      {/* JSON-LD 구조화 데이터 (Article + Breadcrumb) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       {/* ── 아티클 히어로 ── */}

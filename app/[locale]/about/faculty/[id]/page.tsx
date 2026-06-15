@@ -15,6 +15,10 @@ import { notFound } from 'next/navigation'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import ProfessorDetailSection from '@/components/base/ProfessorDetailSection'
 import { FACULTY_LIST } from '@/lib/faculty-data'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbLd } from '@/lib/seo/structured-data'
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
 
 // ──────────────────────────────────────────────────────
 // Static Params (빌드 시 정적 생성)
@@ -57,8 +61,33 @@ export default async function FacultyDetailPage({
   const faculty = FACULTY_LIST.find((f) => f.id === id)
   if (!faculty) notFound()
 
+  /** Person + Breadcrumb JSON-LD — 교수진을 학과 소속 인물 엔티티로 표현 */
+  const personJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: faculty.nameKo,
+    alternateName: faculty.nameEn,
+    jobTitle: faculty.roleLabel ? `${faculty.role} (${faculty.roleLabel})` : faculty.role,
+    ...(faculty.email ? { email: faculty.email } : {}),
+    ...(faculty.photoUrl ? { image: `${SITE_URL}${faculty.photoUrl}` } : {}),
+    url: `${SITE_URL}/about/faculty/${faculty.id}`,
+    worksFor: {
+      '@type': 'CollegeOrUniversity',
+      name: 'NWCN — 동아방송예술대학교 뉴미디어콘텐츠과',
+      url: SITE_URL,
+    },
+    ...(faculty.education?.length ? { alumniOf: faculty.education } : {}),
+  }
+
+  const breadcrumbJsonLd = breadcrumbLd([
+    { name: 'ABOUT', path: '/about/department' },
+    { name: '교수진', path: '/about/faculty' },
+    { name: faculty.nameKo, path: `/about/faculty/${faculty.id}` },
+  ])
+
   return (
     <SubPageLayout>
+      <JsonLd data={[personJsonLd, breadcrumbJsonLd]} />
       <ProfessorDetailSection faculty={faculty} />
     </SubPageLayout>
   )

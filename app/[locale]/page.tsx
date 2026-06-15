@@ -10,9 +10,19 @@ import HomeHeroSection from '@/components/sections/home/HomeHeroSection'
 import WhatIsSection from '@/components/base/WhatIsSection'
 import NincSection from '@/components/base/NincSection'
 import NcrTrendSection from '@/components/base/NcrTrendSection'
+import JsonLd from '@/components/seo/JsonLd'
+import { educationalOrganizationLd, webSiteLd } from '@/lib/seo/structured-data'
+import { localizedAlternates } from '@/lib/seo/metadata'
+import type { Metadata } from 'next'
 
 interface PageProps {
   params: Promise<{ locale: string }>
+}
+
+/** 홈 — canonical + hreflang(ko/en/x-default) 지정 */
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params
+  return { alternates: localizedAlternates(locale, '') }
 }
 
 export default async function HomePage({ params }: PageProps) {
@@ -20,6 +30,9 @@ export default async function HomePage({ params }: PageProps) {
 
   return (
     <>
+      {/* SEO/GEO: 기관·사이트 구조화 데이터 */}
+      <JsonLd data={[educationalOrganizationLd(locale), webSiteLd(locale)]} />
+
       {/* Header: transparent → 히어로 위에 fixed overlay, 스크롤 시 흰 배경 */}
       <Header variant="transparent" />
 

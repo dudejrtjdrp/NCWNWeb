@@ -15,13 +15,21 @@ const r2PublicHost = (() => {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // 응답 헤더에서 X-Powered-By 제거 (불필요한 기술 스택 노출 차단)
+  poweredByHeader: false,
+  // HTML/JS/CSS gzip 압축 (기본값이지만 명시)
+  compress: true,
   experimental: {
     // Server Actions 파일 업로드 크기 제한 (actions.ts 검증 한도와 일치)
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    // 대형 라이브러리 배럴 임포트 최적화 → 번들 크기·트리셰이킹 개선
+    optimizePackageImports: ['swiper', 'leaflet', 'react-leaflet'],
   },
   images: {
+    // 차세대 포맷 우선 서빙 (용량 ↓)
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       // R2 커스텀 도메인 (현재 이미지 호스트)
       ...(r2PublicHost

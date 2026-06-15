@@ -33,13 +33,9 @@ export async function generateMetadata({
     keywords: isKo
       ? ['뉴미디어콘텐츠과', 'NWCN', '동아방송예술대학교', '뉴미디어', '미디어콘텐츠', 'NCR TREND', '학과 소개', '입학']
       : ['New Media Contents', 'NWCN', 'Dong-A Broadcasting Arts University', 'New Media', 'Media Contents', 'NCR TREND'],
-    alternates: {
-      canonical: SITE_URL,
-      languages: {
-        ko: `${SITE_URL}`,
-        en: `${SITE_URL}/en`,
-      },
-    },
+    // NOTE: canonical/hreflang 은 페이지별로 지정한다.
+    // 레이아웃에 홈 URL을 고정하면 모든 서브페이지가 홈을 canonical 로 상속해
+    // 색인에서 누락되는 문제가 있어 여기서는 설정하지 않는다. (홈은 page.tsx 에서 지정)
     openGraph: {
       type: 'website',
       locale: isKo ? 'ko_KR' : 'en_US',
@@ -59,7 +55,7 @@ export async function generateMetadata({
       googleBot: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },
     },
     verification: {
-      google: 'iF0aTOLZZaC4hTAROA-qQXqZaJ2jitoET0q6iWam-mk',
+      google: 'UXv7WRr34HWG-YLRrP5yO_ev4m0goVrY7VPP1Dltdk0',
     },
   }
 }

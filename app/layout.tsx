@@ -21,6 +21,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        {/* 폰트 CDN 사전 연결 — 렌더 블로킹 CSS @import 지연 완화 (LCP 개선) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
+      </head>
       <body>
         <LoadingProvider>
           <NavigationProgress />
