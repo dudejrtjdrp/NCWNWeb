@@ -44,7 +44,7 @@ import Link  from 'next/link'
 import Button from '@/components/ui/Button'
 import { useTranslations } from 'next-intl'
 
-const NWCN_LOGO_URL = '/images/common/newcon-logo.png'
+const NWCN_LOGO_URL = '/images/common/newcon-logo.svg'
 const NOT_FOUND_404_URL = '/images/common/404-text.svg'
 
 // ── Props ──────────────────────────────────────────────────────────────────

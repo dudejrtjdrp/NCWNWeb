@@ -61,7 +61,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <Link href="/" onClick={onClose} aria-label="NWCN 홈으로">
             <Image
-              src="/images/common/newcon-logo.png"
+              src="/images/common/newcon-logo.svg"
               alt="NWCN"
               width={36}
               height={32}
