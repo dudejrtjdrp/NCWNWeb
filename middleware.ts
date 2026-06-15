@@ -38,12 +38,18 @@ function buildCSP(): string {
     ? (() => { try { return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname } catch { return '*.supabase.co' } })()
     : '*.supabase.co'
 
+  // R2 공개 도메인(R2_PUBLIC_URL)에서 호스트 추출 → 이미지 서빙 출처로 허용
+  const r2Host = process.env.R2_PUBLIC_URL
+    ? (() => { try { return new URL(process.env.R2_PUBLIC_URL!).hostname } catch { return '' } })()
+    : ''
+  const r2ImgSrc = r2Host ? ` https://${r2Host}` : ''
+
   const directives = [
     `default-src 'self'`,
     `script-src 'self' 'unsafe-inline' 'unsafe-eval'`,
     // Google Fonts(Nova Slim) + jsdelivr(Pretendard) 스타일시트 허용
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net`,
-    `img-src 'self' data: blob: https://${supabaseHost} https://*.supabase.co https://www.figma.com`,
+    `img-src 'self' data: blob: https://${supabaseHost} https://*.supabase.co${r2ImgSrc} https://www.figma.com`,
     // Google Fonts 폰트 파일(gstatic) + jsdelivr 폰트 파일 허용
     `font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net`,
     // REST API + Realtime WebSocket(wss://) 허용
