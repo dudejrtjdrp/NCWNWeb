@@ -86,7 +86,7 @@ function AwardForm({ award, onSuccess, onCancel }: { award: AwardItem | null; on
 
         <div>
           <Label>수상 이미지{award ? ' (새 파일 선택 시 교체)' : ''}</Label>
-          <FileDropZone accept="image/*" label="수상 관련 이미지" onFiles={(files) => { thumbnailRef.current = files[0] }} />
+          <FileDropZone accept="image/*" label="수상 관련 이미지" initialUrl={award?.thumbnail_url} onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
         <div className="flex gap-3">

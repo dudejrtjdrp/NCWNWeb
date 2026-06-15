@@ -81,7 +81,7 @@ function ProjectForm({ project, onSuccess, onCancel }: { project: ProjectItem | 
 
         <div>
           <Label>프로젝트 이미지{project ? ' (새 파일 선택 시 교체)' : ''}</Label>
-          <FileDropZone accept="image/*" label="프로젝트 관련 사진" onFiles={(files) => { thumbnailRef.current = files[0] }} />
+          <FileDropZone accept="image/*" label="프로젝트 관련 사진" initialUrl={project?.thumbnail_url} onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
         <div className="flex gap-3">

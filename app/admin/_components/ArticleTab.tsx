@@ -409,7 +409,7 @@ function ArticleForm({
 
         <div>
           <Label>썸네일 이미지{article ? ' (새 파일 선택 시 교체)' : ''}</Label>
-          <FileDropZone accept="image/*" label="아티클 썸네일" onFiles={(files) => { thumbnailRef.current = files[0] }} />
+          <FileDropZone accept="image/*" label="아티클 썸네일" initialUrl={article?.thumbnail_url} onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
         <div className="flex gap-3">

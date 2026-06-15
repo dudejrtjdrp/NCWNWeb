@@ -64,7 +64,7 @@ function ExhibitionForm({
         <div><Label>전시 설명</Label><Textarea name="description" defaultValue={exhibition?.description ?? ''} placeholder="전시 소개 및 내용..." rows={4} /></div>
         <div>
           <Label>포스터 이미지{exhibition ? ' (새 파일 선택 시 교체)' : ''}</Label>
-          <FileDropZone accept="image/*" label="전시 포스터 이미지" onFiles={(files) => { posterRef.current = files[0] }} />
+          <FileDropZone accept="image/*" label="전시 포스터 이미지" initialUrl={exhibition?.poster_url} onFiles={(files) => { posterRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
         <div className="flex gap-3">

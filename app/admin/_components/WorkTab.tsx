@@ -234,7 +234,7 @@ function WorkForm({
 
         <div>
           <Label>썸네일 이미지{work ? ' (새 파일 선택 시 교체)' : ''}</Label>
-          <FileDropZone accept="image/*" label="대표 썸네일 이미지 (권장: 4:3)" onFiles={(files) => { thumbnailRef.current = files[0] }} />
+          <FileDropZone accept="image/*" label="대표 썸네일 이미지 (권장: 4:3)" initialUrl={work?.thumbnail_url} onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
         <Feedback result={result} />
         <div className="flex gap-3">

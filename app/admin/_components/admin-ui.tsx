@@ -52,36 +52,55 @@ export function FileDropZone({
   accept,
   label,
   onFiles,
+  initialUrl,
 }: {
   accept: string
   label: string
   onFiles?: (files: FileList) => void
+  /** 수정 시 기존에 저장된 이미지 URL — 새 파일 선택 전까지 미리보기로 표시 */
+  initialUrl?: string | null
 }) {
   const [dragging, setDragging] = useState(false)
-  const [fileNames, setFileNames] = useState<string[]>([])
+  const [fileName, setFileName] = useState<string | null>(null)
+  // 새로 선택한 파일의 blob 미리보기 URL (없으면 기존 initialUrl 사용)
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // 이미지 파일인지 (미리보기 가능 여부)
+  const isImage = accept.includes('image')
+  const previewUrl = objectUrl ?? initialUrl ?? null
+
+  // blob URL 메모리 정리
+  useEffect(() => {
+    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
+  }, [objectUrl])
+
+  const applyFiles = (files: FileList) => {
+    const file = files[0]
+    if (!file) return
+    setFileName(file.name)
+    if (isImage) {
+      setObjectUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return URL.createObjectURL(file)
+      })
+    }
+    onFiles?.(files)
+  }
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragging(false)
-    const files = e.dataTransfer.files
-    if (files.length) {
-      setFileNames(Array.from(files).map((f) => f.name))
-      onFiles?.(files)
-    }
+    if (e.dataTransfer.files.length) applyFiles(e.dataTransfer.files)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files?.length) {
-      setFileNames(Array.from(files).map((f) => f.name))
-      onFiles?.(files)
-    }
+    if (e.target.files?.length) applyFiles(e.target.files)
   }
 
   return (
     <div
-      className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors ${
+      className={`relative border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-colors ${
         dragging ? 'border-nwcn-green bg-nwcn-green/5' : 'border-white/15 hover:border-white/30'
       }`}
       onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
@@ -90,27 +109,38 @@ export function FileDropZone({
       onClick={() => inputRef.current?.click()}
     >
       <input ref={inputRef} type="file" accept={accept} className="hidden" onChange={handleChange} />
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" opacity="0.4">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
+      {previewUrl ? (
+        <div className="flex flex-col items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={previewUrl}
+            alt={fileName ?? '썸네일 미리보기'}
+            className="max-h-44 w-auto max-w-full rounded-xl object-contain bg-black/20"
+          />
+          <p className="font-body text-xs text-nwcn-green truncate max-w-full">
+            {fileName ?? '현재 등록된 이미지'}
+          </p>
+          <p className="font-body text-[11px] text-white/30">클릭하거나 드래그하여 변경</p>
         </div>
-        {fileNames.length > 0 ? (
-          <div className="space-y-1">
-            {fileNames.map((name) => (
-              <p key={name} className="font-body text-sm text-nwcn-green">{name}</p>
-            ))}
+      ) : (
+        <div className="flex flex-col items-center gap-3 py-4">
+          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" opacity="0.4">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
           </div>
-        ) : (
-          <>
-            <p className="font-body text-sm text-white/40">{label}</p>
-            <p className="font-body text-xs text-white/20">클릭하거나 드래그하세요</p>
-          </>
-        )}
-      </div>
+          {fileName ? (
+            <p className="font-body text-sm text-nwcn-green">{fileName}</p>
+          ) : (
+            <>
+              <p className="font-body text-sm text-white/40">{label}</p>
+              <p className="font-body text-xs text-white/20">클릭하거나 드래그하세요</p>
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
