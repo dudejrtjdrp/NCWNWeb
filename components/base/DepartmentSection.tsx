@@ -220,8 +220,8 @@ export default function DepartmentSection() {
           </p>
 
           <div className="flex flex-col gap-6 sm:gap-8 lg:gap-[41px]">
-            {/* 이미지 1 — 우측 텍스트 */}
-            <AnimateOnScroll variant="fade-up" delay={0} threshold={0.05}>
+            {/* 이미지 1 — 사진: 왼쪽→오른쪽 / 글씨: 아래→위 */}
+            <AnimateOnScroll variant="fade-right" duration={800} threshold={0.2}>
               <div className="relative w-full overflow-hidden rounded-sm" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
                 <img src={IMG.policyImg1} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
                 <div
@@ -231,18 +231,20 @@ export default function DepartmentSection() {
                     background: 'linear-gradient(to right, rgba(0,172,101,0) 30%, #000 100%)',
                   }}
                 >
-                  <p
-                    className="font-body font-medium text-white text-right"
-                    style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line', maxWidth: '60%' }}
-                  >
-                    {t('policyText1')}
-                  </p>
+                  <AnimateOnScroll variant="fade-up" delay={300} duration={700} threshold={0.2}>
+                    <p
+                      className="font-body font-medium text-white text-right"
+                      style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line', maxWidth: '60%' }}
+                    >
+                      {t('policyText1')}
+                    </p>
+                  </AnimateOnScroll>
                 </div>
               </div>
             </AnimateOnScroll>
 
-            {/* 이미지 2 — 좌측 텍스트 */}
-            <AnimateOnScroll variant="fade-up" delay={80} threshold={0.05}>
+            {/* 이미지 2 — 사진: 오른쪽→왼쪽 / 글씨: 아래→위 */}
+            <AnimateOnScroll variant="fade-left" duration={800} threshold={0.2}>
               <div className="relative w-full overflow-hidden rounded-sm" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
                 <img src={IMG.policyImg2} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
                 <div
@@ -252,12 +254,14 @@ export default function DepartmentSection() {
                     background: 'linear-gradient(to right, #000 0%, rgba(2,66,40,0.75) 60%, rgba(9,245,147,0.06) 100%)',
                   }}
                 >
-                  <p
-                    className="font-body font-medium text-white"
-                    style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line', maxWidth: '60%' }}
-                  >
-                    {t('policyText2')}
-                  </p>
+                  <AnimateOnScroll variant="fade-up" delay={300} duration={700} threshold={0.2}>
+                    <p
+                      className="font-body font-medium text-white"
+                      style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line', maxWidth: '60%' }}
+                    >
+                      {t('policyText2')}
+                    </p>
+                  </AnimateOnScroll>
                 </div>
               </div>
             </AnimateOnScroll>
