@@ -10,8 +10,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import Badge from '@/components/ui/Badge'
+import WorkMasonry from '@/components/sections/WorkMasonry'
 import { notFound } from 'next/navigation'
-import { getWorkById, type WorkType } from '@/lib/supabase/queries/works'
+import { getWorkById, getRelatedWorks, type WorkType } from '@/lib/supabase/queries/works'
 import { getTranslations } from 'next-intl/server'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
@@ -116,36 +117,22 @@ function ThreeDViewer({ embed, title, placeholder, hint }: { embed?: string | nu
   )
 }
 
-const TYPE_ICON: Record<WorkType, React.ReactNode> = {
-  design: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="8.5" cy="8.5" r="1.5" />
-      <polyline points="21 15 16 10 5 21" />
-    </svg>
-  ),
-  video: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polygon points="23 7 16 12 23 17 23 7" />
-      <rect x="1" y="5" width="15" height="14" rx="2" />
-    </svg>
-  ),
-  '3d': (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  ),
-}
-
 interface PageProps {
   params: Promise<{ id: string; locale: string }>
 }
 
+const TYPE_BADGE_VARIANT: Record<WorkType, 'new' | 'hot' | 'number'> = {
+  design: 'hot',
+  video: 'new',
+  '3d': 'number',
+}
+
 export default async function WorkDetailPage({ params }: PageProps) {
   const { id, locale } = await params
-  const work = await getWorkById(id, locale)
+  const [work, related] = await Promise.all([
+    getWorkById(id, locale),
+    getRelatedWorks(id, locale, 8),
+  ])
   if (!work) notFound()
 
   const t = await getTranslations({ locale, namespace: 'work.detail' })
@@ -161,58 +148,40 @@ export default async function WorkDetailPage({ params }: PageProps) {
       {/* 조회수 증가 트래커 (Client Component, fire-and-forget) */}
       <ViewCountTracker workId={work.id} />
 
-      {/* ── 히어로 헤더 (다크) ── */}
-      <div className="bg-nwcn-dark pt-[80px] pb-0">
-        <div className="page-container pt-12 pb-0">
+      <div className="bg-white">
+        <div className="page-container pt-10 pb-16">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-xs font-body text-white/30 mb-8">
-            <Link href="/work/showcase" className="hover:text-white/60 transition-colors">
-              WORK
+          <nav className="flex items-center gap-2 text-[13px] font-body text-nwcn-gray-muted mb-7">
+            <Link href="/work/showcase" className="hover:text-nwcn-text-default transition-colors">
+              SHOWCASE
             </Link>
             <span>/</span>
-            <span className="flex items-center gap-1.5 text-white/50">
-              {TYPE_ICON[work.type]}
-              {TYPE_LABEL[work.type]}
-            </span>
+            <span className="text-nwcn-text-muted">{work.title}</span>
           </nav>
 
           {/* 타입 배지 */}
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full">
-              <span className="text-white/70">{TYPE_ICON[work.type]}</span>
-              <span className="font-body text-sm text-white/70">{TYPE_LABEL[work.type]}</span>
+          <Badge variant={TYPE_BADGE_VARIANT[work.type]}>{TYPE_LABEL[work.type]}</Badge>
+
+          {/* 제목 + 조회수 */}
+          <div className="mt-4 flex items-start justify-between gap-6">
+            <h1 className="font-body font-bold text-[28px] md:text-[40px] text-nwcn-text-default leading-tight">
+              {work.title}
+            </h1>
+            <div className="flex items-center gap-1.5 text-nwcn-gray-muted shrink-0 pt-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <span className="font-body text-[14px]">{work.view_count.toLocaleString()} {t('views')}</span>
             </div>
-            {work.tech_stack.map((tag) => (
-              <Badge key={tag} variant="outline">{tag}</Badge>
-            ))}
           </div>
 
-          {/* 제목 */}
-          <h1 className="font-body font-bold text-[32px] md:text-[48px] text-white leading-tight mb-3">
-            {work.title}
-          </h1>
-
-          {/* 작가 · 연도 */}
-          <p className="font-body text-[15px] text-white/40 mb-10">
-            {work.author} · {work.year}
-          </p>
-        </div>
-        <div className="border-b border-white/10" />
-      </div>
-
-      {/* ── 작업물 뷰어 + 정보 ── */}
-      <div className="bg-nwcn-dark py-12">
-        <div className="page-container">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-
-            {/* ── 뷰어 (좌) ── */}
-            <div className="lg:col-span-2">
+          {/* ── 뷰어(좌) + 정보(우) ── */}
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
+            {/* 뷰어 */}
+            <div className="lg:col-span-3">
               {work.type === 'video' && (
-                <VideoViewer
-                  embed={work.video_embed}
-                  title={work.title}
-                  placeholder={t('videoPlaceholder')}
-                />
+                <VideoViewer embed={work.video_embed} title={work.title} placeholder={t('videoPlaceholder')} />
               )}
               {work.type === 'design' && (
                 <DesignViewer images={work.images ?? []} title={work.title} />
@@ -227,104 +196,90 @@ export default async function WorkDetailPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* ── 정보 사이드바 (우) ── */}
-            <aside className="lg:col-span-1">
-              <div className="space-y-6 sticky top-24">
-                {/* 작품 설명 */}
+            {/* 정보 사이드바 */}
+            <aside className="lg:col-span-2">
+              <div className="space-y-7 lg:sticky lg:top-24">
+                {/* 제작자 */}
                 <div>
-                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionIntro')}</p>
-                  <p className="font-body text-[14px] text-white/60 leading-relaxed">
-                    {work.description}
-                  </p>
+                  <p className="font-body text-[13px] text-nwcn-gray-muted mb-1.5">{t('sectionAuthor')}</p>
+                  <p className="font-body text-[16px] font-medium text-nwcn-text-default">{work.author}</p>
                 </div>
 
-                <div className="border-t border-white/10" />
-
-                {/* 작가 정보 */}
+                {/* 제작 기간 */}
                 <div>
-                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionAuthor')}</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-nwcn-green/15 flex items-center justify-center flex-shrink-0">
-                      <span className="font-body text-sm font-semibold text-nwcn-green">
-                        {work.author.charAt(0)}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-body text-sm text-white">{work.author}</p>
-                      <p className="font-body text-xs text-white/30">{t('yearWork', { year: work.year })}</p>
-                    </div>
-                  </div>
+                  <p className="font-body text-[13px] text-nwcn-gray-muted mb-1.5">{t('sectionPeriod')}</p>
+                  <p className="font-body text-[16px] font-medium text-nwcn-text-default">{work.year}</p>
                 </div>
 
-                <div className="border-t border-white/10" />
-
-                {/* 기술 스택 */}
+                {/* 사용 도구 / 기술 */}
                 <div>
-                  <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionTools')}</p>
+                  <p className="font-body text-[13px] text-nwcn-gray-muted mb-2">{t('sectionTools')}</p>
                   <div className="flex flex-wrap gap-2">
                     {work.tech_stack.map((tag) => (
-                      <span key={tag} className="font-body text-xs px-3 py-1.5 border border-white/20 text-white/60 rounded-full">
-                        {tag}
-                      </span>
+                      <Badge key={tag} variant="number">{tag}</Badge>
                     ))}
                   </div>
                 </div>
 
-                {/* 관련 링크 */}
-                {work.related_links && work.related_links.length > 0 && (
-                  <>
-                    <div className="border-t border-white/10" />
-                    <div>
-                      <p className="font-body text-xs text-white/30 uppercase tracking-wider mb-3">{t('sectionLinks')}</p>
-                      <div className="flex flex-col gap-2">
-                        {work.related_links.map((link, i) => (
-                          <a
-                            key={i}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex items-center gap-2 font-body text-sm text-white/60 hover:text-nwcn-green transition-colors"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
-                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                            </svg>
-                            <span className="truncate group-hover:underline">{link.label || link.url}</span>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </>
+                {/* 작품 소개 */}
+                {work.description && (
+                  <div>
+                    <p className="font-body text-[13px] text-nwcn-gray-muted mb-2">{t('sectionIntro')}</p>
+                    <p className="font-body text-[14px] text-nwcn-gray-text leading-relaxed whitespace-pre-line">
+                      {work.description}
+                    </p>
+                  </div>
                 )}
 
-                <div className="border-t border-white/10" />
-
-                {/* 조회수 */}
-                <div className="flex items-center gap-2 text-white/30">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                  <span className="font-body text-xs">{work.view_count.toLocaleString()} {t('views')}</span>
-                </div>
+                {/* 관련 링크 */}
+                {work.related_links && work.related_links.length > 0 && (
+                  <div>
+                    <p className="font-body text-[13px] text-nwcn-gray-muted mb-2">{t('sectionLinks')}</p>
+                    <div className="flex flex-col gap-2">
+                      {work.related_links.map((link, i) => (
+                        <a
+                          key={i}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex items-center gap-2 font-body text-sm text-nwcn-gray-text hover:text-nwcn-green-dark transition-colors"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                          </svg>
+                          <span className="truncate group-hover:underline">{link.label || link.url}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </aside>
           </div>
-        </div>
-      </div>
 
-      {/* ── 하단 네비게이션 ── */}
-      <div className="bg-nwcn-dark border-t border-white/10 py-8">
-        <div className="page-container flex justify-between items-center">
-          <Link
-            href="/work/showcase"
-            className="flex items-center gap-2 font-body text-sm text-white/40 hover:text-white/70 transition-colors group"
-          >
-            <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            {t('backToList')}
-          </Link>
+          {/* ── 관련 게시물 (핀터레스트 마소너리) ── */}
+          {related.length > 0 && (
+            <section className="mt-20 pt-12 border-t border-nwcn-border-light">
+              <h2 className="font-body font-bold text-[20px] text-nwcn-text-default mb-7">
+                {t('relatedTitle')}
+              </h2>
+              <WorkMasonry works={related} />
+            </section>
+          )}
+
+          {/* ── 하단 네비게이션 ── */}
+          <div className="mt-16">
+            <Link
+              href="/work/showcase"
+              className="inline-flex items-center gap-2 font-body text-sm text-nwcn-gray-muted hover:text-nwcn-text-default transition-colors group"
+            >
+              <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              SHOWCASE
+            </Link>
+          </div>
         </div>
       </div>
     </SubPageLayout>

@@ -1,136 +1,147 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import Pagination from '@/components/ui/Pagination'
-import Badge from '@/components/ui/Badge'
-import { usePagination } from '@/hooks/usePagination'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import WorkMasonry from '@/components/sections/WorkMasonry'
+import SearchBar from '@/components/common/SearchBar'
 import type { WorkListItem as WorkItem } from '@/lib/supabase/queries/works'
-
-const TAG_COLORS: Record<string, 'new' | 'hot' | 'number' | 'green' | 'yellow' | 'outline' | 'gray'> = {
-  Video: 'new',
-  Graphic: 'hot',
-  Web: 'outline',
-  Motion: 'number',
-  Photo: 'gray',
-  AI: 'hot',
-}
-
-const PAGE_SIZE = 9
+import { loadShowcaseWorksAction } from './actions'
 
 interface Props {
   initialWorks: WorkItem[]
+  initialHasMore: boolean
   filterTags: string[]
+  locale: string
+  seed: string
+  pageSize?: number
 }
 
-export default function ShowcaseClient({ initialWorks, filterTags }: Props) {
+export default function ShowcaseClient({
+  initialWorks,
+  initialHasMore,
+  filterTags,
+  locale,
+  seed,
+  pageSize = 15,
+}: Props) {
   const [activeFilter, setActiveFilter] = useState('전체')
+  const [query, setQuery] = useState('')
 
-  // useFilter 훅은 query 기반이라 activeFilter와 맞지 않음 → useMemo로 직접 처리
-  const filtered = useMemo(() => {
-    if (activeFilter === '전체') return initialWorks
-    return initialWorks.filter((w) => w.tech_stack.includes(activeFilter))
-  }, [initialWorks, activeFilter])
+  const [items, setItems] = useState<WorkItem[]>(initialWorks)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [loading, setLoading] = useState(false)
 
-  const { page, setPage, totalPages, paged, reset } = usePagination(filtered, PAGE_SIZE)
+  // 동시 요청/경쟁 상태 방지용 토큰
+  const reqId = useRef(0)
+  const loadingRef = useRef(false)
+  const isFirst = useRef(true)
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const handleFilterChange = (f: string) => {
-    setActiveFilter(f)
-    reset()
-  }
-
-  // 필터 버튼 목록: '전체' + admin에서 설정한 태그
   const filterButtons = ['전체', ...filterTags]
 
+  // 필터/검색 변경 → 0페이지부터 다시 로드 (검색은 디바운스)
+  useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false
+      return // 최초 마운트는 서버에서 받은 initialWorks 사용
+    }
+    const token = ++reqId.current
+    setLoading(true)
+    const timer = setTimeout(async () => {
+      const res = await loadShowcaseWorksAction({
+        locale,
+        seed,
+        tag: activeFilter,
+        q: query,
+        offset: 0,
+        limit: pageSize,
+      })
+      if (token !== reqId.current) return // 더 최신 요청이 있으면 폐기
+      setItems(res.items)
+      setHasMore(res.hasMore)
+      setLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [activeFilter, query, locale, seed, pageSize])
+
+  // 다음 페이지 로드
+  const loadMore = useCallback(async () => {
+    if (loadingRef.current || !hasMore) return
+    loadingRef.current = true
+    const token = ++reqId.current
+    setLoading(true)
+    const res = await loadShowcaseWorksAction({
+      locale,
+      seed,
+      tag: activeFilter,
+      q: query,
+      offset: items.length,
+      limit: pageSize,
+    })
+    if (token !== reqId.current) {
+      loadingRef.current = false
+      return
+    }
+    setItems((prev) => [...prev, ...res.items])
+    setHasMore(res.hasMore)
+    setLoading(false)
+    loadingRef.current = false
+  }, [hasMore, locale, seed, activeFilter, query, items.length, pageSize])
+
+  // 무한 스크롤 — 센티넬 관찰
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore()
+      },
+      { rootMargin: '600px 0px' }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [loadMore])
+
   return (
-    <>
-      {/* 필터 바 */}
-      <div className="bg-white pb-10">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] flex flex-wrap gap-2">
+    <div className="bg-white pb-20">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
+        {/* 검색바 */}
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder="작품 제목, 분야, 제작자 검색"
+          maxWidth="max-w-[771px]"
+          className="mb-7"
+        />
+
+        {/* 필터 태그 */}
+        <div className="flex flex-wrap justify-center gap-2.5 mb-10">
           {filterButtons.map((f) => (
             <button
               key={f}
-              onClick={() => handleFilterChange(f)}
+              onClick={() => setActiveFilter(f)}
               className={[
-                'px-5 py-2 rounded-full font-body text-[14px] font-medium transition-all duration-200',
+                'px-3.5 py-1.5 rounded-full font-body text-[15px] transition-all duration-200',
                 activeFilter === f
-                  ? 'bg-nwcn-text-default text-white'
-                  : 'border border-nwcn-border-muted text-nwcn-gray-text hover:border-nwcn-text-default hover:text-nwcn-text-default',
+                  ? 'bg-nwcn-dark text-white'
+                  : 'text-nwcn-text-muted hover:text-nwcn-text-default',
               ].join(' ')}
             >
               {f}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* 카드 그리드 */}
-      <div className="bg-white pb-20">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
-          {paged.length === 0 ? (
-            <div className="flex items-center justify-center py-24">
-              <p className="font-body text-[16px] text-nwcn-gray-faint">검색 결과가 없습니다</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-[35px] gap-y-10">
-              {paged.map((work) => (
-                <Link key={work.id} href={`/work/${work.id}`} className="block group">
-                  <article className="border border-nwcn-border-light rounded-2xl overflow-hidden hover:shadow-lg hover:border-nwcn-green/30 transition-all duration-300">
-                    {/* 썸네일 */}
-                    <div className="aspect-[4/3] bg-nwcn-surface relative overflow-hidden">
-                      {work.thumbnail_url ? (
-                        <Image
-                          src={work.thumbnail_url}
-                          alt={work.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#f0f0f0] to-[#e8e8e8]">
-                          <span className="font-brand font-black text-[56px] text-[#d8d8d8] leading-none">
-                            {work.title[0]}
-                          </span>
-                        </div>
-                      )}
-                      {/* 조회수 뱃지 */}
-                      <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                        <span className="font-body text-[11px] text-white">{work.view_count}</span>
-                      </div>
-                    </div>
+        {/* 핀터레스트 마소너리 (무한 스크롤 + 스켈레톤) */}
+        <WorkMasonry
+          works={items}
+          skeletonCount={loading ? pageSize : 0}
+          fillBottom={!hasMore}
+          emptyHint={!loading && items.length === 0 ? '검색 결과가 없습니다' : undefined}
+        />
 
-                    {/* 정보 */}
-                    <div className="p-5 bg-white">
-                      <h3 className="font-body text-[16px] font-semibold text-nwcn-text-default mb-1 group-hover:text-nwcn-green transition-colors">
-                        {work.title}
-                      </h3>
-                      <p className="font-body text-[13px] text-[#999] mb-3">
-                        {work.author} · {work.year}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {work.tech_stack.map((tag) => (
-                          <Badge key={tag} variant={TAG_COLORS[tag] ?? 'outline'}>
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* 무한 스크롤 센티넬 */}
+        <div ref={sentinelRef} className="h-px w-full" aria-hidden />
       </div>
-
-      {/* 페이지네이션 */}
-      <div className="bg-white">
-        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-      </div>
-    </>
+    </div>
   )
 }

@@ -87,7 +87,9 @@
       "sectionLinks": "Related Links",
       "views": "views",
       "sectionTags": "Tags",
-      "backToList": "Back to Works"
+      "backToList": "Back to Works",
+      "sectionPeriod": "Production Period",
+      "relatedTitle": "Related Works"
     }
   },
   "about": {
@@ -281,10 +283,26 @@
         }
       ],
       "steps": [
-        { "step": "01", "label": "Application", "desc": "Submit your application online via the admissions office website" },
-        { "step": "02", "label": "Documents", "desc": "Submit school records, personal statement, and other required documents" },
-        { "step": "03", "label": "Exam / Interview", "desc": "Participate in practical exam or interview depending on admission type" },
-        { "step": "04", "label": "Results", "desc": "Check admission results on the admissions office website" }
+        {
+          "step": "01",
+          "label": "Application",
+          "desc": "Submit your application online via the admissions office website"
+        },
+        {
+          "step": "02",
+          "label": "Documents",
+          "desc": "Submit school records, personal statement, and other required documents"
+        },
+        {
+          "step": "03",
+          "label": "Exam / Interview",
+          "desc": "Participate in practical exam or interview depending on admission type"
+        },
+        {
+          "step": "04",
+          "label": "Results",
+          "desc": "Check admission results on the admissions office website"
+        }
       ]
     },
     "contact": {
@@ -294,15 +312,43 @@
       "directionsMap": "Map Area",
       "directionsLink": "View directions on school website",
       "items": [
-        { "label": "Phone", "value": "031-670-6600", "sub": "Mon–Fri 09:00 — 18:00" },
-        { "label": "Admissions", "value": "031-670-6613", "sub": "For admissions inquiries only" },
-        { "label": "Address", "value": "47 Dong-a Arts University-gil, Samjuk-myeon, Anseong-si, Gyeonggi-do", "sub": "Dong-A Institute of Media and Arts" },
-        { "label": "Hours", "value": "Mon–Fri 09:00 — 18:00", "sub": "Closed on weekends and public holidays" }
+        {
+          "label": "Phone",
+          "value": "031-670-6600",
+          "sub": "Mon–Fri 09:00 — 18:00"
+        },
+        {
+          "label": "Admissions",
+          "value": "031-670-6613",
+          "sub": "For admissions inquiries only"
+        },
+        {
+          "label": "Address",
+          "value": "47 Dong-a Arts University-gil, Samjuk-myeon, Anseong-si, Gyeonggi-do",
+          "sub": "Dong-A Institute of Media and Arts"
+        },
+        {
+          "label": "Hours",
+          "value": "Mon–Fri 09:00 — 18:00",
+          "sub": "Closed on weekends and public holidays"
+        }
       ],
       "directions": [
-        { "icon": "🚗", "label": "Gyeongbu", "value": "Exit Anseong IC → Route 38 → Campus (~22km)" },
-        { "icon": "🚗", "label": "Jungbu", "value": "Exit Iljuk IC → Route 38 → Campus (~10km)" },
-        { "icon": "🚌", "label": "Bus", "value": "Gangnam Station → Bus 4402 → Dong-A Arts Univ. stop" }
+        {
+          "icon": "🚗",
+          "label": "Gyeongbu",
+          "value": "Exit Anseong IC → Route 38 → Campus (~22km)"
+        },
+        {
+          "icon": "🚗",
+          "label": "Jungbu",
+          "value": "Exit Iljuk IC → Route 38 → Campus (~10km)"
+        },
+        {
+          "icon": "🚌",
+          "label": "Bus",
+          "value": "Gangnam Station → Bus 4402 → Dong-A Arts Univ. stop"
+        }
       ]
     },
     "privacy": {

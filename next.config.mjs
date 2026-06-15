@@ -38,6 +38,11 @@ const nextConfig = {
         hostname: 'www.figma.com',
         pathname: '/api/mcp/asset/**',
       },
+      {
+        // 더미/플레이스홀더 이미지 (로컬 확인용 — 실데이터 마이그레이션 후 제거 권장)
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
   },
 }
