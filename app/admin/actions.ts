@@ -27,6 +27,10 @@ import { logError } from '@/lib/server/logger'
 // 기존 Supabase 버킷명(work-thumbnails / ncr-thumbnails / ninc-images)을 그대로 prefix로 사용한다.
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getR2Client, R2_BUCKET, buildPublicUrl, extractKeyFromUrl } from '@/lib/r2/client'
+import { processImage, replaceExt } from '@/lib/server/image'
+
+// 업로드 객체는 UUID 키라 내용이 불변 → 1년 immutable 캐시로 origin 부하 절감
+const IMAGE_CACHE_CONTROL = 'public, max-age=31536000, immutable'
 
 // ── 반환 타입 ─────────────────────────────────────────────
 export type ActionResult = { success: true; redirectTo?: string } | { error: string }
@@ -105,17 +109,17 @@ async function uploadToStorage(
   file: File
 ): Promise<string | null> {
   void supabase // R2 경로에서는 미사용 (시그니처 호환용)
-  const key = `${bucket}/${path}`
+  // webp 변환·리사이즈 후 확장자를 결과 포맷으로 교체 (예: .png → .webp)
+  const processed = await processImage(file)
+  const key = `${bucket}/${replaceExt(path, processed.ext)}`
   try {
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
     await getR2Client().send(
       new PutObjectCommand({
         Bucket: R2_BUCKET,
         Key: key,
-        Body: buffer,
-        ContentType: file.type || 'image/webp',
+        Body: processed.buffer,
+        ContentType: processed.contentType,
+        CacheControl: IMAGE_CACHE_CONTROL,
       })
     )
 
@@ -191,19 +195,19 @@ export async function uploadArticleImage(
   const fileErr = validateImage(file)
   if (fileErr) return { error: fileErr }
 
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'webp'
-  // 본문 인라인 이미지도 R2로 업로드 (prefix: ncr-thumbnails/content/)
-  const key = `ncr-thumbnails/content/${crypto.randomUUID()}.${ext}`
+  // 본문 인라인 이미지도 webp 변환 후 R2로 업로드 (prefix: ncr-thumbnails/content/)
+  const processed = await processImage(file)
+  const key = `ncr-thumbnails/content/${crypto.randomUUID()}.${processed.ext}`
 
   // 실제 스토리지 오류 메시지를 그대로 노출 (권한/자격증명 등 진단용)
   try {
-    const buffer = Buffer.from(await file.arrayBuffer())
     await getR2Client().send(
       new PutObjectCommand({
         Bucket: R2_BUCKET,
         Key: key,
-        Body: buffer,
-        ContentType: file.type || 'image/webp',
+        Body: processed.buffer,
+        ContentType: processed.contentType,
+        CacheControl: IMAGE_CACHE_CONTROL,
       })
     )
     return { url: buildPublicUrl(key) }
