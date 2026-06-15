@@ -32,7 +32,8 @@ export default function ShowcaseClient({
 
   // 동시 요청/경쟁 상태 방지용 토큰
   const reqId = useRef(0)
-  const loadingRef = useRef(false)
+  // 어떤 로드든 진행 중이면 true → 리셋/추가로드 동시 실행(경쟁) 차단
+  const busyRef = useRef(false)
   const isFirst = useRef(true)
   const sentinelRef = useRef<HTMLDivElement>(null)
 
@@ -45,6 +46,9 @@ export default function ShowcaseClient({
       return // 최초 마운트는 서버에서 받은 initialWorks 사용
     }
     const token = ++reqId.current
+    // 리셋이 진행되는 동안 무한스크롤 loadMore 가 끼어들어
+    // 필터 적용 전 목록 위에 결과를 덧붙이는 경쟁을 차단
+    busyRef.current = true
     setLoading(true)
     const timer = setTimeout(async () => {
       const res = await loadShowcaseWorksAction({
@@ -59,14 +63,15 @@ export default function ShowcaseClient({
       setItems(res.items)
       setHasMore(res.hasMore)
       setLoading(false)
+      busyRef.current = false
     }, 300)
     return () => clearTimeout(timer)
   }, [activeFilter, query, locale, seed, pageSize])
 
   // 다음 페이지 로드
   const loadMore = useCallback(async () => {
-    if (loadingRef.current || !hasMore) return
-    loadingRef.current = true
+    if (busyRef.current || !hasMore) return
+    busyRef.current = true
     const token = ++reqId.current
     setLoading(true)
     const res = await loadShowcaseWorksAction({
@@ -78,13 +83,14 @@ export default function ShowcaseClient({
       limit: pageSize,
     })
     if (token !== reqId.current) {
-      loadingRef.current = false
+      // 리셋 등 더 최신 요청이 우선 → 결과 폐기.
+      // busy 해제는 리셋 쪽에서 담당하므로 여기서 풀지 않는다.
       return
     }
     setItems((prev) => [...prev, ...res.items])
     setHasMore(res.hasMore)
     setLoading(false)
-    loadingRef.current = false
+    busyRef.current = false
   }, [hasMore, locale, seed, activeFilter, query, items.length, pageSize])
 
   // 무한 스크롤 — 센티넬 관찰
