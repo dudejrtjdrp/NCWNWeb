@@ -251,3 +251,59 @@ export function LoadingSpinner() {
     </div>
   )
 }
+
+/**
+ * 공통 모달
+ * - 게시물 추가/수정 폼을 감싸는 오버레이 컨테이너
+ * - ESC 키 / 배경 클릭으로 닫기, 열려 있는 동안 body 스크롤 잠금
+ * - 내부 콘텐츠는 자체 스크롤(max-height) 처리
+ */
+export function Modal({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[1000] flex items-start justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 sm:p-6 md:p-10 animate-in fade-in duration-150"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="relative w-full max-w-3xl my-auto rounded-2xl bg-nwcn-dark shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="닫기"
+          className="absolute -top-3 -right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-nwcn-dark border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-colors shadow-lg"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        {children}
+      </div>
+    </div>
+  )
+}

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveAward, updateAward, deleteAward } from '../actions'
-import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
@@ -144,9 +144,9 @@ export default function AwardsTab() {
         </button>
       </div>
 
-      {(showForm || editingId) && (
-        <AwardForm award={editingAward} onSuccess={handleSuccess} onCancel={handleClose} />
-      )}
+      <Modal open={showForm || !!editingId} onClose={handleClose}>
+        <AwardForm key={editingId ?? 'new'} award={editingAward} onSuccess={handleSuccess} onCancel={handleClose} />
+      </Modal>
 
       {loadingList ? <LoadingSpinner /> : awards.length === 0 ? (
         <p className="font-body text-sm text-white/20 text-center py-8">등록된 수상 내역이 없습니다.</p>
@@ -154,15 +154,23 @@ export default function AwardsTab() {
         <div className="space-y-2">
           {awards.map((a) => (
             <div key={a.id} className="flex items-center gap-4 bg-white/3 border border-white/8 rounded-xl px-4 py-3">
-              <div className="flex-1 min-w-0">
+              <button
+                type="button"
+                onClick={() => window.open(`/ninc/awards/${a.id}`, '_blank', 'noopener,noreferrer')}
+                title="상세 페이지 열기 (새 탭)"
+                className="group flex-1 min-w-0 text-left"
+              >
                 <div className="flex items-center gap-2">
-                  <p className="font-body text-sm font-semibold text-white truncate">{a.competition}</p>
+                  <p className="font-body text-sm font-semibold text-white truncate group-hover:text-nwcn-green transition-colors">{a.competition}</p>
                   {a.competition_en && (
                     <span className="flex-shrink-0 px-1.5 py-0.5 bg-blue-500/15 border border-blue-500/25 rounded text-[10px] font-body text-blue-400">EN</span>
                   )}
+                  <svg className="flex-shrink-0 opacity-0 group-hover:opacity-60 transition-opacity" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
                 </div>
                 <p className="font-body text-xs text-white/30">{a.award_name} · {a.winner ?? '팀 수상'} · {a.year}</p>
-              </div>
+              </button>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                   onClick={() => { setShowForm(false); setEditingId(a.id) }}

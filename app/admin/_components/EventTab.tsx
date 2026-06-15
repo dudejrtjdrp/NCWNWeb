@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveEvent, updateEvent, deleteEvent } from '../actions'
-import { Label, Input, Textarea, Sel, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { Label, Input, Textarea, Sel, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
@@ -139,9 +139,9 @@ export default function EventTab() {
         </button>
       </div>
 
-      {(showForm || editingId) && (
-        <EventForm event={editingEvent} onSuccess={handleSuccess} onCancel={handleClose} />
-      )}
+      <Modal open={showForm || !!editingId} onClose={handleClose}>
+        <EventForm key={editingId ?? 'new'} event={editingEvent} onSuccess={handleSuccess} onCancel={handleClose} />
+      </Modal>
 
       {loadingList ? <LoadingSpinner /> : events.length === 0 ? (
         <p className="font-body text-sm text-white/20 text-center py-8">등록된 이벤트가 없습니다.</p>

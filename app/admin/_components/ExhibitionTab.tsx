@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveExhibition, updateExhibition, deleteExhibition } from '../actions'
-import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import type { ActionResult } from '../actions'
@@ -122,9 +122,9 @@ export default function ExhibitionTab() {
         </button>
       </div>
 
-      {(showForm || editingId) && (
-        <ExhibitionForm exhibition={editingExhibition} onSuccess={handleSuccess} onCancel={handleClose} />
-      )}
+      <Modal open={showForm || !!editingId} onClose={handleClose}>
+        <ExhibitionForm key={editingId ?? 'new'} exhibition={editingExhibition} onSuccess={handleSuccess} onCancel={handleClose} />
+      </Modal>
 
       {loadingList ? <LoadingSpinner /> : exhibitions.length === 0 ? (
         <p className="font-body text-sm text-white/20 text-center py-8">등록된 전시가 없습니다.</p>

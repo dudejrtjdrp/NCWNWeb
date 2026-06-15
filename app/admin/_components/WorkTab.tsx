@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveWork, updateWork, deleteWork, saveWorkFilterTags } from '../actions'
-import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner } from './admin-ui'
+import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
@@ -292,13 +292,14 @@ export default function WorkTab() {
         </button>
       </div>
 
-      {(showForm || editingId) && (
+      <Modal open={showForm || !!editingId} onClose={handleClose}>
         <WorkForm
+          key={editingId ?? 'new'}
           work={editingWork}
           onSuccess={handleSuccess}
           onCancel={handleClose}
         />
-      )}
+      </Modal>
 
       {loadingList ? <LoadingSpinner /> : works.length === 0 ? (
         <p className="font-body text-sm text-white/20 text-center py-8">등록된 작업물이 없습니다.</p>
@@ -310,15 +311,23 @@ export default function WorkTab() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={w.thumbnail_url} alt={w.title} className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
               )}
-              <div className="flex-1 min-w-0">
+              <button
+                type="button"
+                onClick={() => window.open(`/work/${w.id}`, '_blank', 'noopener,noreferrer')}
+                title="상세 페이지 열기 (새 탭)"
+                className="group flex-1 min-w-0 text-left"
+              >
                 <div className="flex items-center gap-2">
-                  <p className="font-body text-sm font-semibold text-white truncate">{w.title}</p>
+                  <p className="font-body text-sm font-semibold text-white truncate group-hover:text-nwcn-green transition-colors">{w.title}</p>
                   {w.title_en && (
                     <span className="flex-shrink-0 px-1.5 py-0.5 bg-blue-500/15 border border-blue-500/25 rounded text-[10px] font-body text-blue-400">EN</span>
                   )}
+                  <svg className="flex-shrink-0 opacity-0 group-hover:opacity-60 transition-opacity" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
                 </div>
                 <p className="font-body text-xs text-white/30">{w.author} · {w.year} · {w.tech_stack.join(', ')}</p>
-              </div>
+              </button>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button
                   onClick={() => { setShowForm(false); setEditingId(w.id) }}
