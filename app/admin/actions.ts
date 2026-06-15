@@ -23,11 +23,10 @@ import {
   checkTextLength,
 } from '@/lib/server/validation'
 import { logError } from '@/lib/server/logger'
-// NOTE: 이미지 스토리지는 현재 Supabase Storage를 사용한다.
-// Cloudflare R2 코드(lib/r2/client.ts)는 추후 마이그레이션을 위해 보존되어 있으며,
-// R2 자격증명이 .env.local에 설정되면 아래 업로드/삭제 헬퍼를 R2 구현으로 교체한다.
-// import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
-// import { getR2Client, R2_BUCKET, buildPublicUrl, extractKeyFromUrl } from '@/lib/r2/client'
+// 이미지 스토리지: Cloudflare R2 (S3 호환). 단일 버킷(R2_BUCKET) + key prefix 모델.
+// 기존 Supabase 버킷명(work-thumbnails / ncr-thumbnails / ninc-images)을 그대로 prefix로 사용한다.
+import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { getR2Client, R2_BUCKET, buildPublicUrl, extractKeyFromUrl } from '@/lib/r2/client'
 
 // ── 반환 타입 ─────────────────────────────────────────────
 export type ActionResult = { success: true; redirectTo?: string } | { error: string }
@@ -86,16 +85,17 @@ async function requireAuth(supabase: ReturnType<typeof createClient>): Promise<{
   return null
 }
 
-// ── Storage 업로드 헬퍼 (Supabase Storage) ─────────────────
+// ── Storage 업로드 헬퍼 (Cloudflare R2) ───────────────────
 //
-// 버킷: work-thumbnails / ncr-thumbnails / ninc-images
-// (Supabase Dashboard → Storage에 public 버킷으로 존재해야 한다.)
+// 단일 R2 버킷(R2_BUCKET) + key prefix 모델.
+// 인자 `bucket`은 prefix로 사용되며, 실제 object key = `${bucket}/${path}` 가 된다.
+// (예: work-thumbnails/2025/uuid.webp → 공개 URL: R2_PUBLIC_URL/work-thumbnails/2025/uuid.webp)
 //
-// ※ 추후 Cloudflare R2로 이전 시 이 두 헬퍼만 lib/r2/client.ts 기반 구현으로
-//   교체하면 호출부는 수정 없이 동작한다.
+// 호출부 시그니처 호환을 위해 첫 인자로 supabase 클라이언트를 그대로 받지만,
+// R2 업로드/삭제에는 사용하지 않는다(향후 호출부 정리 시 제거 가능).
 
 /**
- * Supabase Storage에 파일을 업로드하고 public URL을 반환합니다.
+ * R2에 파일을 업로드하고 공개 URL을 반환합니다.
  * 실패 시 null을 반환합니다 (호출부에서 처리).
  */
 async function uploadToStorage(
@@ -104,48 +104,48 @@ async function uploadToStorage(
   path: string,
   file: File
 ): Promise<string | null> {
+  void supabase // R2 경로에서는 미사용 (시그니처 호환용)
+  const key = `${bucket}/${path}`
   try {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(path, buffer, {
-        upsert: true,
-        contentType: file.type || 'image/webp',
+    await getR2Client().send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: file.type || 'image/webp',
       })
+    )
 
-    if (error) {
-      logError(`[Storage] ${bucket}/${path} 업로드 실패:`, error.message)
-      return null
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path)
-    return publicUrl
+    return buildPublicUrl(key)
   } catch (err) {
-    logError(`[Storage] ${bucket}/${path} 예외:`, err)
+    logError(`[R2] ${key} 업로드 실패:`, err)
     return null
   }
 }
 
 /**
- * Supabase Storage에서 public URL로부터 경로를 추출해 파일을 삭제합니다.
+ * 공개 URL로부터 R2 object key를 추출해 파일을 삭제합니다.
  * update 시 기존 파일 정리에 사용 (스토리지 비용 절감).
+ * R2 URL이 아니거나(레거시 Supabase URL 등) 다른 prefix이면 안전하게 건너뜁니다.
  */
 async function deleteFromStorage(
   supabase: ReturnType<typeof createClient>,
   bucket: string,
   publicUrl: string
 ): Promise<void> {
+  void supabase // R2 경로에서는 미사용 (시그니처 호환용)
   try {
-    const marker = `/storage/v1/object/public/${bucket}/`
-    const idx = publicUrl.indexOf(marker)
-    if (idx === -1) return // 해당 버킷 URL이 아니면(레거시 R2 URL 등) 건너뜀
-    const filePath = decodeURIComponent(publicUrl.slice(idx + marker.length))
-    await supabase.storage.from(bucket).remove([filePath])
+    const key = extractKeyFromUrl(publicUrl)
+    if (!key || !key.startsWith(`${bucket}/`)) return // 다른 도메인/prefix이면 건너뜀
+    await getR2Client().send(
+      new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: key })
+    )
   } catch (err) {
     // 삭제 실패는 치명적이지 않으므로 경고만 기록
-    logError(`[Storage] 기존 파일 삭제 실패 (bucket: ${bucket})`, err)
+    logError(`[R2] 기존 파일 삭제 실패 (prefix: ${bucket})`, err)
   }
 }
 
@@ -192,20 +192,21 @@ export async function uploadArticleImage(
   if (fileErr) return { error: fileErr }
 
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'webp'
-  const path = `content/${crypto.randomUUID()}.${ext}`
+  // 본문 인라인 이미지도 R2로 업로드 (prefix: ncr-thumbnails/content/)
+  const key = `ncr-thumbnails/content/${crypto.randomUUID()}.${ext}`
 
-  // 실제 스토리지 오류 메시지를 그대로 노출 (버킷 부재/권한 등 진단용)
+  // 실제 스토리지 오류 메시지를 그대로 노출 (권한/자격증명 등 진단용)
   try {
     const buffer = Buffer.from(await file.arrayBuffer())
-    const { data, error } = await supabase.storage
-      .from('ncr-thumbnails')
-      .upload(path, buffer, { upsert: true, contentType: file.type || 'image/webp' })
-    if (error) {
-      logError('[uploadArticleImage] 업로드 실패', error.message)
-      return { error: `이미지 업로드 실패: ${error.message}` }
-    }
-    const { data: { publicUrl } } = supabase.storage.from('ncr-thumbnails').getPublicUrl(data.path)
-    return { url: publicUrl }
+    await getR2Client().send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+        Body: buffer,
+        ContentType: file.type || 'image/webp',
+      })
+    )
+    return { url: buildPublicUrl(key) }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     logError('[uploadArticleImage] 예외', msg)
