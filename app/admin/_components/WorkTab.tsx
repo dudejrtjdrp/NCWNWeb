@@ -3,13 +3,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveWork, updateWork, deleteWork, saveWorkFilterTags } from '../actions'
-import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
+import { Label, Input, Textarea, FileDropZone, MultiImageDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
 import type { ActionResult } from '../actions'
 
 const DEFAULT_WORK_FILTER_TAGS = ['Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
+
+// 제작물 종류 카테고리(단일 선택) — 상세 페이지 템플릿과 1:1 대응
+type WorkType = 'video' | 'design' | '3d'
+const WORK_TYPE_OPTIONS: { value: WorkType; label: string; hint: string }[] = [
+  { value: 'video',  label: '영상',   hint: '썸네일 + 메인 영상(유튜브 링크)' },
+  { value: 'design', label: '디자인', hint: '썸네일 + 디자인 이미지 업로드' },
+  { value: '3d',     label: '3D',     hint: '썸네일 + 3D 임베드 링크' },
+]
+const MAX_WORK_IMAGES = 10
 
 interface RelatedLink { label: string; url: string }
 
@@ -19,8 +28,12 @@ interface WorkItem {
   title_en: string | null
   author: string
   year: number
+  type: WorkType
   tech_stack: string[]
   thumbnail_url: string | null
+  video_embed: string | null
+  model_embed: string | null
+  images: string[] | null
   description: string | null
   description_en: string | null
   related_links: RelatedLink[] | null
@@ -45,6 +58,10 @@ function WorkForm({
   const [newTag, setNewTag] = useState('')
   const [relatedLinks, setRelatedLinks] = useState<RelatedLink[]>(work?.related_links ?? [])
   const thumbnailRef = useRef<File | null>(null)
+  // 제작물 종류 카테고리(단일 선택)
+  const [workType, setWorkType] = useState<WorkType>(work?.type ?? 'design')
+  // 디자인 갤러리 이미지 상태(유지 URL + 새 파일)
+  const galleryRef = useRef<{ kept: string[]; files: File[] }>({ kept: work?.images ?? [], files: [] })
 
   const addRelatedLink = () => setRelatedLinks((prev) => [...prev, { label: '', url: '' }])
   const updateRelatedLink = (i: number, field: keyof RelatedLink, val: string) =>
@@ -96,6 +113,16 @@ function WorkForm({
       .map((l) => ({ label: l.label.trim(), url: l.url.trim() }))
       .filter((l) => l.url)
     formData.set('related_links', JSON.stringify(cleanedLinks))
+
+    // 제작물 종류 카테고리
+    formData.set('type', workType)
+
+    // 디자인 타입: 갤러리 이미지(유지 URL + 새 파일) 직렬화/첨부
+    formData.delete('images')
+    if (workType === 'design') {
+      formData.set('kept_images', JSON.stringify(galleryRef.current.kept))
+      galleryRef.current.files.forEach((f) => formData.append('images', f))
+    }
     setResult(null)
     startTransition(async () => {
       const res = work
@@ -115,11 +142,40 @@ function WorkForm({
           <div><Label>제작 연도 *</Label><Input name="year" type="number" defaultValue={work?.year ?? new Date().getFullYear()} required /></div>
         </div>
 
+        {/* 제작물 종류 카테고리 (단일 선택) */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>제작물 종류 *</Label>
+            <span className="font-body text-[11px] text-white/25">하나만 선택 · 종류별 입력/상세 화면이 달라집니다</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {WORK_TYPE_OPTIONS.map((opt) => {
+              const active = workType === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setWorkType(opt.value)}
+                  className={[
+                    'flex flex-col items-center gap-1 px-3 py-3 rounded-xl border transition-all text-center',
+                    active
+                      ? 'bg-nwcn-green/15 border-nwcn-green text-white'
+                      : 'border-white/10 text-white/40 hover:border-white/25 hover:text-white/70',
+                  ].join(' ')}
+                >
+                  <span className="font-body text-sm font-semibold">{opt.label}</span>
+                  <span className="font-body text-[10px] leading-tight opacity-70">{opt.hint}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
         {/* 카테고리 태그 */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label>카테고리 태그</Label>
-            <span className="font-body text-[11px] text-white/25">유형관리 탭에서 마스터 목록 편집</span>
+            <span className="font-body text-[11px] text-white/25">여러 개 선택 가능 · 유형관리 탭에서 마스터 목록 편집</span>
           </div>
           {!tagsLoaded ? (
             <div className="py-2"><LoadingSpinner /></div>
@@ -234,8 +290,49 @@ function WorkForm({
 
         <div>
           <Label>썸네일 이미지{work ? ' (새 파일 선택 시 교체)' : ''}</Label>
-          <FileDropZone accept="image/*" label="대표 썸네일 이미지 (권장: 4:3)" initialUrl={work?.thumbnail_url} onFiles={(files) => { thumbnailRef.current = files[0] }} />
+          <FileDropZone accept="image/*" label="대표 썸네일 이미지 (목록 카드용, 권장: 4:3)" initialUrl={work?.thumbnail_url} onFiles={(files) => { thumbnailRef.current = files[0] }} />
         </div>
+
+        {/* ── 제작물 종류별 입력 필드 ── */}
+        {workType === 'video' && (
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>메인 영상 (유튜브 링크)</Label>
+              <span className="font-body text-[11px] text-white/25">상세 페이지에 임베드로 바로 재생됩니다</span>
+            </div>
+            <Input
+              name="video_embed"
+              defaultValue={work?.video_embed ?? ''}
+              placeholder="https://www.youtube.com/watch?v=... 또는 https://youtu.be/..."
+            />
+          </div>
+        )}
+
+        {workType === 'design' && (
+          <div>
+            <Label>디자인 이미지 (최대 {MAX_WORK_IMAGES}장)</Label>
+            <MultiImageDropZone
+              initialUrls={work?.images ?? []}
+              max={MAX_WORK_IMAGES}
+              onChange={(state) => { galleryRef.current = state }}
+            />
+          </div>
+        )}
+
+        {workType === '3d' && (
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>3D 임베드 링크</Label>
+              <span className="font-body text-[11px] text-white/25">Sketchfab 등 iframe 임베드 URL</span>
+            </div>
+            <Input
+              name="model_embed"
+              defaultValue={work?.model_embed ?? ''}
+              placeholder="https://sketchfab.com/models/.../embed"
+            />
+          </div>
+        )}
+
         <Feedback result={result} />
         <div className="flex gap-3">
           <button type="button" onClick={onCancel}
@@ -263,7 +360,7 @@ export default function WorkTab() {
     const supabase = createClient()
     const { data } = await supabase
       .from('showcase_works')
-      .select('id, title, title_en, author, year, tech_stack, thumbnail_url, description, description_en, related_links, created_at')
+      .select('id, title, title_en, author, year, type, tech_stack, thumbnail_url, video_embed, model_embed, images, description, description_en, related_links, created_at')
       .order('created_at', { ascending: false })
       .limit(50)
     setWorks((data ?? []) as WorkItem[])
@@ -326,7 +423,10 @@ export default function WorkTab() {
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
                   </svg>
                 </div>
-                <p className="font-body text-xs text-white/30">{w.author} · {w.year} · {w.tech_stack.join(', ')}</p>
+                <p className="font-body text-xs text-white/30">
+                  <span className="text-nwcn-green/70">{WORK_TYPE_OPTIONS.find((o) => o.value === w.type)?.label ?? w.type}</span>
+                  {' · '}{w.author} · {w.year}{w.tech_stack.length > 0 ? ` · ${w.tech_stack.join(', ')}` : ''}
+                </p>
               </button>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <button

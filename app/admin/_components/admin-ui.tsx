@@ -145,6 +145,133 @@ export function FileDropZone({
   )
 }
 
+/**
+ * 다중 이미지 업로드 존 (디자인 작업물 갤러리용)
+ * - 기존 저장된 이미지(initialUrls)는 미리보기로 표시하고 개별 삭제 가능(kept)
+ * - 새로 추가한 파일(files)은 blob 미리보기로 표시
+ * - kept + files 총합이 max를 넘지 않도록 추가 버튼을 비활성화
+ * - 상태 변경 시 onChange({ kept, files }) 로 부모에 전달
+ */
+export function MultiImageDropZone({
+  initialUrls = [],
+  max = 10,
+  onChange,
+}: {
+  initialUrls?: string[]
+  max?: number
+  onChange: (state: { kept: string[]; files: File[] }) => void
+}) {
+  const [kept, setKept] = useState<string[]>(initialUrls)
+  const [files, setFiles] = useState<File[]>([])
+  const [dragging, setDragging] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // onChange를 ref에 보관 → 부모가 매 렌더 새 함수를 넘겨도 effect 루프를 막는다.
+  const onChangeRef = useRef(onChange)
+  useEffect(() => { onChangeRef.current = onChange })
+
+  // 새 파일 blob 미리보기 URL (메모리 정리 포함)
+  const [previews, setPreviews] = useState<string[]>([])
+  useEffect(() => {
+    const urls = files.map((f) => URL.createObjectURL(f))
+    setPreviews(urls)
+    return () => { urls.forEach((u) => URL.revokeObjectURL(u)) }
+  }, [files])
+
+  useEffect(() => {
+    onChangeRef.current({ kept, files })
+  }, [kept, files])
+
+  const total = kept.length + files.length
+  const remaining = Math.max(0, max - total)
+
+  const addFiles = (list: FileList) => {
+    const incoming = Array.from(list).filter((f) => f.type.startsWith('image/'))
+    if (incoming.length === 0) return
+    setFiles((prev) => [...prev, ...incoming].slice(0, Math.max(0, max - kept.length)))
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragging(false)
+    if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files)
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        {/* 기존 이미지 */}
+        {kept.map((url, i) => (
+          <div key={`kept-${url}`} className="relative aspect-square rounded-xl overflow-hidden border border-white/10 bg-black/20">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={`이미지 ${i + 1}`} className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => setKept((prev) => prev.filter((u) => u !== url))}
+              aria-label="이미지 삭제"
+              className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-black/60 text-white/80 hover:bg-red-500/80 hover:text-white transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        ))}
+
+        {/* 새로 추가한 파일 */}
+        {previews.map((url, i) => (
+          <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden border border-nwcn-green/40 bg-black/20">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={`새 이미지 ${i + 1}`} className="w-full h-full object-cover" />
+            <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-nwcn-green/80 text-[9px] font-body font-semibold text-nwcn-text-default">NEW</span>
+            <button
+              type="button"
+              onClick={() => setFiles((prev) => prev.filter((_, idx) => idx !== i))}
+              aria-label="이미지 삭제"
+              className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-full bg-black/60 text-white/80 hover:bg-red-500/80 hover:text-white transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        ))}
+
+        {/* 추가 버튼 */}
+        {remaining > 0 && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors ${
+              dragging ? 'border-nwcn-green bg-nwcn-green/5' : 'border-white/15 hover:border-white/30'
+            }`}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" opacity="0.4">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span className="font-body text-[10px] text-white/30">추가</span>
+          </button>
+        )}
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => { if (e.target.files?.length) addFiles(e.target.files); e.target.value = '' }}
+      />
+      <p className="font-body text-[11px] text-white/30">
+        {total}/{max}장 · 이미지 파일만(PDF 제외) · 장당 최대 10MB · 클릭 또는 드래그
+      </p>
+    </div>
+  )
+}
+
 export function Feedback({ result }: { result: ActionResult | null }) {
   if (!result) return null
   if ('success' in result) {

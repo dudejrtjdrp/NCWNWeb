@@ -16,6 +16,7 @@ import { getWorkById, getRelatedWorks, type WorkType } from '@/lib/supabase/quer
 import { getTranslations } from 'next-intl/server'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
+import { normalizeVideoEmbed } from '@/lib/youtube'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
@@ -181,7 +182,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
             {/* 뷰어 */}
             <div className="lg:col-span-3">
               {work.type === 'video' && (
-                <VideoViewer embed={work.video_embed} title={work.title} placeholder={t('videoPlaceholder')} />
+                <VideoViewer embed={normalizeVideoEmbed(work.video_embed)} title={work.title} placeholder={t('videoPlaceholder')} />
               )}
               {work.type === 'design' && (
                 <DesignViewer images={work.images ?? []} title={work.title} />

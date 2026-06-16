@@ -28,6 +28,7 @@ import { logError } from '@/lib/server/logger'
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getR2Client, R2_BUCKET, buildPublicUrl, extractKeyFromUrl } from '@/lib/r2/client'
 import { processImage, replaceExt } from '@/lib/server/image'
+import { normalizeVideoEmbed } from '@/lib/youtube'
 
 // 업로드 객체는 UUID 키라 내용이 불변 → 1년 immutable 캐시로 origin 부하 절감
 const IMAGE_CACHE_CONTROL = 'public, max-age=31536000, immutable'
@@ -159,6 +160,61 @@ function validateImage(file: File): string | null {
   return validateFileUpload(file, { maxSizeBytes: 10 * 1024 * 1024 })
 }
 
+// ── 작업물 카테고리(제작물 종류) ──────────────────────────
+// 단일 선택. 각 카테고리마다 상세 페이지 템플릿과 입력 필드가 달라진다.
+//   - video : 메인 영상(유튜브) 임베드
+//   - design: 디자인 이미지 갤러리 (PDF 제외)
+//   - 3d    : 3D 임베드(iframe)
+export const WORK_TYPES = ['video', 'design', '3d'] as const
+export type WorkType = (typeof WORK_TYPES)[number]
+
+function parseWorkType(raw: string | null): WorkType {
+  return WORK_TYPES.includes(raw as WorkType) ? (raw as WorkType) : 'design'
+}
+
+// 디자인 이미지: 최대 장수 / 장당 용량
+const MAX_WORK_IMAGES = 10
+const MAX_WORK_IMAGE_BYTES = 10 * 1024 * 1024 // 10MB (webp 변환으로 실제 저장 용량은 더 작음)
+
+/**
+ * 디자인 이미지 다중 업로드.
+ * - 이미지 형식만 허용(PDF 등 제외) · 장당 용량 검증
+ * - webp 변환 후 R2 업로드, 공개 URL 배열을 반환
+ * 실패(검증 오류) 시 { error } 를 반환한다.
+ */
+async function uploadWorkImages(
+  supabase: ReturnType<typeof createClient>,
+  files: File[],
+  year: number
+): Promise<{ urls: string[] } | { error: string }> {
+  const valid = files.filter((f) => f && f.size > 0).slice(0, MAX_WORK_IMAGES)
+  const urls: string[] = []
+  for (const file of valid) {
+    const fileErr = validateFileUpload(file, { maxSizeBytes: MAX_WORK_IMAGE_BYTES })
+    if (fileErr) return { error: `디자인 이미지 오류: ${fileErr}` }
+    const ext  = file.name.split('.').pop()?.toLowerCase() ?? 'webp'
+    const path = `${year}/gallery/${crypto.randomUUID()}.${ext}`
+    const url  = await uploadToStorage(supabase, 'work-thumbnails', path, file)
+    if (url) urls.push(url)
+  }
+  return { urls }
+}
+
+/** 폼에서 전달된 유지(kept) 이미지 URL 목록을 파싱한다. (http(s)만 허용, 최대 MAX_WORK_IMAGES) */
+function parseKeptImages(raw: string | null): string[] {
+  if (!raw) return []
+  try {
+    const arr = JSON.parse(raw)
+    if (!Array.isArray(arr)) return []
+    return arr
+      .map((x) => String(x ?? '').trim())
+      .filter((x) => /^https?:\/\//i.test(x))
+      .slice(0, MAX_WORK_IMAGES)
+  } catch {
+    return []
+  }
+}
+
 // ── 관련 링크 파싱 ────────────────────────────────────────
 // 폼에서 JSON 문자열(`[{label,url}]`)로 전달받아 검증·정규화한다.
 export interface RelatedLink { label: string; url: string }
@@ -236,6 +292,10 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
   const techRaw        = (formData.get('tech_stack')     as string)?.trim()
   const thumbnail      = formData.get('thumbnail')       as File | null
   const related_links  = parseRelatedLinks(formData.get('related_links') as string | null)
+  const type           = parseWorkType(formData.get('type') as string | null)
+  const videoEmbedRaw  = (formData.get('video_embed')    as string)?.trim()
+  const modelEmbedRaw  = (formData.get('model_embed')    as string)?.trim()
+  const imageFiles     = formData.getAll('images').filter((v): v is File => v instanceof File)
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
@@ -266,14 +326,32 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
     thumbnail_url = await uploadToStorage(supabase, 'work-thumbnails', path, thumbnail)
   }
 
+  // 카테고리(제작물 종류)별 미디어 데이터 — 선택된 타입에 해당하는 필드만 채운다.
+  let video_embed: string | null = null
+  let model_embed: string | null = null
+  let images: string[] = []
+
+  if (type === 'video') {
+    video_embed = normalizeVideoEmbed(videoEmbedRaw)
+  } else if (type === '3d') {
+    model_embed = modelEmbedRaw ? modelEmbedRaw.slice(0, 1000) : null
+  } else if (type === 'design') {
+    const uploaded = await uploadWorkImages(supabase, imageFiles, year)
+    if ('error' in uploaded) return { error: uploaded.error }
+    images = uploaded.urls
+  }
+
   const { error } = await supabase.from('showcase_works').insert({
-    title, author, year,
+    title, author, year, type,
     description:    description || null,
     title_en:       title_en || null,
     description_en: description_en || null,
     tech_stack,
     related_links,
     thumbnail_url,
+    video_embed,
+    model_embed,
+    images,
     view_count: 0,
   })
 
@@ -303,6 +381,11 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
   const techRaw        = (formData.get('tech_stack')     as string)?.trim()
   const thumbnail      = formData.get('thumbnail')       as File | null
   const related_links  = parseRelatedLinks(formData.get('related_links') as string | null)
+  const type           = parseWorkType(formData.get('type') as string | null)
+  const videoEmbedRaw  = (formData.get('video_embed')    as string)?.trim()
+  const modelEmbedRaw  = (formData.get('model_embed')    as string)?.trim()
+  const keptImages     = parseKeptImages(formData.get('kept_images') as string | null)
+  const imageFiles     = formData.getAll('images').filter((v): v is File => v instanceof File)
 
   if (!title)  return { error: '작품명은 필수입니다.' }
   if (!author) return { error: '작가명은 필수입니다.' }
@@ -325,7 +408,7 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
     : []
 
   const updateData: Record<string, unknown> = {
-    title, author, year, tech_stack, related_links,
+    title, author, year, type, tech_stack, related_links,
     description:    description || null,
     title_en:       title_en || null,
     description_en: description_en || null,
@@ -343,6 +426,35 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
     const path = `${year}/${crypto.randomUUID()}.${ext}`
     const url  = await uploadToStorage(supabase, 'work-thumbnails', path, thumbnail)
     if (url) updateData.thumbnail_url = url
+  }
+
+  // 카테고리(제작물 종류)별 미디어 데이터 — 선택된 타입의 필드만 갱신, 나머지는 비운다.
+  if (type === 'video') {
+    updateData.video_embed = normalizeVideoEmbed(videoEmbedRaw)
+    updateData.model_embed = null
+    updateData.images = []
+  } else if (type === '3d') {
+    updateData.model_embed = modelEmbedRaw ? modelEmbedRaw.slice(0, 1000) : null
+    updateData.video_embed = null
+    updateData.images = []
+  } else if (type === 'design') {
+    // 유지(kept) 이미지 + 새 업로드 이미지를 합쳐 최대 MAX_WORK_IMAGES 개
+    const uploaded = await uploadWorkImages(supabase, imageFiles, year)
+    if ('error' in uploaded) return { error: uploaded.error }
+    const finalImages = [...keptImages, ...uploaded.urls].slice(0, MAX_WORK_IMAGES)
+
+    // 제거된 기존 이미지는 스토리지에서 정리
+    const { data: existing } = await supabase
+      .from('showcase_works').select('images').eq('id', id).single()
+    const prevImages = Array.isArray(existing?.images) ? (existing!.images as string[]) : []
+    const removed = prevImages.filter((u) => !finalImages.includes(u))
+    for (const url of removed) {
+      await deleteFromStorage(supabase, 'work-thumbnails', url)
+    }
+
+    updateData.images = finalImages
+    updateData.video_embed = null
+    updateData.model_embed = null
   }
 
   const { error } = await supabase.from('showcase_works').update(updateData).eq('id', id)
@@ -363,11 +475,16 @@ export async function deleteWork(id: string): Promise<ActionResult> {
   const authError = await requireAuth(supabase)
   if (authError) return authError
 
-  // 스토리지 파일도 함께 삭제
+  // 스토리지 파일도 함께 삭제 (썸네일 + 디자인 갤러리 이미지)
   const { data: existing } = await supabase
-    .from('showcase_works').select('thumbnail_url').eq('id', id).single()
+    .from('showcase_works').select('thumbnail_url, images').eq('id', id).single()
   if (existing?.thumbnail_url) {
     await deleteFromStorage(supabase, 'work-thumbnails', existing.thumbnail_url)
+  }
+  if (Array.isArray(existing?.images)) {
+    for (const url of existing!.images as string[]) {
+      await deleteFromStorage(supabase, 'work-thumbnails', url)
+    }
   }
 
   const { error } = await supabase.from('showcase_works').delete().eq('id', id)
