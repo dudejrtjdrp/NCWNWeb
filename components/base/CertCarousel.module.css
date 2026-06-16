@@ -7,6 +7,9 @@
   height: 720px;
   overflow: hidden;
   cursor: grab;
+  user-select: none;        /* Windows 텍스트 선택 방지 */
+  -webkit-user-select: none;
+  touch-action: pan-y;      /* 세로 스크롤 허용, 가로 드래그는 JS로 처리 */
 }
 .section:active { cursor: grabbing; }
 

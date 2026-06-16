@@ -62,6 +62,7 @@ export default function CertificateSlider({
 
   /** 마우스 드래그 스크롤 핸들러 */
   const onMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault() // Windows에서 텍스트 선택/기본 드래그 방지
     setIsDragging(true)
     dragStartX.current = e.pageX
     scrollStartX.current = scrollRef.current?.scrollLeft ?? 0

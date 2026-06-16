@@ -51,19 +51,29 @@ export default function ShowcaseClient({
     busyRef.current = true
     setLoading(true)
     const timer = setTimeout(async () => {
-      const res = await loadShowcaseWorksAction({
-        locale,
-        seed,
-        tag: activeFilter,
-        q: query,
-        offset: 0,
-        limit: pageSize,
-      })
-      if (token !== reqId.current) return // 더 최신 요청이 있으면 폐기
-      setItems(res.items)
-      setHasMore(res.hasMore)
-      setLoading(false)
-      busyRef.current = false
+      try {
+        const res = await loadShowcaseWorksAction({
+          locale,
+          seed,
+          tag: activeFilter,
+          q: query,
+          offset: 0,
+          limit: pageSize,
+        })
+        if (token !== reqId.current) return // 더 최신 요청이 있으면 폐기
+        setItems(res.items)
+        setHasMore(res.hasMore)
+      } catch (err) {
+        console.error('[ShowcaseClient:filter]', err)
+        if (token !== reqId.current) return
+        setItems([])
+        setHasMore(false)
+      } finally {
+        if (token === reqId.current) {
+          setLoading(false)
+          busyRef.current = false
+        }
+      }
     }, 300)
     return () => clearTimeout(timer)
   }, [activeFilter, query, locale, seed, pageSize])
@@ -74,23 +84,37 @@ export default function ShowcaseClient({
     busyRef.current = true
     const token = ++reqId.current
     setLoading(true)
-    const res = await loadShowcaseWorksAction({
-      locale,
-      seed,
-      tag: activeFilter,
-      q: query,
-      offset: items.length,
-      limit: pageSize,
-    })
-    if (token !== reqId.current) {
-      // 리셋 등 더 최신 요청이 우선 → 결과 폐기.
-      // busy 해제는 리셋 쪽에서 담당하므로 여기서 풀지 않는다.
-      return
+    try {
+      const res = await loadShowcaseWorksAction({
+        locale,
+        seed,
+        tag: activeFilter,
+        q: query,
+        offset: items.length,
+        limit: pageSize,
+      })
+      if (token !== reqId.current) {
+        // 리셋 등 더 최신 요청이 우선 → 결과 폐기.
+        // busy 해제는 리셋 쪽에서 담당하므로 여기서 풀지 않는다.
+        return
+      }
+      // 빈 페이지가 돌아오면 종료 (RPC offset 버그 방어)
+      if (res.items.length === 0) {
+        setHasMore(false)
+        return
+      }
+      setItems((prev) => [...prev, ...res.items])
+      setHasMore(res.hasMore)
+    } catch (err) {
+      console.error('[ShowcaseClient:loadMore]', err)
+      if (token !== reqId.current) return
+      setHasMore(false)
+    } finally {
+      if (token === reqId.current) {
+        setLoading(false)
+        busyRef.current = false
+      }
     }
-    setItems((prev) => [...prev, ...res.items])
-    setHasMore(res.hasMore)
-    setLoading(false)
-    busyRef.current = false
   }, [hasMore, locale, seed, activeFilter, query, items.length, pageSize])
 
   // 무한 스크롤 — 센티넬 관찰

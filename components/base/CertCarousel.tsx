@@ -158,6 +158,7 @@ export default function CertCarousel() {
     loop()
 
     const onDown = (e: PointerEvent) => {
+      e.preventDefault() // Windows에서 텍스트 선택/기본 드래그 방지
       dragging.current = true
       lastX.current    = e.clientX
       velocity.current = 0
@@ -165,6 +166,7 @@ export default function CertCarousel() {
     }
     const onMove = (e: PointerEvent) => {
       if (!dragging.current) return
+      e.preventDefault() // 드래그 중 스크롤 충돌 방지
       const dx          = e.clientX - lastX.current
       lastX.current     = e.clientX
       const dPos        = -dx / DRAG_PX
@@ -182,8 +184,8 @@ export default function CertCarousel() {
       }
     }
 
-    section.addEventListener('pointerdown',   onDown)
-    section.addEventListener('pointermove',   onMove)
+    section.addEventListener('pointerdown',   onDown,  { passive: false })
+    section.addEventListener('pointermove',   onMove,  { passive: false })
     section.addEventListener('pointerup',     onUp)
     section.addEventListener('pointercancel', onUp)
     section.addEventListener('wheel', onWheel, { passive: false })
