@@ -24,18 +24,18 @@ function NavigationListener() {
       // 여기서 showLoading()(setState)를 동기 호출하면
       // "useInsertionEffect must not schedule updates" 경고가 발생하므로
       // 마이크로태스크로 지연시켜 insertion effect 단계 밖에서 상태를 갱신한다.
-      queueMicrotask(() => showLoading())
+      queueMicrotask(() => showLoading('navigation'))
       return original(...args)
     }
     return () => { history.pushState = original }
   }, [showLoading])
 
   // pathname / searchParams 변경 = 내비게이션 완료
+  // 고정 키 'navigation' 이므로 pushState가 여러 번 불려도 1개로 취급되고,
+  // 경로 변경 시 한 번의 hide로 확실히 해제된다.
   useEffect(() => {
-    hideLoading()
-  // pathname/searchParams가 바뀔 때마다 실행
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams])
+    hideLoading('navigation')
+  }, [pathname, searchParams, hideLoading])
 
   return null
 }

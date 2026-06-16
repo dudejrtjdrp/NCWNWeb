@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveExhibition, updateExhibition, deleteExhibition } from '../actions'
 import { Label, Input, Textarea, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
@@ -86,20 +86,24 @@ export default function ExhibitionTab() {
   const [showForm, setShowForm] = useState(false)
 
   const { showLoading, hideLoading } = useLoading()
+  const loadingKey = useId()
 
   const fetchExhibitions = useCallback(async () => {
-    showLoading()
+    showLoading(loadingKey)
     setLoadingList(true)
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('exhibitions')
-      .select('id, title, year, theme, description, poster_url, link')
-      .order('year', { ascending: false })
-      .limit(30)
-    setExhibitions((data ?? []) as ExhibitionItem[])
-    setLoadingList(false)
-    hideLoading()
-  }, [showLoading, hideLoading])
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('exhibitions')
+        .select('id, title, year, theme, description, poster_url, link')
+        .order('year', { ascending: false })
+        .limit(30)
+      setExhibitions((data ?? []) as ExhibitionItem[])
+    } finally {
+      setLoadingList(false)
+      hideLoading(loadingKey)
+    }
+  }, [showLoading, hideLoading, loadingKey])
 
   useEffect(() => { fetchExhibitions() }, [fetchExhibitions])
 

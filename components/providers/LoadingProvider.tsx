@@ -1,16 +1,18 @@
 /**
  * 전역 로딩 오버레이 Provider
- * - showLoading / hideLoading 으로 어디서든 오버레이 제어
- * - 중첩 호출 안전: 내부 카운터로 마지막 hide 시에만 오버레이 제거
+ * - showLoading(key) / hideLoading(key) 로 어디서든 오버레이 제어
+ * - 키(Set) 기반: 각 호출자가 고유 키를 소유하므로 호출자끼리 서로 간섭하지 않음.
+ *   같은 키로 show를 여러 번 불러도 1개로 취급되고, 없는 키를 hide해도 무해(no-op).
+ *   활성 키가 하나라도 있으면 오버레이 표시 → show/hide 불균형으로 인한 누수 방지.
  */
 
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useRef, useState } from 'react'
 
 interface LoadingContextType {
-  showLoading: () => void
-  hideLoading: () => void
+  showLoading: (key: string) => void
+  hideLoading: (key: string) => void
 }
 
 const LoadingContext = createContext<LoadingContextType>({
@@ -46,17 +48,17 @@ function LoadingOverlay() {
 
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(false)
-  // 중첩 show/hide 카운팅: 마지막 hide 에서만 오버레이 제거
-  const countRef = useRef(0)
+  // 활성 로딩 키 집합: 하나라도 있으면 오버레이 표시
+  const keysRef = useRef<Set<string>>(new Set())
 
-  const showLoading = useCallback(() => {
-    countRef.current += 1
-    setVisible(true)
+  const showLoading = useCallback((key: string) => {
+    keysRef.current.add(key)
+    setVisible(keysRef.current.size > 0)
   }, [])
 
-  const hideLoading = useCallback(() => {
-    countRef.current = Math.max(0, countRef.current - 1)
-    if (countRef.current === 0) setVisible(false)
+  const hideLoading = useCallback((key: string) => {
+    keysRef.current.delete(key)
+    setVisible(keysRef.current.size > 0)
   }, [])
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveProject, updateProject, deleteProject } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
@@ -103,20 +103,24 @@ export default function ProjectTab() {
   const [showForm, setShowForm] = useState(false)
 
   const { showLoading, hideLoading } = useLoading()
+  const loadingKey = useId()
 
   const fetchProjects = useCallback(async () => {
-    showLoading()
+    showLoading(loadingKey)
     setLoadingList(true)
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('projects')
-      .select('id, title, title_en, type, partner, year, duration, description, description_en, outcome_en, thumbnail_url')
-      .order('year', { ascending: false })
-      .limit(30)
-    setProjects((data ?? []) as ProjectItem[])
-    setLoadingList(false)
-    hideLoading()
-  }, [showLoading, hideLoading])
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('projects')
+        .select('id, title, title_en, type, partner, year, duration, description, description_en, outcome_en, thumbnail_url')
+        .order('year', { ascending: false })
+        .limit(30)
+      setProjects((data ?? []) as ProjectItem[])
+    } finally {
+      setLoadingList(false)
+      hideLoading(loadingKey)
+    }
+  }, [showLoading, hideLoading, loadingKey])
 
   useEffect(() => { fetchProjects() }, [fetchProjects])
 

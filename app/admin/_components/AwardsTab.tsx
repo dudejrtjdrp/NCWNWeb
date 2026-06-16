@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveAward, updateAward, deleteAward } from '../actions'
 import { Label, Input, Textarea, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
@@ -108,20 +108,24 @@ export default function AwardsTab() {
   const [showForm, setShowForm] = useState(false)
 
   const { showLoading, hideLoading } = useLoading()
+  const loadingKey = useId()
 
   const fetchAwards = useCallback(async () => {
-    showLoading()
+    showLoading(loadingKey)
     setLoadingList(true)
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('awards')
-      .select('id, competition, competition_en, award_name, award_name_en, hosted_by_en, year, winner, team_members, description, description_en, thumbnail_url')
-      .order('year', { ascending: false })
-      .limit(30)
-    setAwards((data ?? []) as AwardItem[])
-    setLoadingList(false)
-    hideLoading()
-  }, [showLoading, hideLoading])
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('awards')
+        .select('id, competition, competition_en, award_name, award_name_en, hosted_by_en, year, winner, team_members, description, description_en, thumbnail_url')
+        .order('year', { ascending: false })
+        .limit(30)
+      setAwards((data ?? []) as AwardItem[])
+    } finally {
+      setLoadingList(false)
+      hideLoading(loadingKey)
+    }
+  }, [showLoading, hideLoading, loadingKey])
 
   useEffect(() => { fetchAwards() }, [fetchAwards])
 

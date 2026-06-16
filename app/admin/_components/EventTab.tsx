@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useId } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveEvent, updateEvent, deleteEvent } from '../actions'
 import { Label, Input, Textarea, Sel, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
@@ -103,20 +103,24 @@ export default function EventTab() {
   const [showForm, setShowForm] = useState(false)
 
   const { showLoading, hideLoading } = useLoading()
+  const loadingKey = useId()
 
   const fetchEvents = useCallback(async () => {
-    showLoading()
+    showLoading(loadingKey)
     setLoadingList(true)
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('events')
-      .select('id, title, title_en, type, start_date, end_date, location, description, description_en')
-      .order('start_date', { ascending: false })
-      .limit(30)
-    setEvents((data ?? []) as EventItem[])
-    setLoadingList(false)
-    hideLoading()
-  }, [showLoading, hideLoading])
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('events')
+        .select('id, title, title_en, type, start_date, end_date, location, description, description_en')
+        .order('start_date', { ascending: false })
+        .limit(30)
+      setEvents((data ?? []) as EventItem[])
+    } finally {
+      setLoadingList(false)
+      hideLoading(loadingKey)
+    }
+  }, [showLoading, hideLoading, loadingKey])
 
   useEffect(() => { fetchEvents() }, [fetchEvents])
 

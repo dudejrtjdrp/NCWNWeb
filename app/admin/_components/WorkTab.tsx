@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveWork, updateWork, deleteWork, saveWorkFilterTags } from '../actions'
 import { Label, Input, Textarea, FileDropZone, MultiImageDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
@@ -353,20 +353,24 @@ export default function WorkTab() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const { showLoading, hideLoading } = useLoading()
+  const loadingKey = useId()
 
   const fetchWorks = useCallback(async () => {
-    showLoading()
+    showLoading(loadingKey)
     setLoadingList(true)
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('showcase_works')
-      .select('id, title, title_en, author, year, type, tech_stack, thumbnail_url, video_embed, model_embed, images, description, description_en, related_links, created_at')
-      .order('created_at', { ascending: false })
-      .limit(50)
-    setWorks((data ?? []) as WorkItem[])
-    setLoadingList(false)
-    hideLoading()
-  }, [showLoading, hideLoading])
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('showcase_works')
+        .select('id, title, title_en, author, year, type, tech_stack, thumbnail_url, video_embed, model_embed, images, description, description_en, related_links, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50)
+      setWorks((data ?? []) as WorkItem[])
+    } finally {
+      setLoadingList(false)
+      hideLoading(loadingKey)
+    }
+  }, [showLoading, hideLoading, loadingKey])
 
   useEffect(() => { fetchWorks() }, [fetchWorks])
 

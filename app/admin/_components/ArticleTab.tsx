@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useId } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { saveArticle, updateArticle, deleteArticle, saveArticleFilterTags } from '../actions'
 import { Label, Input, Sel, FileDropZone, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
@@ -520,6 +520,7 @@ export default function ArticleTab() {
   const [articleTypes, setArticleTypes] = useState<ArticleType[]>(DEFAULT_ARTICLE_TYPES)
 
   const { showLoading, hideLoading } = useLoading()
+  const loadingKey = useId()
 
   // 유형 관리(설정)에서 등록한 아티클 유형 로드
   useEffect(() => {
@@ -534,23 +535,26 @@ export default function ArticleTab() {
   const typeLabels = buildTypeLabelMap(articleTypes)
 
   const fetchArticles = useCallback(async () => {
-    showLoading()
+    showLoading(loadingKey)
     setLoadingList(true)
     setFetchError(null)
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('ncr_reports')
-      .select('id, title, title_en, type, season, published_at, is_home_featured, author, excerpt, excerpt_en, description_en, content, content_en, tags, related_ids, thumbnail_url')
-      .order('published_at', { ascending: false })
-      .limit(50)
-    if (error) {
-      console.error('[ArticleTab] fetch error:', error)
-      setFetchError(`데이터 조회 오류: ${error.message}`)
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('ncr_reports')
+        .select('id, title, title_en, type, season, published_at, is_home_featured, author, excerpt, excerpt_en, description_en, content, content_en, tags, related_ids, thumbnail_url')
+        .order('published_at', { ascending: false })
+        .limit(50)
+      if (error) {
+        console.error('[ArticleTab] fetch error:', error)
+        setFetchError(`데이터 조회 오류: ${error.message}`)
+      }
+      setArticles((data ?? []) as ArticleListItem[])
+    } finally {
+      setLoadingList(false)
+      hideLoading(loadingKey)
     }
-    setArticles((data ?? []) as ArticleListItem[])
-    setLoadingList(false)
-    hideLoading()
-  }, [showLoading, hideLoading])
+  }, [showLoading, hideLoading, loadingKey])
 
   useEffect(() => { fetchArticles() }, [fetchArticles])
 
