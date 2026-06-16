@@ -9,7 +9,7 @@ import type { MetadataRoute } from 'next'
 import { createDbClient } from '@/lib/supabase/db'
 import { FACULTY_LIST } from '@/lib/faculty-data'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 /** ko/en hreflang 대체 URL 부여 (path 는 SITE_URL 기준 상대 경로) */
 function alt(path: string) {

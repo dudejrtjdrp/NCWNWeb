@@ -18,7 +18,7 @@ import { FACULTY_LIST } from '@/lib/faculty-data'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbLd } from '@/lib/seo/structured-data'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 // ──────────────────────────────────────────────────────
 // Static Params (빌드 시 정적 생성)

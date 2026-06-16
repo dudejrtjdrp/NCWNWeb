@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 /** 비공개 경로 — 모든 봇 공통 차단 */
 const DISALLOW = ['/admin/', '/admin/login/', '/api/', '/auth/']

@@ -17,7 +17,7 @@ import { getTranslations } from 'next-intl/server'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 /** 동적 메타데이터 — 쇼케이스 작품 상세 */
 export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {

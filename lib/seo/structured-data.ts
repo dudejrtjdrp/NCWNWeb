@@ -3,7 +3,7 @@
  * - 검색엔진 리치 결과 및 AI 답변 인용 시 정확한 엔티티 정보 제공
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 /**
  * EducationalOrganization — 학과(기관) 엔티티.

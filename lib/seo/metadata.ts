@@ -7,7 +7,7 @@ import type { Metadata } from 'next'
  * @param locale 현재 페이지 로케일
  * @param path   SITE_URL 기준 상대 경로 (홈은 '')
  */
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 export function localizedAlternates(locale: string, path = ''): Metadata['alternates'] {
   const koUrl = `${SITE_URL}${path}`

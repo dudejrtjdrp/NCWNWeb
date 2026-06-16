@@ -14,7 +14,7 @@ import { sanitizeArticleHtml, isHtmlContent } from '@/lib/sanitize'
 import { breadcrumbLd } from '@/lib/seo/structured-data'
 import Image from 'next/image'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 const TYPE_LABELS_KO: Record<string, string> = {
   editorial: '에디토리얼',

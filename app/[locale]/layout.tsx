@@ -11,7 +11,7 @@ import { routing } from '@/i18n/routing'
 import SmoothScroll from '@/components/providers/SmoothScroll'
 import ScrollToTopOnNavigate from '@/components/providers/ScrollToTopOnNavigate'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://ncwn-web.vercel.app'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
 export async function generateMetadata({
   params,
