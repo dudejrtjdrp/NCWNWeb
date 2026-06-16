@@ -54,6 +54,8 @@ function buildCSP(): string {
     `font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net`,
     // REST API + Realtime WebSocket(wss://) 허용
     `connect-src 'self' https://${supabaseHost} https://*.supabase.co wss://${supabaseHost} wss://*.supabase.co https://cdn.jsdelivr.net`,
+    // 외부 임베드 허용: 유튜브(작업물 영상) · 구글지도(오시는 길) · 스케치팹(3D)
+    `frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://youtube.com https://maps.google.com https://www.google.com https://sketchfab.com`,
     `frame-ancestors 'none'`,
     `object-src 'none'`,
     `base-uri 'self'`,

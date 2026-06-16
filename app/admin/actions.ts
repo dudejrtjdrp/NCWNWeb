@@ -165,8 +165,8 @@ function validateImage(file: File): string | null {
 //   - video : 메인 영상(유튜브) 임베드
 //   - design: 디자인 이미지 갤러리 (PDF 제외)
 //   - 3d    : 3D 임베드(iframe)
-export const WORK_TYPES = ['video', 'design', '3d'] as const
-export type WorkType = (typeof WORK_TYPES)[number]
+const WORK_TYPES = ['video', 'design', '3d'] as const
+type WorkType = (typeof WORK_TYPES)[number]
 
 function parseWorkType(raw: string | null): WorkType {
   return WORK_TYPES.includes(raw as WorkType) ? (raw as WorkType) : 'design'
