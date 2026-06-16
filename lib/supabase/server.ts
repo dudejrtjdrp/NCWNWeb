@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createTimeoutFetch } from './timeout-fetch'
 
 /**
  * Supabase 서버 클라이언트
@@ -18,6 +19,8 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // 연결 멈춤 시 무한 await 방지 — 8초 내 응답 없으면 중단
+      global: { fetch: createTimeoutFetch(8000) },
       cookies: {
         get(name: string) {
           return cookieStore.get(name)?.value

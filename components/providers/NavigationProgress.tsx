@@ -20,12 +20,23 @@ function NavigationListener() {
   useEffect(() => {
     const original = history.pushState.bind(history)
     history.pushState = (...args: Parameters<typeof history.pushState>) => {
-      // Next 내부 HistoryUpdater는 useInsertionEffect 안에서 pushState를 호출한다.
-      // 여기서 showLoading()(setState)를 동기 호출하면
-      // "useInsertionEffect must not schedule updates" 경고가 발생하므로
-      // 마이크로태스크로 지연시켜 insertion effect 단계 밖에서 상태를 갱신한다.
-      queueMicrotask(() => showLoading('navigation'))
-      return original(...args)
+      // pushState 적용 전 위치를 기록해 두고, 적용 후 실제로 경로/쿼리가
+      // 바뀌었을 때만 로딩을 표시한다.
+      // (해시 변경·동일 URL pushState는 내비게이션이 아니므로 무시 → 'navigation'
+      //  키가 hide 없이 남아 무한 로딩되는 문제 방지)
+      const prevPath = window.location.pathname
+      const prevSearch = window.location.search
+      const result = original(...args)
+      const changed =
+        window.location.pathname !== prevPath || window.location.search !== prevSearch
+      if (changed) {
+        // Next 내부 HistoryUpdater는 useInsertionEffect 안에서 pushState를 호출한다.
+        // 여기서 showLoading()(setState)를 동기 호출하면
+        // "useInsertionEffect must not schedule updates" 경고가 발생하므로
+        // 마이크로태스크로 지연시켜 insertion effect 단계 밖에서 상태를 갱신한다.
+        queueMicrotask(() => showLoading('navigation'))
+      }
+      return result
     }
     return () => { history.pushState = original }
   }, [showLoading])

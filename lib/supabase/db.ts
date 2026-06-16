@@ -7,6 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { createTimeoutFetch } from './timeout-fetch'
 
 export function createDbClient() {
   return createClient(
@@ -14,6 +15,8 @@ export function createDbClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       auth: { persistSession: false },
+      // 연결 멈춤 시 무한 await 방지 — 8초 내 응답 없으면 중단
+      global: { fetch: createTimeoutFetch(8000) },
     }
   )
 }

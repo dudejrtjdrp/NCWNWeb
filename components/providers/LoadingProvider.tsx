@@ -8,7 +8,11 @@
 
 'use client'
 
-import { createContext, useCallback, useContext, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+
+// 안전장치: 오버레이가 이 시간(ms)을 넘겨 떠 있으면 원인과 무관하게 강제 해제한다.
+// 어떤 producer에서 hide가 누락되더라도 무한 로딩으로 이어지지 않도록 하는 최후의 방어선.
+const MAX_VISIBLE_MS = 10000
 
 interface LoadingContextType {
   showLoading: (key: string) => void
@@ -60,6 +64,16 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     keysRef.current.delete(key)
     setVisible(keysRef.current.size > 0)
   }, [])
+
+  // 안전장치: 오버레이가 떠 있는 동안 타이머를 걸고, 만료되면 모든 키를 비우고 숨긴다.
+  useEffect(() => {
+    if (!visible) return
+    const timer = setTimeout(() => {
+      keysRef.current.clear()
+      setVisible(false)
+    }, MAX_VISIBLE_MS)
+    return () => clearTimeout(timer)
+  }, [visible])
 
   return (
     <LoadingContext.Provider value={{ showLoading, hideLoading }}>
