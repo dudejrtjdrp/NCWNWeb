@@ -11,6 +11,8 @@
 import { createDbClient as createClient } from '@/lib/supabase/db'
 import { unstable_cache } from 'next/cache'
 import { applyLocaleList } from './_locale'
+import { getProjects } from './projects'
+import { getAwards } from './awards'
 
 export interface HomeNincCard {
   id: string
@@ -118,4 +120,59 @@ function _getHomeNcrReports(locale: string) {
 
 export function getHomeNcrReports(locale = 'ko') {
   return _getHomeNcrReports(locale)()
+}
+
+/** 홈 NINC 슬라이드 카드 크기 (Figma 4종 — 순환 적용) */
+const NINC_CARD_SIZES: ReadonlyArray<readonly [number, number]> = [
+  [512, 310], [282, 389], [287, 268], [390, 354],
+]
+
+/**
+ * 홈 "Now In NewCon" 슬라이드 — 실제 NINC 활동(프로젝트 + 수상) 최신 4개를 카드로 정규화.
+ * ninc_home_cards(관리자 큐레이션)가 비어 있을 때 실제 데이터를 자동 노출하기 위한 소스.
+ * - 썸네일이 있는 항목만 사용, created_at 최신순, 상세 페이지로 링크
+ */
+export async function getHomeNincActivities(locale = 'ko'): Promise<HomeNincCard[]> {
+  try {
+    const [projects, awards] = await Promise.all([getProjects(locale), getAwards(locale)])
+
+    const merged = [
+      ...projects
+        .filter((p) => p.thumbnail_url)
+        .map((p) => ({
+          id: `project-${p.id}`,
+          image_url: p.thumbnail_url as string,
+          alt_text: p.title,
+          link_href: `/ninc/project/${p.id}`,
+          ts: Date.parse(p.created_at) || 0,
+        })),
+      ...awards
+        .filter((a) => a.thumbnail_url)
+        .map((a) => ({
+          id: `award-${a.id}`,
+          image_url: a.thumbnail_url as string,
+          alt_text: a.award_name || a.competition,
+          link_href: `/ninc/awards/${a.id}`,
+          ts: Date.parse(a.created_at) || 0,
+        })),
+    ]
+      .sort((x, y) => y.ts - x.ts)
+      .slice(0, 4)
+
+    return merged.map((m, i) => {
+      const [w, h] = NINC_CARD_SIZES[i % NINC_CARD_SIZES.length]
+      return {
+        id: m.id,
+        image_url: m.image_url,
+        alt_text: m.alt_text,
+        link_href: m.link_href,
+        card_width: w,
+        card_height: h,
+        sort_order: i,
+      }
+    })
+  } catch (err) {
+    console.error('[getHomeNincActivities] unexpected:', err)
+    return []
+  }
 }

@@ -169,6 +169,19 @@ export default function ShowcaseClient({
           emptyHint={!loading && items.length === 0 ? '검색 결과가 없습니다' : undefined}
         />
 
+        {/* 로딩 스피너 — 데이터 페칭 중 표시 (스켈레톤과 함께) */}
+        {loading && (
+          <div className="flex justify-center py-8" role="status" aria-live="polite">
+            <div className="relative h-9 w-9">
+              {/* 배경 링 */}
+              <div className="absolute inset-0 rounded-full border-2 border-nwcn-green/15" />
+              {/* 회전 링 */}
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-nwcn-green animate-spin" />
+            </div>
+            <span className="sr-only">작품을 불러오는 중…</span>
+          </div>
+        )}
+
         {/* 무한 스크롤 센티넬 */}
         <div ref={sentinelRef} className="h-px w-full" aria-hidden />
       </div>

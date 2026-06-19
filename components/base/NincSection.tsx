@@ -16,7 +16,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
-import { getHomeNincCards, type HomeNincCard } from '@/lib/supabase/queries/home'
+import { getHomeNincCards, getHomeNincActivities, type HomeNincCard } from '@/lib/supabase/queries/home'
 
 // ── 목데이터 (Supabase에 데이터 없을 때 fallback) ─────────────
 const MOCK_SLIDE_CARDS: HomeNincCard[] = [
@@ -27,13 +27,15 @@ const MOCK_SLIDE_CARDS: HomeNincCard[] = [
 ]
 
 export interface NincSectionProps {
+  locale?: string
   className?: string
 }
 
-export default async function NincSection({ className = '' }: NincSectionProps) {
-  // Supabase fetch → 실패하거나 데이터 없으면 목데이터 사용
-  const serverCards = await getHomeNincCards()
-  const displayCards = serverCards.length > 0 ? serverCards : MOCK_SLIDE_CARDS
+export default async function NincSection({ locale = 'ko', className = '' }: NincSectionProps) {
+  // 1) 관리자 큐레이션(ninc_home_cards) 우선 → 2) 비면 실제 NINC 활동(프로젝트+수상) → 3) 그래도 없으면 목데이터
+  const curated = await getHomeNincCards()
+  const realCards = curated.length > 0 ? curated : await getHomeNincActivities(locale)
+  const displayCards = realCards.length > 0 ? realCards : MOCK_SLIDE_CARDS
 
   return (
     <section
