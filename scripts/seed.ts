@@ -277,7 +277,9 @@ async function seedAwards() {
 
   console.log(`\n📦 awards 시딩 중... (${rows.length}개)`)
   // awards는 UUID PK라 competition+year 기준으로 중복 체크
-  for (const row of rows) {
+  for (const [i, row] of rows.entries()) {
+    // 로컬 확인용 결정적 placeholder 이미지 (next.config에 picsum.photos 허용됨)
+    const thumbnail_url = `https://picsum.photos/seed/nwcn-award-${i + 1}/800/600`
     const { data: existing } = await supabase
       .from('awards')
       .select('id')
@@ -286,10 +288,12 @@ async function seedAwards() {
       .maybeSingle()
 
     if (existing) {
-      console.log(`  ↩ SKIP: ${row.competition} ${row.year}`)
+      // 이미 시드된 행은 이미지 컬럼만 백필
+      const { error: upErr } = await supabase.from('awards').update({ thumbnail_url }).eq('id', existing.id)
+      console.log(upErr ? `  ❌ UPDATE 실패 (${row.competition}): ${upErr.message}` : `  🖼  IMG: ${row.competition} ${row.year}`)
       continue
     }
-    const { error } = await supabase.from('awards').insert(row)
+    const { error } = await supabase.from('awards').insert({ ...row, thumbnail_url })
     if (error) {
       console.error(`  ❌ INSERT 실패 (${row.competition}):`, error.message)
     } else {
@@ -370,7 +374,9 @@ async function seedProjects() {
   ]
 
   console.log(`\n📦 projects 시딩 중... (${rows.length}개)`)
-  for (const row of rows) {
+  for (const [i, row] of rows.entries()) {
+    // 로컬 확인용 결정적 placeholder 이미지 (next.config에 picsum.photos 허용됨)
+    const thumbnail_url = `https://picsum.photos/seed/nwcn-project-${i + 1}/800/600`
     const { data: existing } = await supabase
       .from('projects')
       .select('id')
@@ -379,10 +385,12 @@ async function seedProjects() {
       .maybeSingle()
 
     if (existing) {
-      console.log(`  ↩ SKIP: ${row.title}`)
+      // 이미 시드된 행은 이미지 컬럼만 백필
+      const { error: upErr } = await supabase.from('projects').update({ thumbnail_url }).eq('id', existing.id)
+      console.log(upErr ? `  ❌ UPDATE 실패 (${row.title}): ${upErr.message}` : `  🖼  IMG: ${row.title}`)
       continue
     }
-    const { error } = await supabase.from('projects').insert(row)
+    const { error } = await supabase.from('projects').insert({ ...row, thumbnail_url })
     if (error) {
       console.error(`  ❌ INSERT 실패 (${row.title}):`, error.message)
     } else {
@@ -593,6 +601,8 @@ async function seedExhibitions() {
 
   console.log(`\n📦 exhibitions 시딩 중... (${rows.length}개)`)
   for (const row of rows) {
+    // 포스터는 세로형 — 로컬 확인용 결정적 placeholder (next.config에 picsum.photos 허용됨)
+    const poster_url = `https://picsum.photos/seed/nwcn-exhibition-${row.year}/600/800`
     const { data: existing } = await supabase
       .from('exhibitions')
       .select('id')
@@ -600,10 +610,12 @@ async function seedExhibitions() {
       .maybeSingle()
 
     if (existing) {
-      console.log(`  ↩ SKIP: ${row.year} ${row.title}`)
+      // 이미 시드된 행은 포스터 컬럼만 백필
+      const { error: upErr } = await supabase.from('exhibitions').update({ poster_url }).eq('id', existing.id)
+      console.log(upErr ? `  ❌ UPDATE 실패 (${row.year}): ${upErr.message}` : `  🖼  IMG: ${row.year} ${row.title}`)
       continue
     }
-    const { error } = await supabase.from('exhibitions').insert(row)
+    const { error } = await supabase.from('exhibitions').insert({ ...row, poster_url })
     if (error) {
       console.error(`  ❌ INSERT 실패 (${row.year}):`, error.message)
     } else {
