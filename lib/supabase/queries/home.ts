@@ -13,6 +13,7 @@ import { unstable_cache } from 'next/cache'
 import { applyLocaleList } from './_locale'
 import { getProjects } from './projects'
 import { getAwards } from './awards'
+import { getExhibitions } from './exhibitions'
 
 export interface HomeNincCard {
   id: string
@@ -128,13 +129,18 @@ const NINC_CARD_SIZES: ReadonlyArray<readonly [number, number]> = [
 ]
 
 /**
- * 홈 "Now In NewCon" 슬라이드 — 실제 NINC 활동(프로젝트 + 수상) 최신 4개를 카드로 정규화.
+ * 홈 "Now In NewCon" 슬라이드 — 실제 NINC 활동(프로젝트 + 수상 + 졸업전시) 최신 4개를 카드로 정규화.
  * ninc_home_cards(관리자 큐레이션)가 비어 있을 때 실제 데이터를 자동 노출하기 위한 소스.
- * - 썸네일이 있는 항목만 사용, created_at 최신순, 상세 페이지로 링크
+ * - 이미지(프로젝트/수상 thumbnail_url, 전시 poster_url)가 있는 항목만 사용
+ * - created_at 최신순, 상세 페이지(전시는 /work/exhibition 또는 외부 link)로 링크
  */
 export async function getHomeNincActivities(locale = 'ko'): Promise<HomeNincCard[]> {
   try {
-    const [projects, awards] = await Promise.all([getProjects(locale), getAwards(locale)])
+    const [projects, awards, exhibitions] = await Promise.all([
+      getProjects(locale),
+      getAwards(locale),
+      getExhibitions(),
+    ])
 
     const merged = [
       ...projects
@@ -154,6 +160,15 @@ export async function getHomeNincActivities(locale = 'ko'): Promise<HomeNincCard
           alt_text: a.award_name || a.competition,
           link_href: `/ninc/awards/${a.id}`,
           ts: Date.parse(a.created_at) || 0,
+        })),
+      ...exhibitions
+        .filter((e) => e.poster_url)
+        .map((e) => ({
+          id: `exhibition-${e.id}`,
+          image_url: e.poster_url as string,
+          alt_text: e.title,
+          link_href: e.link || '/work/exhibition',
+          ts: Date.parse(e.created_at) || 0,
         })),
     ]
       .sort((x, y) => y.ts - x.ts)

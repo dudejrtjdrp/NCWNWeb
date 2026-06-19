@@ -3,8 +3,9 @@
  * Figma node-id: 376:1492 (NINCSection)
  *
  * 데이터 전략:
- * - ninc_home_cards 테이블에서 활성 카드 fetch (getHomeNincCards)
- * - 데이터 없으면 MOCK_SLIDE_CARDS (SVG 목데이터) fallback
+ * - 1순위: ninc_home_cards 테이블의 관리자 큐레이션 카드 (getHomeNincCards)
+ * - 2순위: 실제 NINC 활동(프로젝트+수상+졸업전시) 자동 노출 (getHomeNincActivities)
+ * - 이미지가 있는 실제 항목이 0개면 섹션 미렌더(목데이터 미노출)
  *
  * 디자인 스펙:
  * - 섹션 헤더: "Now In NewCon" A2Z체 23px, black
@@ -16,15 +17,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
-import { getHomeNincCards, getHomeNincActivities, type HomeNincCard } from '@/lib/supabase/queries/home'
-
-// ── 목데이터 (Supabase에 데이터 없을 때 fallback) ─────────────
-const MOCK_SLIDE_CARDS: HomeNincCard[] = [
-  { id: 'mock-1', image_url: '/images/ninc/card1.svg', card_width: 512, card_height: 310, alt_text: 'NINC 활동 1', link_href: null, sort_order: 0 },
-  { id: 'mock-2', image_url: '/images/ninc/card2.svg', card_width: 282, card_height: 389, alt_text: 'NINC 활동 2', link_href: null, sort_order: 1 },
-  { id: 'mock-3', image_url: '/images/ninc/card3.svg', card_width: 287, card_height: 268, alt_text: 'NINC 활동 3', link_href: null, sort_order: 2 },
-  { id: 'mock-4', image_url: '/images/ninc/card4.svg', card_width: 390, card_height: 354, alt_text: 'NINC 활동 4', link_href: null, sort_order: 3 },
-]
+import { getHomeNincCards, getHomeNincActivities } from '@/lib/supabase/queries/home'
 
 export interface NincSectionProps {
   locale?: string
@@ -32,10 +25,12 @@ export interface NincSectionProps {
 }
 
 export default async function NincSection({ locale = 'ko', className = '' }: NincSectionProps) {
-  // 1) 관리자 큐레이션(ninc_home_cards) 우선 → 2) 비면 실제 NINC 활동(프로젝트+수상) → 3) 그래도 없으면 목데이터
+  // 1) 관리자 큐레이션(ninc_home_cards) 우선 → 2) 비면 실제 NINC 활동(프로젝트+수상+졸업전시)
   const curated = await getHomeNincCards()
-  const realCards = curated.length > 0 ? curated : await getHomeNincActivities(locale)
-  const displayCards = realCards.length > 0 ? realCards : MOCK_SLIDE_CARDS
+  const displayCards = curated.length > 0 ? curated : await getHomeNincActivities(locale)
+
+  // 이미지가 있는 실제 카드가 하나도 없으면 섹션을 렌더하지 않음(목데이터 미노출)
+  if (displayCards.length === 0) return null
 
   return (
     <section
