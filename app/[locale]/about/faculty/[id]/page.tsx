@@ -73,7 +73,7 @@ export default async function FacultyDetailPage({
     url: `${SITE_URL}/about/faculty/${faculty.id}`,
     worksFor: {
       '@type': 'CollegeOrUniversity',
-      name: 'NWCN — 동아방송예술대학교 뉴미디어콘텐츠과',
+      name: '동아방송예술대학교 뉴미디어콘텐츠과',
       url: SITE_URL,
     },
     ...(faculty.education?.length ? { alumniOf: faculty.education } : {}),

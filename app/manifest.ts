@@ -7,7 +7,7 @@ import type { MetadataRoute } from 'next'
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'NWCN — 뉴미디어콘텐츠과',
+    name: '동아방송예술대학교 뉴미디어콘텐츠과',
     short_name: 'NWCN',
     description:
       '동아방송예술대학교 뉴미디어콘텐츠과 공식 홈페이지. 예술과 기술이 만나는 곳에서 새로운 미디어를 만들어냅니다.',

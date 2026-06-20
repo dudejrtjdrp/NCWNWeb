@@ -131,10 +131,10 @@ export default async function ArticleDetailPage({ params }: PageProps) {
     dateModified: article.created_at,
     author: article.author
       ? { '@type': 'Person', name: article.author }
-      : { '@type': 'Organization', name: 'NWCN 뉴미디어콘텐츠과' },
+      : { '@type': 'Organization', name: '동아방송예술대학교 뉴미디어콘텐츠과' },
     publisher: {
       '@type': 'Organization',
-      name: 'NWCN — 동아방송예술대학교 뉴미디어콘텐츠과',
+      name: '동아방송예술대학교 뉴미디어콘텐츠과',
       url: SITE_URL,
     },
     url: `${SITE_URL}/ncr-trend/${article.id}`,

@@ -16,8 +16,8 @@ export function educationalOrganizationLd(locale: string) {
     '@context': 'https://schema.org',
     '@type': 'CollegeOrUniversity',
     name: isKo
-      ? 'NWCN — 동아방송예술대학교 뉴미디어콘텐츠과'
-      : 'NWCN — New Media Contents, Dong-Ah Institute of Media and Arts',
+      ? '동아방송예술대학교 뉴미디어콘텐츠과'
+      : 'Dong-Ah Institute of Media and Arts, New Media Contents',
     alternateName: ['NWCN', '뉴미디어콘텐츠과', 'New Media Contents'],
     url: SITE_URL,
     logo: `${SITE_URL}/apple-icon`,
@@ -44,12 +44,12 @@ export function webSiteLd(locale: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: isKo ? 'NWCN — 뉴미디어콘텐츠과' : 'NWCN — New Media Contents',
+    name: isKo ? '동아방송예술대학교 뉴미디어콘텐츠과' : 'Dong-Ah Institute of Media and Arts, New Media Contents',
     url: SITE_URL,
     inLanguage: isKo ? 'ko-KR' : 'en-US',
     publisher: {
       '@type': 'Organization',
-      name: 'NWCN — 동아방송예술대학교 뉴미디어콘텐츠과',
+      name: '동아방송예술대학교 뉴미디어콘텐츠과',
       url: SITE_URL,
     },
   }
