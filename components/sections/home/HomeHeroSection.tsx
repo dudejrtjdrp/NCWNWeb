@@ -28,7 +28,7 @@
  *    추후 /public/images/home 으로 내려받아 ASSET 경로만 교체하면 됩니다.
  */
 
-import { useRef, useEffect, useState, useCallback, type CSSProperties } from 'react'
+import { useRef, useEffect, useState, useCallback, type CSSProperties, type PointerEvent as ReactPointerEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import { Link } from '@/i18n/navigation'
 
 /* ──────────────────────────────────────────────────────────
@@ -86,12 +86,12 @@ const DEFAULT_POSTS: HeroPost[] = [
   { id: 'p4', title: 'WORK 04', tag: 'NINC' },
 ]
 
-const CARD_W = 668
+const CARD_W = 600
 const CARD_H = 376
-const CARD_GAP = 48
+const CARD_GAP = 40
 
 export interface HomeHeroSectionProps {
-  /** 스크롤 캡처 길이 (기본 520vh — 인트로/WORK + 휠 스텝 캐러셀) */
+  /** 스크롤 캡처 길이 (기본 320vh — 인트로/WORK/슬로건 + 게시물 스트립 등장) */
   scrollHeight?: string
   /** 히어로 게시물 (최대 4개 권장) */
   posts?: HeroPost[]
@@ -105,7 +105,7 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
 export default function HomeHeroSection({
-  scrollHeight = '520vh',
+  scrollHeight = '320vh',
   posts = DEFAULT_POSTS,
   className = '',
 }: HomeHeroSectionProps) {
@@ -133,127 +133,47 @@ export default function HomeHeroSection({
   useEffect(() => {
     const onResize = () => setVw(window.innerWidth)
     onResize()
-    // 히어로 영역에서 가로 스와이프(트랙패드) → 브라우저 앞/뒤로가기 차단.
-    // 가로 우세 휠만 preventDefault, 세로 휠은 통과시켜 스크롤 애니메이션 유지.
-    const el = containerRef.current
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) e.preventDefault()
-    }
-    el?.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
     updateProgress()
     return () => {
-      el?.removeEventListener('wheel', onWheel)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     }
   }, [onScroll, updateProgress])
 
-  /* 가로 캐러셀: 한 번의 휠 제스처 = 카드 한 칸.
-     구간(0.50~0.95) 안에서는 Lenis 관성을 멈추고 휠 방향으로 한 칸씩 스냅,
-     양 끝에서는 다시 자유 스크롤로 빠져나간다(위→인트로/아래→다음 섹션). */
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    // 터치 기기는 휠 이벤트가 없어 Lenis 정지 시 멈출 수 있으므로 스텝 비활성(자유 스크롤)
-    if (window.matchMedia?.('(pointer: coarse)').matches) return
-    type LenisLike = {
-      stop: () => void
-      start: () => void
-      scrollTo: (t: number, o?: { duration?: number; force?: boolean }) => void
-    }
-    const getLenis = () => (window as Window & { __lenis?: LenisLike }).__lenis
-    const nSegL = Math.max(1, Math.min(posts.length, 4))
-    const Z0 = 0.5
-    const Z1 = 0.95
-    let inZone = false
-    let step = 1
-    let gestureActive = false   // 이번 제스처(플릭)에서 이미 한 칸 이동했는가
-    let stepLockUntil = 0       // 스텝 간 최소 간격(애니메이션 시간) 보장
-    let suppressUntil = 0       // 이탈 직후 재진입 방지
-    let gestureTimer: ReturnType<typeof setTimeout> | null = null
+  /* 게시물 가로 스냅 스트립 — 세로 스크롤과 분리.
+     트랙패드 가로 스와이프/터치는 네이티브 scroll-snap 으로 한 칸씩, 마우스는 드래그로 스크롤. */
+  const stripRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef({ down: false, startX: 0, startLeft: 0, moved: false })
 
-    const metrics = () => {
-      const scrollable = el.offsetHeight - window.innerHeight
-      const rect = el.getBoundingClientRect()
-      const docTop = rect.top + window.scrollY
-      const p = scrollable > 0 ? clamp01((window.scrollY - docTop) / scrollable) : 0
-      return { scrollable, docTop, p }
-    }
-    const yForStep = (k: number) => {
-      const { scrollable, docTop } = metrics()
-      return docTop + (Z0 + (k / nSegL) * (Z1 - Z0)) * scrollable
-    }
-    const animTo = (y: number, dur: number) => {
-      const lenis = getLenis()
-      if (lenis?.scrollTo) lenis.scrollTo(y, { duration: dur, force: true })
-      else window.scrollTo({ top: y })
-    }
-    // 휠이 멎고 일정 시간 뒤에 제스처 종료로 간주 → 다음 한 칸 허용
-    const armGestureEnd = (ms: number) => {
-      if (gestureTimer) clearTimeout(gestureTimer)
-      gestureTimer = setTimeout(() => { gestureActive = false }, ms)
-    }
-
-    // 진입/이탈 감지 (관성 진입 시 Lenis 정지)
-    const onZoneScroll = () => {
-      if (Date.now() < suppressUntil) return
-      const { p } = metrics()
-      const within = p > Z0 - 0.004 && p < Z1 + 0.004
-      if (within && !inZone) {
-        inZone = true
-        getLenis()?.stop()
-        const approx = Math.round(((p - Z0) / (Z1 - Z0)) * nSegL)
-        step = Math.min(nSegL, Math.max(1, approx || 1))
-        gestureActive = true            // 진입 제스처로는 카드 스텝하지 않음
-        stepLockUntil = Date.now() + 650
-        armGestureEnd(300)
-        animTo(yForStep(step), 0.4)
-      } else if (!within && inZone) {
-        inZone = false
-        getLenis()?.start()
-      }
-    }
-    // 휠 = 한 제스처당 한 칸
-    const onZoneWheel = (e: WheelEvent) => {
-      if (!inZone) return
-      e.preventDefault()
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return // 가로 제스처 무시
-      getLenis()?.stop()                                   // 방어적으로 관성 정지 유지
-      armGestureEnd(260)                                   // 휠이 계속되는 동안(관성 꼬리 포함) 제스처 유지
-      if (gestureActive || Date.now() < stepLockUntil) return
-      gestureActive = true
-      stepLockUntil = Date.now() + 650
-      const dir = e.deltaY > 0 ? 1 : -1
-      const next = step + dir
-      const { docTop, scrollable } = metrics()
-      if (next < 1) {                      // 위로 이탈 → 자유 스크롤 복귀
-        inZone = false; suppressUntil = Date.now() + 800
-        getLenis()?.start()
-        animTo(docTop + (Z0 - 0.03) * scrollable, 0.4)
-        return
-      }
-      if (next > nSegL) {                  // 아래로 이탈 → 다음 섹션
-        inZone = false; suppressUntil = Date.now() + 800
-        getLenis()?.start()
-        animTo(docTop + scrollable + 2, 0.55)
-        return
-      }
-      step = next
-      animTo(yForStep(step), 0.5)
-    }
-
-    window.addEventListener('scroll', onZoneScroll, { passive: true })
-    window.addEventListener('wheel', onZoneWheel, { passive: false })
-    return () => {
-      window.removeEventListener('scroll', onZoneScroll)
-      window.removeEventListener('wheel', onZoneWheel)
-      if (gestureTimer) clearTimeout(gestureTimer)
-      getLenis()?.start()
-    }
-  }, [posts.length])
+  const onStripPointerDown = useCallback((e: ReactPointerEvent) => {
+    if (e.pointerType !== 'mouse') return // 터치/펜은 네이티브 스크롤에 맡김
+    const strip = stripRef.current
+    if (!strip) return
+    dragRef.current = { down: true, startX: e.clientX, startLeft: strip.scrollLeft, moved: false }
+    strip.style.scrollSnapType = 'none'   // 드래그 중에는 스냅 해제
+    strip.setPointerCapture?.(e.pointerId)
+  }, [])
+  const onStripPointerMove = useCallback((e: ReactPointerEvent) => {
+    const d = dragRef.current
+    const strip = stripRef.current
+    if (!d.down || !strip) return
+    const dx = e.clientX - d.startX
+    if (Math.abs(dx) > 4) d.moved = true
+    strip.scrollLeft = d.startLeft - dx
+  }, [])
+  const endStripDrag = useCallback((e: ReactPointerEvent) => {
+    const strip = stripRef.current
+    if (!dragRef.current.down) return
+    dragRef.current.down = false
+    if (strip) strip.style.scrollSnapType = '' // 스냅 복원 → 놓으면 가까운 카드로 정렬
+    strip?.releasePointerCapture?.(e.pointerId)
+  }, [])
+  const onStripClickCapture = useCallback((e: ReactMouseEvent) => {
+    if (dragRef.current.moved) { e.preventDefault(); e.stopPropagation() } // 드래그였으면 링크 클릭 무시
+  }, [])
 
   /* 버튼/종료 → 하단 섹션으로 스크롤 */
   const scrollToNext = useCallback(() => {
@@ -266,40 +186,16 @@ export default function HomeHeroSection({
     else window.scrollTo({ top: target, behavior: 'smooth' })
   }, [])
 
-  /* ── 타임라인 (progress 0→1) — 전체적으로 더 느리게, 단계 사이 텀 부여 ── */
+  /* ── 타임라인 (progress 0→1) ── */
   const p = progress
-  const introExit = easeInOut(norm(p, 0.0, 0.15))    // 가운데 카피: 상승 + 블러 + 페이드아웃
-  const floatUp = easeOut(norm(p, 0.0, 0.10))         // 3D 낱자: 살짝 떠오름
-  const scatter = easeInOut(norm(p, 0.05, 0.22))      // 3D 낱자: 양옆 분산 + 페이드아웃
-  // (0.22 → 0.27 짧은 텀: NWCN 이 사라진 뒤 WORK 등장 전)
-  const workIn = easeOut(norm(p, 0.27, 0.47))         // WORK: 우 → 좌 등장
-  const headingIn = easeOut(norm(p, 0.37, 0.55))      // NWCN/슬로건: scale + 블러 인
-  const cardsAppear = easeOut(norm(p, 0.46, 0.56))    // 게시물 페이드 인
+  const introExit = easeInOut(norm(p, 0.0, 0.18))     // 가운데 카피: 상승 + 블러 + 페이드아웃
+  const floatUp = easeOut(norm(p, 0.0, 0.12))          // 3D 낱자: 살짝 떠오름
+  const scatter = easeInOut(norm(p, 0.06, 0.28))       // 3D 낱자: 양옆 분산 + 페이드아웃
+  const workIn = easeOut(norm(p, 0.34, 0.62))          // WORK: 우 → 좌 등장
+  const headingIn = easeOut(norm(p, 0.50, 0.74))       // NWCN/슬로건: scale + 블러 인
+  const stripIn = easeOut(norm(p, 0.62, 0.86))         // 게시물 스트립: 우측에서 슬라이드 + 페이드 인
 
   const scale = vw / DESIGN_W
-
-  /* 게시물 트랙 — 카드별 "포커스(정착)" 지점으로 스냅
-     (오른쪽 등장 → 부드럽게 정착 → 살짝 달라붙음 → 좌측 페이드아웃하며 다음 카드) */
-  const pitch = CARD_W + CARD_GAP
-  const nCards = Math.min(posts.length, 4)
-  const lastIndex = nCards - 1
-  const focusCenterX = DESIGN_W - 40 - CARD_W / 2              // 카드 정착 중심 X(≈1066, 마지막 카드 안착점)
-  const focusTrackX = (i: number) => focusCenterX - CARD_W / 2 - i * pitch
-  // 정착 지점들: [입장 시작(오른쪽 밖), 카드0 포커스, 카드1 포커스, ...]
-  const STOPS = [focusTrackX(0) + 760, ...Array.from({ length: nCards }, (_, i) => focusTrackX(i))]
-  const nSeg = Math.max(1, STOPS.length - 1)
-  const HOLD = 0                                               // 스텝 스냅이 정착을 담당 → 0(구간마다 매끄럽게 이동)
-  const cc = clamp01(norm(p, 0.50, 0.95)) * nSeg
-  const segI = Math.min(nSeg - 1, Math.floor(cc))
-  const segF = cc - segI
-  // 구간의 앞 (1-HOLD) 동안만 부드럽게 이동해 포커스에 도달, 나머지는 그 자리에 달라붙어 정지
-  const segMoved = segF <= 1 - HOLD ? easeInOut(segF / (1 - HOLD)) : 1
-  const trackX = STOPS[segI] + ((STOPS[segI + 1] ?? STOPS[segI]) - STOPS[segI]) * segMoved
-
-  // 게시물 사라지는 기준선: 화면 중앙 + 50px(스크린) → stage 좌표로 환산 (반응형)
-  // DESIGN_W/2(=720) 는 어느 너비에서나 화면 정중앙. 50px 는 scale 로 나눠 보정.
-  const fadeCenterX = DESIGN_W / 2 + 50 / scale
-  const FADE_SPAN = 300
 
   /* 초기 스크롤 힌트 페이드 */
   const hintOpacity = Math.max(0, 1 - p * 6)
@@ -319,7 +215,8 @@ export default function HomeHeroSection({
             __html:
               '@keyframes heroFloatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}' +
               '@keyframes heroFloatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-23px)}}' +
-              '@keyframes heroWorkFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-16px) rotate(-1.2deg)}}',
+              '@keyframes heroWorkFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-16px) rotate(-1.2deg)}}' +
+              '.hero-strip{-ms-overflow-style:none;scrollbar-width:none}.hero-strip::-webkit-scrollbar{display:none}.hero-strip:active{cursor:grabbing}',
           }}
         />
         {/* 1440×725 디자인 좌표 stage — 뷰포트 너비에 맞춰 스케일 */}
@@ -371,31 +268,33 @@ export default function HomeHeroSection({
             )
           })}
 
-          {/* ── 게시물 캐러셀 (우 → 좌) ── */}
+          {/* ── 게시물 가로 스냅 스트립 (세로 스크롤과 분리) ── */}
           <div
+            ref={stripRef}
+            onPointerDown={onStripPointerDown}
+            onPointerMove={onStripPointerMove}
+            onPointerUp={endStripDrag}
+            onPointerCancel={endStripDrag}
+            onPointerLeave={endStripDrag}
+            onClickCapture={onStripClickCapture}
+            className="hero-strip"
             style={{
-              position: 'absolute', top: 165, left: 0, height: CARD_H,
-              display: 'flex', gap: CARD_GAP,
-              transform: `translateX(${trackX}px)`,
-              opacity: cardsAppear, zIndex: 20, willChange: 'transform',
+              position: 'absolute', top: 150, left: 470, width: 970, height: 410,
+              display: 'flex', gap: CARD_GAP, alignItems: 'center',
+              overflowX: 'auto', overflowY: 'hidden',
+              scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain',
+              transform: `translateX(${(1 - stripIn) * 240}px)`,
+              opacity: stripIn, zIndex: 20, cursor: 'grab', touchAction: 'pan-x',
+              willChange: 'transform, opacity',
             }}
           >
-            {posts.slice(0, 4).map((post, i) => {
-              // 카드 중심의 화면상 X (stage 좌표). 중앙(720)보다 왼쪽으로 오면
-              // opacity↓ · scale↓ · blur↑ 로 사라짐 (왼쪽 끝까지 가지 않음)
-              const centerX = i * pitch + trackX + CARD_W / 2
-              // 마지막 카드는 오른쪽 유지. 나머지는 화면 중앙+50px(fadeCenterX)에서
-              // 완전히 사라지도록 그 우측 구간(FADE_SPAN)에서 opacity↓·scale↓·blur↑
-              const fadeT = i === lastIndex ? 0 : clamp01((fadeCenterX + FADE_SPAN - centerX) / FADE_SPAN)
+            {/* 첫/마지막 카드 가운데 정렬용 여백 */}
+            <div aria-hidden style={{ flex: 'none', width: 'calc(50% - 300px)' }} />
+            {posts.slice(0, 4).map((post) => {
               const cardStyle: CSSProperties = {
                 position: 'relative', display: 'block', width: CARD_W, height: CARD_H, flex: 'none',
                 borderRadius: 20, background: '#d9d9d9', overflow: 'hidden', textDecoration: 'none',
-                transformOrigin: 'center center',
-                transform: `scale(${1 - 0.35 * fadeT})`,
-                opacity: 1 - fadeT,
-                filter: fadeT > 0 ? `blur(${fadeT * 16}px)` : 'none',
-                pointerEvents: fadeT > 0.5 ? 'none' : undefined,
-                willChange: 'transform, opacity, filter',
+                scrollSnapAlign: 'center',
               }
               const inner = (
                 <>
@@ -431,7 +330,7 @@ export default function HomeHeroSection({
                 </>
               )
               return post.href ? (
-                <Link key={post.id} href={post.href} className="group" style={cardStyle} aria-label={post.title}>
+                <Link key={post.id} href={post.href} className="group" style={cardStyle} aria-label={post.title} draggable={false}>
                   {inner}
                 </Link>
               ) : (
@@ -440,6 +339,8 @@ export default function HomeHeroSection({
                 </div>
               )
             })}
+            {/* 첫/마지막 카드 가운데 정렬용 여백 */}
+            <div aria-hidden style={{ flex: 'none', width: 'calc(50% - 300px)' }} />
           </div>
 
           {/* ── WORK 3D (우 → 좌 등장 + 둥실둥실 플로팅 + hover 인터랙션) ── */}

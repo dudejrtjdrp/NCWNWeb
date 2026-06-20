@@ -51,8 +51,8 @@ export default async function HomePage({ params }: PageProps) {
       {/* Header: 신규 히어로가 흰 배경이므로 light(흰 배경·다크 텍스트) 사용 */}
       <Header variant="light" />
 
-      {/* 히어로 섹션: 520vh 스크롤 캡처 — 인트로 퇴장 + WORK 등장 + 휠 스텝 게시물 캐러셀 */}
-      <HomeHeroSection scrollHeight="520vh" posts={heroPosts.length ? heroPosts : undefined} />
+      {/* 히어로 섹션: 320vh 스크롤 캡처 — 인트로 퇴장 + WORK + 슬로건 + 게시물 가로 스냅 스트립 */}
+      <HomeHeroSection scrollHeight="320vh" posts={heroPosts.length ? heroPosts : undefined} />
 
       {/* 검은색 분리 바: HeroSection 바로 아래 붙음 */}
       <div
