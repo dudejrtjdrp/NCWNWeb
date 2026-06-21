@@ -202,9 +202,10 @@ export default function HomeHeroMobile({
         <style
           dangerouslySetInnerHTML={{
             __html:
-              '@keyframes heroFloatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}' +
-              '@keyframes heroFloatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}' +
-              '@keyframes heroWorkFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(-1deg)}}' +
+              /* translate3d 사용: GPU 컴포지터에서 합성 → Windows 서브픽셀 진동(덜덜거림) 방지 */
+              '@keyframes heroFloatA{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-12px,0)}}' +
+              '@keyframes heroFloatB{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-18px,0)}}' +
+              '@keyframes heroWorkFloat{0%,100%{transform:translate3d(0,0,0) rotate(0deg)}50%{transform:translate3d(0,-10px,0) rotate(-1deg)}}' +
               '.hero-strip-m{-ms-overflow-style:none;scrollbar-width:none}.hero-strip-m::-webkit-scrollbar{display:none}',
           }}
         />
@@ -241,6 +242,10 @@ export default function HomeHeroMobile({
                     width: '100%',
                     height: 'auto',
                     animation: `${L.bob} ${L.bobDur}s ease-in-out ${L.bobDelay}s infinite`,
+                    /* 애니메이션 요소를 독립 GPU 레이어로 승격 → 픽셀 그리드 스냅(진동) 제거 */
+                    willChange: 'transform',
+                    backfaceVisibility: 'hidden',
+                    WebkitBackfaceVisibility: 'hidden',
                   }}
                 />
               </div>
@@ -263,7 +268,12 @@ export default function HomeHeroMobile({
           }}
         >
           <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group block">
-            <div className="transition-transform duration-300 ease-out group-hover:scale-[1.04]">
+            {/* drop-shadow는 정적 부모로 분리: 애니메이션 요소에 filter가 걸리면
+                Windows에서 매 프레임 그림자 재래스터로 떨림이 발생하므로 분리한다 */}
+            <div
+              className="transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+              style={{ filter: 'drop-shadow(-12px 30px 18px rgba(0,0,0,0.10))' }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 alt="WORK"
@@ -273,7 +283,9 @@ export default function HomeHeroMobile({
                   width: '100%',
                   height: 'auto',
                   animation: 'heroWorkFloat 6s ease-in-out infinite',
-                  filter: 'drop-shadow(-12px 30px 18px rgba(0,0,0,0.10))',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
                 }}
               />
             </div>
