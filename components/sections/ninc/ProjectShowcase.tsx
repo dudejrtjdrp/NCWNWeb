@@ -7,13 +7,14 @@
  * 디자인 요구사항:
  *  - 사진: 가로(좌우) 슬라이드
  *  - 글자: 슬라이드 전환 시 아래 → 위로 올라오는 애니메이션
- *  - 하단 슬라이드바로 진행 표시
- *  - 이미지 클릭 시 링크 이동(추후 교체)
+ *  - 하단 슬라이드바(노란/초록)로 진행 표시 + 클릭 시 해당 장으로 이동
+ *  - 이미지/화살표 클릭 시 프로젝트 상세 페이지(/ninc/project/[id])로 이동
  *  - 카테고리별로 이미지/텍스트 좌우 위치 교차(imageRight)
  */
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 import { cn } from '@/lib/utils'
 import type { ShowcaseBlock } from '@/constants/ninc-project'
@@ -32,6 +33,60 @@ function ArrowCircle() {
   )
 }
 
+/**
+ * 슬라이드 링크 래퍼
+ * - 외부(http) 링크: 새 탭
+ * - 내부 링크: next/link 클라이언트 라우팅(상세 페이지 이동)
+ * - href가 비었거나 '#'(폴백 placeholder): 링크 비활성(div)
+ * - 비활성 슬라이드(active=false)는 포커스/스크린리더 대상에서 제외
+ */
+function SlideLink({
+  href,
+  active,
+  className,
+  ariaLabel,
+  children,
+}: {
+  href: string
+  active: boolean
+  className?: string
+  ariaLabel?: string
+  children: React.ReactNode
+}) {
+  const a11y = active ? {} : { tabIndex: -1, 'aria-hidden': true }
+  const isPlaceholder = !href || href === '#'
+  const isExternal = href.startsWith('http')
+
+  if (isPlaceholder) {
+    return (
+      <div className={className} aria-label={ariaLabel}>
+        {children}
+      </div>
+    )
+  }
+
+  if (isExternal) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={className}
+        aria-label={ariaLabel}
+        {...a11y}
+      >
+        {children}
+      </a>
+    )
+  }
+
+  return (
+    <Link href={href} className={className} aria-label={ariaLabel} {...a11y}>
+      {children}
+    </Link>
+  )
+}
+
 export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
   const { label, accent, imageRight, slides } = block
   const [index, setIndex] = useState(0)
@@ -47,8 +102,9 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
     }
   }, [count])
 
+  // 사용자가 직접 이동하면 자동 슬라이드 중지
   const goTo = (i: number) => {
-    setIndex(i)
+    setIndex(((i % count) + count) % count)
     if (timer.current) clearInterval(timer.current)
   }
 
@@ -62,16 +118,15 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
         {slides.map((s, i) => (
-          <a
+          <SlideLink
             key={i}
             href={s.href}
-            target={s.href.startsWith('http') ? '_blank' : undefined}
-            rel={s.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+            active={i === index}
+            ariaLabel={`${s.title} 상세 보기`}
             className="relative block h-full w-full shrink-0"
-            aria-label={s.title}
           >
             <Image src={s.image} alt={s.title} fill className="object-cover" unoptimized />
-          </a>
+          </SlideLink>
         ))}
       </div>
     </div>
@@ -99,20 +154,21 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
           <h3 className="font-body font-extrabold text-[20px] lg:text-[24.5px] leading-tight text-black">
             {current.title}
           </h3>
-          <p className="font-body font-medium text-[16px] lg:text-[18px] leading-[27px] text-black">
-            {current.place}
-          </p>
+          {current.place && (
+            <p className="font-body font-medium text-[16px] lg:text-[18px] leading-[27px] text-black">
+              {current.place}
+            </p>
+          )}
         </div>
 
-        <a
+        <SlideLink
           href={current.href}
-          target={current.href.startsWith('http') ? '_blank' : undefined}
-          rel={current.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+          active
+          ariaLabel={`${current.title} 자세히 보기`}
           className="mt-1 inline-block transition-transform duration-200 hover:translate-x-1"
-          aria-label={`${current.title} 자세히 보기`}
         >
           <ArrowCircle />
-        </a>
+        </SlideLink>
       </div>
     </div>
   )
@@ -135,19 +191,32 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
           )}
         </div>
 
-        {/* 슬라이드바 */}
-        <div className="relative h-[10px] w-full bg-nwcn-border-muted">
-          <button
-            type="button"
-            onClick={() => goTo((index + 1) % count)}
-            className={cn('h-full transition-[width,margin] duration-700 ease-out', ACCENT[accent].bar)}
-            style={{
-              width: `${100 / count}%`,
-              marginLeft: `${(index * 100) / count}%`,
-            }}
-            aria-label="다음 슬라이드"
-          />
-        </div>
+        {/* ── 슬라이드바 ── */}
+        {/* 슬라이드가 여러 장이면 장 수만큼 세그먼트로 표시하고, 클릭하면 해당 장으로 이동 */}
+        {count > 1 ? (
+          <div
+            className="flex w-full gap-1.5"
+            role="tablist"
+            aria-label={`${label} 슬라이드 (${count}장)`}
+          >
+            {slides.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={i === index}
+                aria-label={`${i + 1} / ${count}: ${s.title}`}
+                onClick={() => goTo(i)}
+                className={cn(
+                  'h-[10px] flex-1 transition-colors duration-300',
+                  i === index ? ACCENT[accent].bar : 'bg-nwcn-border-muted hover:bg-nwcn-gray-faint'
+                )}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className={cn('h-[10px] w-full', ACCENT[accent].bar)} aria-hidden="true" />
+        )}
       </div>
     </AnimateOnScroll>
   )

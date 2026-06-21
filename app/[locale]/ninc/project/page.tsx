@@ -14,7 +14,8 @@ import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 import ProjectPartners from '@/components/sections/ninc/ProjectPartners'
 import ProjectShowcase from '@/components/sections/ninc/ProjectShowcase'
 import { NINC_NAV_ITEMS } from '@/constants/nav-items'
-import { SHOWCASE_BLOCKS } from '@/constants/ninc-project'
+import { SHOWCASE_BLOCKS, buildShowcaseBlocks } from '@/constants/ninc-project'
+import { getProjects } from '@/lib/supabase/queries/projects'
 
 export const metadata: Metadata = {
   title: 'PROJECT — Now In NewCon',
@@ -61,7 +62,15 @@ const ProjectTagline = (
   </>
 )
 
-export default async function ProjectPage() {
+export default async function ProjectPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+
+  // 실제 DB 프로젝트를 유형별(해외교류/산학협력) 쇼케이스로 구성.
+  // 데이터가 없으면 정적 SHOWCASE_BLOCKS로 폴백해 빈 화면을 방지한다.
+  const projects = await getProjects(locale)
+  const dbBlocks = buildShowcaseBlocks(projects)
+  const showcaseBlocks = dbBlocks.length > 0 ? dbBlocks : SHOWCASE_BLOCKS
+
   return (
     <SubPageLayout headerVariant="transparent" overlapHeader>
       {/* 1. 히어로 배너 (확대 + 투명 네비바) */}
@@ -89,7 +98,7 @@ export default async function ProjectPage() {
         </AnimateOnScroll>
 
         <div className="flex flex-col gap-16 sm:gap-20 lg:gap-[80px] pb-20 sm:pb-24 lg:pb-[120px]">
-          {SHOWCASE_BLOCKS.map((block, i) => (
+          {showcaseBlocks.map((block, i) => (
             <ProjectShowcase key={`${block.label}-${i}`} block={block} />
           ))}
         </div>
