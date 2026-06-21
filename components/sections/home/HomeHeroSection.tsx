@@ -30,6 +30,7 @@
 
 import { useRef, useEffect, useState, useCallback, type CSSProperties, type PointerEvent as ReactPointerEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import { Link } from '@/i18n/navigation'
+import HomeHeroMobile from './HomeHeroMobile'
 
 /* ──────────────────────────────────────────────────────────
  * 에셋 (TODO: 로컬 /public/images/home/* 로 교체)
@@ -113,6 +114,16 @@ export default function HomeHeroSection({
   const [progress, setProgress] = useState(0) // 0 ~ 1
   const [vw, setVw] = useState(DESIGN_W)
   const rafRef = useRef<number | null>(null)
+
+  /* 모바일(≤767px) 감지 — 마운트 후 결정(SSR 하이드레이션 미스매치 방지) */
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   /* 스크롤 진행률 계산 */
   const updateProgress = useCallback(() => {
@@ -199,6 +210,15 @@ export default function HomeHeroSection({
 
   /* 초기 스크롤 힌트 페이드 */
   const hintOpacity = Math.max(0, 1 - p * 6)
+
+  /* 결정 전: 스크롤 높이만 유지하는 플레이스홀더(히어로 깜빡임/하이드레이션 미스매치 방지) */
+  if (isMobile === null) {
+    return <div className={`relative ${className}`} style={{ height: scrollHeight }} aria-hidden />
+  }
+  /* 모바일: 전용 풀블리드 히어로 */
+  if (isMobile) {
+    return <HomeHeroMobile posts={posts} scrollHeight={scrollHeight} className={className} />
+  }
 
   return (
     <div
