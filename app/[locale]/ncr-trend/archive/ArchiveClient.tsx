@@ -109,15 +109,15 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                     <Link
                       key={report.id}
                       href={`/ncr-trend/${report.id}`}
-                      className="flex items-center gap-6 p-5 border border-[#ececec] rounded-2xl hover:border-nwcn-green/30 hover:shadow-sm transition-all duration-200 group bg-white"
+                      className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 sm:gap-6 p-4 sm:p-5 border border-[#ececec] rounded-2xl hover:border-nwcn-green/30 hover:shadow-sm transition-all duration-200 group bg-white"
                     >
                       {/* 순번 */}
-                      <span className="font-brand font-bold text-[14px] text-[#ddd] w-6 flex-shrink-0 text-center">
+                      <span className="font-brand font-bold text-[13px] sm:text-[14px] text-[#ddd] w-6 flex-shrink-0 text-center">
                         {String(idx + 1).padStart(2, '0')}
                       </span>
 
                       {/* 날짜 */}
-                      <span className="font-body text-[12px] text-[#bbb] w-24 flex-shrink-0">
+                      <span className="font-body text-[12px] text-[#bbb] w-20 sm:w-24 flex-shrink-0">
                         {new Date(report.published_at).toLocaleDateString(dateLocale)}
                       </span>
 
@@ -126,23 +126,23 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                         {typeLabels[report.type] ?? report.type}
                       </Badge>
 
-                      {/* 제목 */}
-                      <p className="flex-1 font-body text-[15px] text-nwcn-text-default font-medium group-hover:text-nwcn-green transition-colors">
+                      {/* 제목 — 모바일에선 줄바꿈되어 한 줄 전체 차지, 데스크탑에선 인라인 */}
+                      <p className="order-last sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 font-body text-[14px] sm:text-[15px] text-nwcn-text-default font-medium group-hover:text-nwcn-green transition-colors">
                         {report.title}
                       </p>
 
-                      {/* 읽기 시간 */}
+                      {/* 읽기 시간 — 모바일 숨김 */}
                       {report.read_time && (
-                        <span className="font-body text-[12px] text-[#bbb] flex-shrink-0">
+                        <span className="hidden sm:inline font-body text-[12px] text-[#bbb] flex-shrink-0">
                           {report.read_time} {t('readSuffix')}
                         </span>
                       )}
 
-                      {/* 화살표 */}
+                      {/* 화살표 — 모바일 숨김(공간 확보) */}
                       <svg
                         width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="2"
-                        className="flex-shrink-0 text-[#ddd] group-hover:text-nwcn-green group-hover:translate-x-1 transition-all duration-200"
+                        className="hidden sm:block flex-shrink-0 text-[#ddd] group-hover:text-nwcn-green group-hover:translate-x-1 transition-all duration-200"
                       >
                         <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>

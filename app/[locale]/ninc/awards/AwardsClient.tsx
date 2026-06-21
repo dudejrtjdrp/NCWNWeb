@@ -27,7 +27,7 @@ export default function AwardsClient({ initialAwards }: Props) {
       a.competition.toLowerCase().includes(q) ||
       a.award_name.toLowerCase().includes(q) ||
       (a.winner ?? '').toLowerCase().includes(q) ||
-      a.team_members.some((m) => m.toLowerCase().includes(q))
+      (a.team_members ?? []).some((m) => m.toLowerCase().includes(q))
   )
 
   const { page, setPage, totalPages, paged, reset } = usePagination(filtered, PAGE_SIZE)

@@ -18,10 +18,10 @@ export interface PartnerLogo {
 }
 
 export const PARTNER_LOGOS: PartnerLogo[] = [
-  { name: 'Partner 1', logoSrc: '/images/ninc/partners/partner-1.png', href: '#' },
-  { name: '소머정', logoSrc: '/images/ninc/partners/partner-3.png', href: '#' },
-  { name: 'MOON COMPANY', logoSrc: '/images/ninc/partners/partner-4.png', href: '#' },
-  { name: 'EAST', logoSrc: '/images/ninc/partners/partner-5.png', href: '#' },
+  { name: 'Partner 1', logoSrc: '/images/ninc/partners/0.png', href: '#' },
+  { name: '소머정', logoSrc: '/images/ninc/partners/1.png', href: '#' },
+  { name: 'MOON COMPANY', logoSrc: '/images/ninc/partners/2.png', href: '#' },
+  { name: 'EAST', logoSrc: '/images/ninc/partners/3.png', href: '#' },
 ]
 
 /** 쇼케이스 슬라이드(개별 프로젝트) */

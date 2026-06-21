@@ -67,6 +67,9 @@ export default async function AwardDetailPage({ params }: PageProps) {
 
   const t = await getTranslations({ locale, namespace: 'ninc.awards.detail' })
 
+  // team_members 가 DB에서 null 로 와도 안전하게 (null.map/length 방지)
+  const members = award.team_members ?? []
+
   // 연도 표시: 한국어면 "2024년", 영어면 "2024"
   const yearLabel = t('yearFormat', { year: award.year })
   const yearAndAward = t('yearAndAward', { year: award.year, awardName: award.award_name })
@@ -136,11 +139,11 @@ export default async function AwardDetailPage({ params }: PageProps) {
                       <p className="font-body text-sm font-semibold text-nwcn-text-default">{award.winner}</p>
                     </div>
                   )}
-                  {award.team_members.length > 1 && (
+                  {members.length > 1 && (
                     <div>
                       <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('teamMembers')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">
-                        {award.team_members.join(', ')}
+                        {members.join(', ')}
                       </p>
                     </div>
                   )}
@@ -182,7 +185,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                   {t('sectionWinners')}
                 </h2>
                 <div className="flex flex-wrap gap-3">
-                  {award.team_members.map((member) => (
+                  {members.map((member) => (
                     <div
                       key={member}
                       className="flex items-center gap-3 bg-[#f5f5f5] px-4 py-3 rounded-xl"
