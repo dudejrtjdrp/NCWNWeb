@@ -92,3 +92,24 @@
 */
 .maskTop    { top:    -300px; }
 .maskBottom { bottom: -300px; }
+
+/* ══════════════════════════════════════════
+   반응형 — 모바일/태블릿
+   3D 카드 캐러셀 전체(.section)를 통째로 스케일다운해
+   카드·마스크·퍼스펙티브 비율을 그대로 유지하면서 화면에 맞춤.
+   (개별 카드 폭만 줄이면 마스크/퍼스펙티브 수식이 깨지므로 통짜 스케일)
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .section {
+    height: 533px;                 /* 720 × 0.74 */
+    transform: scale(0.74);
+    transform-origin: top center;
+  }
+}
+@media (max-width: 480px) {
+  .section {
+    height: 446px;                 /* 720 × 0.62 */
+    transform: scale(0.62);
+    transform-origin: top center;
+  }
+}

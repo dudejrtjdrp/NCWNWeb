@@ -302,7 +302,8 @@ export default function HomeHeroSection({
             onClickCapture={onStripClickCapture}
             className="hero-strip"
             style={{
-              position: 'absolute', top: 150, left: 470, width: 970, height: 410,
+              /* 좌하단 NWCN 슬로건과 겹치지 않도록 스트립을 슬로건 오른쪽에서 시작·클립 */
+              position: 'absolute', top: 150, left: 640, width: 800, height: 410,
               display: 'flex', gap: CARD_GAP, alignItems: 'center',
               overflowX: 'auto', overflowY: 'hidden',
               scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain',

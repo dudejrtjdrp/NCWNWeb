@@ -3,14 +3,20 @@
 import { useEffect, useRef } from 'react'
 import styles from './CertCarousel.module.css'
 
-/* ── 플레이스홀더 — 추후 실제 자격증 이미지로 교체 예정 ── */
+/* ── 실제 자격증 이미지 ──
+   파일을 public/images/department/cert/ 에 넣고 아래 배열에 경로를 추가하세요.
+   예: ['/images/department/cert/1.png', '/images/department/cert/2.png', ...]
+   배열이 비어 있으면 아래 색상 플레이스홀더가 표시됩니다. */
+const CERT_IMAGES: string[] = []
+
+/* ── 플레이스홀더 (실제 이미지 없을 때만 사용) ── */
 const PLACEHOLDER_COLORS = [
   '#e74c3c','#3498db','#2ecc71','#f39c12',
   '#9b59b6','#1abc9c','#e67e22','#34495e',
   '#e91e63','#00bcd4','#8bc34a','#ff9800',
   '#673ab7','#009688','#ff5722','#607d8b',
 ]
-const IMAGES = PLACEHOLDER_COLORS.map((color, i) => {
+const PLACEHOLDER_IMAGES = PLACEHOLDER_COLORS.map((color, i) => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="380" height="500">
     <rect width="380" height="500" fill="${color}" rx="16"/>
     <text x="190" y="265" text-anchor="middle" fill="white"
@@ -18,6 +24,8 @@ const IMAGES = PLACEHOLDER_COLORS.map((color, i) => {
   </svg>`
   return `data:image/svg+xml,${encodeURIComponent(svg)}`
 })
+
+const IMAGES = CERT_IMAGES.length > 0 ? CERT_IMAGES : PLACEHOLDER_IMAGES
 
 /* ── 레이아웃 상수 ── */
 const CARD_W      = 380   // 카드 너비 (px) — CSS .card width와 동일 ★ CSS 변경 시 반드시 같이 수정
