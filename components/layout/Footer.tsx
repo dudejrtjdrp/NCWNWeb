@@ -107,6 +107,11 @@ export default function Footer({ className = '' }: FooterProps) {
           </div>
         </div>
 
+        {/* 검색 노출용 별칭·약칭 (fine print) — 동방예대/뉴콘/DIMA 등 변형 키워드 매칭용 */}
+        <p className="pb-3 font-body text-[11px] leading-relaxed text-white/30">
+          {t('alias')}
+        </p>
+
         {/* 개인정보처리방침 링크 */}
         <div className="pb-2">
           <Link

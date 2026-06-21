@@ -130,6 +130,10 @@ export default function DepartmentSection() {
             >
               {t('introText2')}
             </p>
+            {/* 검색 노출용 약칭 안내 (동방예대·뉴콘·NewCon 자연 문구) */}
+            <p className="mt-4 sm:mt-5 font-body font-normal text-[13px] sm:text-[14px] text-[#888]">
+              {t('aka')}
+            </p>
           </div>
         </section>
       </AnimateOnScroll>

@@ -31,8 +31,17 @@ export async function generateMetadata({
     },
     description: t('siteDescription'),
     keywords: isKo
-      ? ['뉴미디어콘텐츠과', 'NWCN', '동아방송예술대학교', '뉴미디어', '미디어콘텐츠', 'NCR TREND', '학과 소개', '입학']
-      : ['New Media Contents', 'NWCN', 'Dong-A Broadcasting Arts University', 'New Media', 'Media Contents', 'NCR TREND'],
+      ? [
+          '뉴미디어콘텐츠과', '뉴미디어콘텐츠', '뉴콘', 'NewCon', 'NWCN', 'DIMA', 'DIMA NWCN',
+          '동아방송예술대학교', '동아방송예술대학교 뉴미디어콘텐츠과', '동아방송예술대학교 뉴미디어콘텐츠',
+          '동방예대', '동방예대 뉴미디어콘텐츠과', '동방예대 뉴콘',
+          '뉴미디어', '미디어콘텐츠', 'NCR TREND', '학과 소개', '입학',
+        ]
+      : [
+          'New Media Contents', 'NewCon', 'NWCN', 'DIMA', 'DIMA NWCN',
+          'Dong-A Broadcasting Arts University', 'Dong-Ah Institute of Media and Arts',
+          'New Media', 'Media Contents', 'NCR TREND',
+        ],
     // NOTE: canonical/hreflang 은 페이지별로 지정한다.
     // 레이아웃에 홈 URL을 고정하면 모든 서브페이지가 홈을 canonical 로 상속해
     // 색인에서 누락되는 문제가 있어 여기서는 설정하지 않는다. (홈은 page.tsx 에서 지정)

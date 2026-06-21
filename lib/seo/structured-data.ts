@@ -18,7 +18,30 @@ export function educationalOrganizationLd(locale: string) {
     name: isKo
       ? '동아방송예술대학교 뉴미디어콘텐츠과'
       : 'Dong-Ah Institute of Media and Arts, New Media Contents',
-    alternateName: ['NWCN', '뉴미디어콘텐츠과', 'New Media Contents'],
+    // 실제 검색에 쓰이는 변형·약칭을 모두 동의어로 등록한다.
+    // (정확한 풀네임뿐 아니라 '동방예대', '뉴콘', 'DIMA', '과' 없는 표기로도 매칭되도록)
+    alternateName: isKo
+      ? [
+          'NWCN',
+          'DIMA NWCN',
+          '뉴미디어콘텐츠과',
+          '뉴미디어콘텐츠',
+          '뉴콘',
+          'NewCon',
+          '동방예대 뉴미디어콘텐츠과',
+          '동방예대 뉴미디어콘텐츠',
+          '동방예대 뉴콘',
+          '동아방송예술대학교 뉴미디어콘텐츠',
+          '동아방송예술대학교 뉴콘',
+          'New Media Contents',
+        ]
+      : [
+          'NWCN',
+          'DIMA NWCN',
+          'NewCon',
+          'New Media Contents',
+          'Dong-Ah Institute of Media and Arts New Media Contents',
+        ],
     url: SITE_URL,
     logo: `${SITE_URL}/apple-icon`,
     description: isKo
@@ -27,6 +50,8 @@ export function educationalOrganizationLd(locale: string) {
     parentOrganization: {
       '@type': 'CollegeOrUniversity',
       name: isKo ? '동아방송예술대학교' : 'Dong-Ah Institute of Media and Arts',
+      // 본교 약칭: '동방예대' / 'DIMA'
+      alternateName: isKo ? ['동방예대', 'DIMA'] : ['DIMA', '동아방송예술대학교', '동방예대'],
     },
     sameAs: [
       'https://www.instagram.com/',
@@ -45,11 +70,15 @@ export function webSiteLd(locale: string) {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: isKo ? '동아방송예술대학교 뉴미디어콘텐츠과' : 'Dong-Ah Institute of Media and Arts, New Media Contents',
+    alternateName: isKo
+      ? ['NWCN', '뉴콘', 'NewCon', '동방예대 뉴미디어콘텐츠과', '동방예대 뉴콘', 'DIMA NWCN']
+      : ['NWCN', 'NewCon', 'DIMA NWCN'],
     url: SITE_URL,
     inLanguage: isKo ? 'ko-KR' : 'en-US',
     publisher: {
       '@type': 'Organization',
       name: '동아방송예술대학교 뉴미디어콘텐츠과',
+      alternateName: ['동방예대 뉴미디어콘텐츠과', '뉴콘', 'NWCN'],
       url: SITE_URL,
     },
   }
