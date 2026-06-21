@@ -3,13 +3,10 @@ import SubPageLayout from '@/components/layout/SubPageLayout'
 import WorkHero from '@/components/base/WorkHero'
 import SubNav from '@/components/common/SubNav'
 import { WORK_NAV_ITEMS } from '@/constants/nav-items'
-import { getShowcaseWorksPage, getWorkFilterTags } from '@/lib/supabase/queries/works'
+import { getWorkFilterTags } from '@/lib/supabase/queries/works'
 import ShowcaseClient from './ShowcaseClient'
 
 const PAGE_SIZE = 15
-
-// 매 요청마다 새 seed → 데이터 순서 랜덤 (정적 캐시 비활성화)
-export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'SHOWCASE — 학생 작품',
@@ -26,12 +23,11 @@ export const metadata: Metadata = {
 
 export default async function ShowcasePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  // 클라이언트 추가 로드와 동일 순서를 보장하도록 seed 를 서버에서 생성해 전달
-  const seed = Math.random().toString(36).slice(2, 12)
-  const [firstPage, filterTags] = await Promise.all([
-    getShowcaseWorksPage({ locale, seed, offset: 0, limit: PAGE_SIZE }),
-    getWorkFilterTags(),
-  ])
+  // 필터 태그만 서버에서 로드한다 — getWorkFilterTags 는 unstable_cache(캐시)라
+  // 페이지를 동적으로 만들지 않는다. 따라서 이 페이지는 static/ISR 로 렌더되어
+  // 클라이언트 내비게이션이 즉시 완료된다.
+  // 작품 목록과 "방문마다 랜덤" 시드는 ShowcaseClient 가 마운트 직후 로드한다.
+  const filterTags = await getWorkFilterTags()
 
   return (
     <SubPageLayout>
@@ -48,11 +44,8 @@ export default async function ShowcasePage({ params }: { params: Promise<{ local
 
       {/* 필터 + 검색 + 무한 스크롤 마소너리 (Client Component) */}
       <ShowcaseClient
-        initialWorks={firstPage.items}
-        initialHasMore={firstPage.hasMore}
         filterTags={filterTags}
         locale={locale}
-        seed={seed}
         pageSize={PAGE_SIZE}
       />
     </SubPageLayout>

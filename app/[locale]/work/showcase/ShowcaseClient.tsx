@@ -7,28 +7,28 @@ import type { WorkListItem as WorkItem } from '@/lib/supabase/queries/works'
 import { loadShowcaseWorksAction } from './actions'
 
 interface Props {
-  initialWorks: WorkItem[]
-  initialHasMore: boolean
   filterTags: string[]
   locale: string
-  seed: string
   pageSize?: number
 }
 
 export default function ShowcaseClient({
-  initialWorks,
-  initialHasMore,
   filterTags,
   locale,
-  seed,
   pageSize = 15,
 }: Props) {
   const [activeFilter, setActiveFilter] = useState('전체')
   const [query, setQuery] = useState('')
 
-  const [items, setItems] = useState<WorkItem[]>(initialWorks)
-  const [hasMore, setHasMore] = useState(initialHasMore)
-  const [loading, setLoading] = useState(false)
+  // 초기 목록은 서버가 아니라 마운트 직후 클라이언트에서 로드한다 → 페이지 이동 즉시 완료.
+  const [items, setItems] = useState<WorkItem[]>([])
+  const [hasMore, setHasMore] = useState(true)
+  // 첫 페인트부터 스켈레톤이 보이도록 true 로 시작
+  const [loading, setLoading] = useState(true)
+
+  // "방문마다 랜덤 순서" 유지 — 시드를 마운트 시 1회 생성(클라이언트 전용).
+  // 시드는 DOM 에 출력되지 않으므로 하이드레이션 불일치 없음.
+  const [seed] = useState(() => Math.random().toString(36).slice(2, 12))
 
   // 동시 요청/경쟁 상태 방지용 토큰
   const reqId = useRef(0)
@@ -39,17 +39,16 @@ export default function ShowcaseClient({
 
   const filterButtons = ['전체', ...filterTags]
 
-  // 필터/검색 변경 → 0페이지부터 다시 로드 (검색은 디바운스)
+  // 최초 마운트 + 필터/검색 변경 → 0페이지부터 로드
+  // (최초 로드는 즉시, 이후 필터/검색 변경은 300ms 디바운스)
   useEffect(() => {
-    if (isFirst.current) {
-      isFirst.current = false
-      return // 최초 마운트는 서버에서 받은 initialWorks 사용
-    }
     const token = ++reqId.current
     // 리셋이 진행되는 동안 무한스크롤 loadMore 가 끼어들어
     // 필터 적용 전 목록 위에 결과를 덧붙이는 경쟁을 차단
     busyRef.current = true
     setLoading(true)
+    const delay = isFirst.current ? 0 : 300
+    isFirst.current = false
     const timer = setTimeout(async () => {
       try {
         const res = await loadShowcaseWorksAction({
@@ -74,7 +73,7 @@ export default function ShowcaseClient({
           busyRef.current = false
         }
       }
-    }, 300)
+    }, delay)
     return () => clearTimeout(timer)
   }, [activeFilter, query, locale, seed, pageSize])
 
