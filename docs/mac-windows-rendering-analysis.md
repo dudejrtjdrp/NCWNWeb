@@ -144,11 +144,13 @@ font-family: 'Pretendard Variable','Pretendard', -apple-system, BlinkMacSystemFo
   - `html { scroll-behavior: smooth }` → `auto` (Lenis와 충돌 제거)
   - Lenis 권장 CSS 블록 추가(`.lenis.lenis-smooth { scroll-behavior: auto !important }` 등)
   - `html { scrollbar-gutter: stable }` 추가(Windows 스크롤바 가로 점프 방지)
-- **P0-2** `components/sections/home/HomeHeroSection.tsx`
-  - 히어로 stage `transform: scale(vw/1440)` → **`zoom`** 전환(자식 레이어를 확대 해상도로 래스터 → 리샘플 진동 제거)
-  - 낱자 idle 상태에서 `filter:'none'` 제거(합성 레이어 클린 유지)
+- **P0-2** `components/sections/home/HomeHeroSection.tsx` — 떨림의 실제 메커니즘은 **정수 픽셀 스냅**(아래 보강 참조). 레이아웃을 전혀 바꾸지 않는 합성 힌트만 적용:
+  - 떠다니는 낱자 래퍼(positioned `translate` + `rotate`)에 **`translateZ(0)`** 추가 → 2D transform 조상(`scale`/`rotate`) 안에서도 3D 합성 컨텍스트로 승격. Windows(Chrome)가 애니메이션 위치를 **정수 픽셀로 스냅하지 않고 서브픽셀로** 부드럽게 이동시킨다(Mac은 DPR 2라 스냅 오차가 0.5px → 원래 안 보임).
+  - 가운데 카피·낱자의 **idle 상태 `blur(0)`/`filter:'none'` 정적 필터 제거** → 낱자 repaint에 휩쓸려 매 프레임 필터 재패스가 도는 것을 막아 텍스트 떨림 방지.
+  - ⚠️ 처음 적용했던 `scale → zoom` 전환은 **되돌렸다**(레이아웃 위험 회피). 원인이 리샘플이 아니라 **정수 픽셀 스냅**이라 zoom은 효과가 약하고, DPR 100%에선 더더욱 그렇다.
 
-> ⚠️ **검증 요청**: 떨림은 Windows·DPR 1 특정 증상이라 이 개발 환경(Mac/Linux)에서는 재현·확인이 불가능하다. 실제 **Windows + Mac 양쪽에서 히어로 정렬과 떨림을 눈으로 확인** 필요. 만약 Mac에서 히어로 레이아웃이 어긋나면 `HomeHeroSection.tsx`의 `zoom: scale` 줄을 `transform: translate(-50%,-50%) scale(${scale})` 로 1줄 복원하면 즉시 원복된다.
+> **사용자 환경 확인됨**: Chrome · Windows 디스플레이 배율 **100%(DPR 1.0)** · **배포 사이트**에서 관찰. → 위 변경은 **아직 배포 전**이라 배포본에는 반영되어 있지 않다(아래 커밋·배포 절차 필요).
+> ⚠️ 떨림은 Windows·DPR 1 특정 증상이라 이 개발 환경(Mac/Linux)에선 재현 불가. **배포 후 Windows·Chrome에서 직접 확인** 필요. 그래도 남으면 다음 단계: 낱자 플로팅 진폭을 짝수 px로 고정하거나, 정 안 되면 idle 플로팅을 비활성화.
 
 **보류/의도적 유지 (사유)**
 
