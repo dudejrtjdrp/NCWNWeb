@@ -31,6 +31,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
       <DecorLetter
         src="/images/home/letter-1.png"
         delay={0}
+        baseRotate={-4}
         style={{
           width: 'clamp(150px, 23vw, 360px)',
           top: 'clamp(8px, 2vw, 48px)',
@@ -42,6 +43,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
       <DecorLetter
         src="/images/home/letter-3.png"
         delay={1400}
+        baseRotate={5}
         style={{
           width: 'clamp(170px, 26vw, 400px)',
           bottom: 'clamp(24px, 5vw, 96px)',

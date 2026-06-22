@@ -97,10 +97,11 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
       <DecorLetter
         src="/images/home/letter-4.png"
         delay={2000}
+        baseRotate={3}
         style={{
-          width: 'clamp(200px, 36vw, 540px)',
-          top: 'clamp(-150px, -9vw, -36px)',
-          right: 'clamp(-40px, -2vw, 12px)',
+          width: 'clamp(150px, 24vw, 360px)',
+          top: 'clamp(-96px, -6vw, -28px)',
+          right: 'clamp(-28px, -1.5vw, 12px)',
         }}
       />
 

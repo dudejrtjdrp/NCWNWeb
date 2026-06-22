@@ -46,10 +46,11 @@ export default async function NincSection({ locale = 'ko', className = '' }: Nin
       <DecorLetter
         src="/images/home/letter-2.png"
         delay={700}
+        baseRotate={-3}
         style={{
-          width: 'clamp(220px, 40vw, 560px)',
-          top: 'clamp(24px, 5vw, 120px)',
-          left: 'clamp(-96px, -5vw, -16px)',
+          width: 'clamp(150px, 25vw, 360px)',
+          top: 'clamp(24px, 5vw, 104px)',
+          left: 'clamp(-44px, -2vw, -8px)',
         }}
       />
 
