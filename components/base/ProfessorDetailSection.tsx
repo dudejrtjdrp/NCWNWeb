@@ -153,7 +153,7 @@ export default function ProfessorDetailSection({
         {/* ── 데스크탑 레이아웃 (lg+) ── */}
         <div
           className="hidden lg:block relative mx-auto"
-          style={{ maxWidth: 1440, minHeight: 'clamp(400px, 45vw, 649px)', height: 'clamp(400px, 45vw, 649px)' }}
+          style={{ maxWidth: 1440, minHeight: 'clamp(400px, 45vw, 649px)' }}
         >
           {faculty.combinedImageUrl ? (
             /* ── 합쳐진 이미지 (타원 + 프로필 사진) ────────────
@@ -168,7 +168,7 @@ export default function ProfessorDetailSection({
               className="absolute pointer-events-none select-none"
               style={{
                 left: '9.44%',
-                top: '4.6%',
+                top: 'clamp(18px, 2.07vw, 30px)',
                 width: '36.39%',
                 height: 'auto',
                 zIndex: 10,
@@ -189,7 +189,7 @@ export default function ProfessorDetailSection({
                 className="absolute pointer-events-none select-none"
                 style={{
                   left: '15.44%',
-                  top: '6.2%',
+                  top: 'clamp(25px, 2.79vw, 40px)',
                   width: '30%',
                   height: 'auto',
                   zIndex: 0,
@@ -205,7 +205,7 @@ export default function ProfessorDetailSection({
                 className="absolute overflow-hidden"
                 style={{
                   left: '13.75%',
-                  top: '4.6%',
+                  top: 'clamp(18px, 2.07vw, 30px)',
                   width: '24.24%',
                   aspectRatio: '349 / 466',
                   zIndex: 10,
@@ -236,7 +236,7 @@ export default function ProfessorDetailSection({
               ─────────────────────────────────────────────── */}
           <div
             className="absolute flex flex-col gap-[10px]"
-            style={{ left: '13.54%', top: '80%', zIndex: 10 }}
+            style={{ left: '13.54%', top: 'clamp(320px, 36vw, 519px)', zIndex: 10 }}
           >
             <h1
               className="font-body font-bold text-[24.415px] text-black leading-normal"
@@ -253,28 +253,55 @@ export default function ProfessorDetailSection({
             )}
           </div>
 
-          {/* ── CAREER ───────────────────────────────────────
+          {/* ── 우측 컬럼: CAREER + 추가 이력 (PUBLICATION 등) ──
               Figma: left=755(52.43%), top=69, w=498(34.58%)
-              items-end: 오른쪽 정렬 (Figma와 동일)
+              flow 배치 — 내용/토글 펼침에 따라 섹션 높이가 함께 늘어남.
+              사진/이름은 absolute 라 좌상단에 고정 유지.
               ─────────────────────────────────────────────── */}
-          {faculty.career && faculty.career.length > 0 && (
+          {(faculty.career?.length || faculty.extraSections?.length) ? (
             <div
-              className="absolute flex flex-col gap-[21px] items-end"
-              style={{ left: '52.43%', top: '10.6%', width: '34.58%', zIndex: 10 }}
+              className="relative flex flex-col"
+              style={{
+                marginLeft: '52.43%',
+                width: '34.58%',
+                paddingTop: 'clamp(42px, 4.77vw, 69px)',
+                paddingBottom: 'clamp(24px, 3.06vw, 44px)',
+                rowGap: 'clamp(28px, 3.13vw, 45px)',
+                zIndex: 10,
+              }}
             >
-              <p className="font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full">
-                CAREER
-              </p>
-              <CareerList
-                items={faculty.career}
-                collapsedCount={5}
-                className="w-full"
-                itemClassName="w-full font-body font-normal text-[20px] text-[#050505]"
-                lineHeight="34.467px"
-                buttonClassName="text-[17px]"
-              />
+              {faculty.career && faculty.career.length > 0 && (
+                <div className="w-full flex flex-col gap-[21px] items-end">
+                  <p className="font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full">
+                    CAREER
+                  </p>
+                  <CareerList
+                    items={faculty.career}
+                    collapsedCount={5}
+                    className="w-full"
+                    itemClassName="w-full font-body font-normal text-[20px] text-[#050505]"
+                    lineHeight="34.467px"
+                    buttonClassName="text-[17px]"
+                  />
+                </div>
+              )}
+              {faculty.extraSections?.map((sec) => (
+                <div key={sec.label} className="w-full flex flex-col gap-[21px] items-end">
+                  <p className="font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full">
+                    {sec.label}
+                  </p>
+                  <CareerList
+                    items={sec.items}
+                    collapsedCount={3}
+                    className="w-full"
+                    itemClassName="w-full font-body font-normal text-[16px] text-[#050505]"
+                    lineHeight="28px"
+                    buttonClassName="text-[17px]"
+                  />
+                </div>
+              ))}
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* ── 모바일 레이아웃 (<lg) ── */}
@@ -339,53 +366,23 @@ export default function ProfessorDetailSection({
               />
             </div>
           )}
+          {/* 추가 이력 (PUBLICATION / PERFORMANCE / EXHIBITION / JOURNAL) */}
+          {faculty.extraSections?.map((sec) => (
+            <div key={sec.label} className="flex flex-col gap-3">
+              <p className="font-body font-extrabold text-[20px] text-nwcn-green leading-normal">
+                {sec.label}
+              </p>
+              <CareerList
+                items={sec.items}
+                collapsedCount={3}
+                itemClassName="font-body font-normal text-[14px] text-[#050505]"
+                lineHeight={1.75}
+                buttonClassName="text-[14px]"
+              />
+            </div>
+          ))}
         </div>
       </section>
-
-      {/* ══════════════════════════════════════════════════════
-          추가 이력 섹션 (PUBLICATION / PERFORMANCE / EXHIBITION / JOURNAL)
-          프로필 섹션과 인터뷰 섹션 사이에 위치.
-          CAREER와 동일한 green 라벨 스타일, 전체폭 좌측 정렬 (긴 인용 가독성).
-          데스크탑/모바일 공용 — clamp 기반 반응형이라 별도 분기 불필요.
-          ══════════════════════════════════════════════════════ */}
-      {faculty.extraSections && faculty.extraSections.length > 0 && (
-        <section
-          className="relative bg-[#fcfcfc]"
-          style={{ zIndex: 10 }}
-          aria-label="추가 이력"
-        >
-          <div
-            className="mx-auto flex flex-col"
-            style={{
-              maxWidth: 1440,
-              paddingTop: 'clamp(32px, 4.17vw, 60px)',
-              paddingBottom: 'clamp(40px, 5.56vw, 80px)',
-              paddingLeft: 'clamp(24px, 9.44vw, 136px)',
-              paddingRight: 'clamp(24px, 9.44vw, 136px)',
-              rowGap: 'clamp(32px, 3.33vw, 48px)',
-            }}
-          >
-            {faculty.extraSections.map((sec) => (
-              <div key={sec.label} className="flex flex-col gap-[clamp(14px,1.46vw,21px)]">
-                <p className="font-body font-extrabold text-[clamp(20px,1.82vw,26px)] text-nwcn-green leading-normal">
-                  {sec.label}
-                </p>
-                <ul className="flex flex-col gap-[clamp(8px,0.83vw,12px)]">
-                  {sec.items.map((item, i) => (
-                    <li
-                      key={i}
-                      className="font-body font-normal text-[clamp(14px,1.25vw,18px)] text-[#050505]"
-                      style={{ lineHeight: 1.7 }}
-                    >
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* ══ NWCN 배경 #2 ══
           Figma: top=709(page) → 프로필 섹션 아래 여백에 위치
