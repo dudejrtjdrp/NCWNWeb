@@ -52,6 +52,11 @@ export interface ShowcaseBlock {
   slides: ShowcaseSlide[]
 }
 
+/** 슬라이드 썸네일이 없을 때 사용할 폴백 이미지 (실제 존재하는 파일) */
+const SHOWCASE_FALLBACK_IMAGE = '/images/ninc/project-hero.png'
+
+// 정적 폴백 — DB에 프로젝트가 하나도 없을 때만 사용.
+// (이전엔 존재하지 않는 showcase-1/2.png 를 가리켜 회색으로 비어 보였음 → 존재하는 hero 이미지로 교체)
 export const SHOWCASE_BLOCKS: ShowcaseBlock[] = [
   {
     label: '해외교류',
@@ -59,7 +64,7 @@ export const SHOWCASE_BLOCKS: ShowcaseBlock[] = [
     imageRight: true,
     slides: [
       {
-        image: '/images/ninc/showcase/showcase-1.png',
+        image: SHOWCASE_FALLBACK_IMAGE,
         date: '2026.01.18 – 01.23',
         place: 'Ho Chi Minh City, Vietnam',
         title: 'DIMA KR X RMIT VN Global Workshop',
@@ -73,7 +78,7 @@ export const SHOWCASE_BLOCKS: ShowcaseBlock[] = [
     imageRight: false,
     slides: [
       {
-        image: '/images/ninc/showcase/showcase-2.png',
+        image: SHOWCASE_FALLBACK_IMAGE,
         date: '일시',
         place: '장소',
         title: '프로젝트명',
@@ -92,30 +97,37 @@ const SHOWCASE_TYPE_META = {
   industry: { label: '산학협력', accent: 'green', imageRight: false },
 } as const
 
-/** 슬라이드 썸네일이 없을 때 사용할 폴백 이미지 */
-const SHOWCASE_FALLBACK_IMAGE = '/images/ninc/project-hero.png'
-
 /**
  * 실제 DB 프로젝트 목록을 유형별 쇼케이스 블록으로 변환한다.
  * - 각 슬라이드는 상세 페이지(/ninc/project/[id])로 직접 연결된다.
- * - 유형에 해당하는 프로젝트가 하나도 없으면 그 블록은 생성하지 않는다.
- * - 정렬은 입력 순서(getProjects: 연도·생성일 내림차순)를 그대로 따른다.
+ * - 'international' 은 해외교류 블록, 그 외 모든 유형(industry 및 커스텀 유형)은
+ *   산학협력 블록으로 묶는다. → 유형 제약 완화(relax_type_constraints)로 커스텀
+ *   유형이 들어와도 프로젝트가 누락되지 않는다. (이전엔 두 리터럴과 정확히
+ *   일치하지 않으면 전부 빠져 쇼케이스가 비고 정적 폴백→회색이 됐음)
+ * - 빈 블록은 생성하지 않는다. 정렬은 입력 순서(연도·생성일 내림차순)를 따른다.
  */
 export function buildShowcaseBlocks(projects: ProjectItem[]): ShowcaseBlock[] {
+  const buckets: Record<keyof typeof SHOWCASE_TYPE_META, ProjectItem[]> = {
+    international: [],
+    industry: [],
+  }
+  for (const p of projects) {
+    const key = p.type === 'international' ? 'international' : 'industry'
+    buckets[key].push(p)
+  }
+
   const order: Array<keyof typeof SHOWCASE_TYPE_META> = ['international', 'industry']
 
   return order
     .map((type) => {
       const meta = SHOWCASE_TYPE_META[type]
-      const slides: ShowcaseSlide[] = projects
-        .filter((p) => p.type === type)
-        .map((p) => ({
-          image: p.thumbnail_url || SHOWCASE_FALLBACK_IMAGE,
-          date: p.duration?.trim() || String(p.year),
-          place: p.partner?.trim() || '',
-          title: p.title,
-          href: `/ninc/project/${p.id}`,
-        }))
+      const slides: ShowcaseSlide[] = buckets[type].map((p) => ({
+        image: p.thumbnail_url || SHOWCASE_FALLBACK_IMAGE,
+        date: p.duration?.trim() || String(p.year),
+        place: p.partner?.trim() || '',
+        title: p.title,
+        href: `/ninc/project/${p.id}`,
+      }))
 
       return { label: meta.label, accent: meta.accent, imageRight: meta.imageRight, slides }
     })
