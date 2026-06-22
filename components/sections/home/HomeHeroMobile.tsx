@@ -59,7 +59,6 @@ const ASSET = {
  *   w      : clamp 너비 (모든 폰 대응)
  *   rot/op : 기울기 / 기본 투명도 (시안값)
  *   scatter: 스크롤 시 흩어지는 방향·거리(px)
- *   bob    : 대기 중 둥둥 떠다니는 플로팅 키프레임
  * ────────────────────────────────────────────────────────── */
 type Letter = {
   src: string
@@ -68,9 +67,6 @@ type Letter = {
   rot: number
   op: number
   scatter: { x: number; y: number }
-  bob: 'heroFloatA' | 'heroFloatB'
-  bobDur: number
-  bobDelay: number
 }
 
 const LETTERS: Letter[] = [
@@ -80,7 +76,6 @@ const LETTERS: Letter[] = [
     anchor: { top: '-2%', left: '-5%' },
     w: 'clamp(132px, 40vw, 200px)',
     rot: -7.5, op: 1, scatter: { x: -170, y: -140 },
-    bob: 'heroFloatA', bobDur: 5.0, bobDelay: 0,
   },
   // W — 우상단
   {
@@ -88,7 +83,6 @@ const LETTERS: Letter[] = [
     anchor: { top: '5%', right: '-7%' },
     w: 'clamp(112px, 34vw, 174px)',
     rot: -12, op: 0.8, scatter: { x: 170, y: -120 },
-    bob: 'heroFloatA', bobDur: 5.6, bobDelay: -0.9,
   },
   // C — 좌측 중하단
   {
@@ -96,7 +90,6 @@ const LETTERS: Letter[] = [
     anchor: { top: '49%', left: '1%' },
     w: 'clamp(116px, 35vw, 178px)',
     rot: -21.8, op: 0.4, scatter: { x: -185, y: 70 },
-    bob: 'heroFloatB', bobDur: 6.4, bobDelay: -1.6,
   },
   // N — 우측 하단
   {
@@ -104,7 +97,6 @@ const LETTERS: Letter[] = [
     anchor: { bottom: '3%', right: '3%' },
     w: 'clamp(100px, 30vw, 150px)',
     rot: 18.8, op: 0.2, scatter: { x: 150, y: 150 },
-    bob: 'heroFloatB', bobDur: 6.9, bobDelay: -2.4,
   },
 ]
 
@@ -172,9 +164,13 @@ export default function HomeHeroMobile({
 
   /* 모션 최소화 선호 — 마운트 후 결정 */
   const [reducedMotion, setReducedMotion] = useState(false)
+  const reducedMotionRef = useRef(false)
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => setReducedMotion(mq.matches)
+    const update = () => {
+      setReducedMotion(mq.matches)
+      reducedMotionRef.current = mq.matches
+    }
     update()
     mq.addEventListener('change', update)
     return () => mq.removeEventListener('change', update)
@@ -206,7 +202,6 @@ export default function HomeHeroMobile({
       const ty = -f.floatUp * 18 + L.scatter.y * f.scatter
       el.style.transform = `translate(${tx}px, ${ty}px)`
       el.style.opacity = `${L.op * (1 - f.scatter)}`
-      el.style.filter = f.scatter > 0 ? `blur(${f.scatter * 7}px)` : ''
     }
 
     if (workRef.current) {
@@ -224,13 +219,11 @@ export default function HomeHeroMobile({
     if (headingRef.current) {
       headingRef.current.style.transform = `scale(${0.72 + f.headingIn * 0.28})`
       headingRef.current.style.opacity = `${f.headingIn}`
-      headingRef.current.style.filter = f.headingIn < 1 ? `blur(${(1 - f.headingIn) * 10}px)` : ''
     }
 
     if (introRef.current) {
       introRef.current.style.transform = `translate(-50%, calc(-50% - ${f.introExit * 120}px))`
       introRef.current.style.opacity = `${1 - f.introExit}`
-      introRef.current.style.filter = f.introExit > 0 ? `blur(${f.introExit * 12}px)` : ''
     }
 
     if (hintRef.current) hintRef.current.style.opacity = `${Math.max(0, 1 - p * 6)}`
@@ -248,10 +241,15 @@ export default function HomeHeroMobile({
       targetRef.current = scrollable > 0 ? clamp01(-rect.top / scrollable) : 0
     }
 
-    const a = 1 - Math.exp(-dt / SMOOTH_TAU)
-    renderedRef.current += (targetRef.current - renderedRef.current) * a
-    if (Math.abs(targetRef.current - renderedRef.current) < 0.0004) {
+    if (reducedMotionRef.current) {
+      // 모션 최소화: 관성 없이 스크롤 위치 그대로 매핑(캡처는 유지 → 콘텐츠 안 사라짐)
       renderedRef.current = targetRef.current
+    } else {
+      const a = 1 - Math.exp(-dt / SMOOTH_TAU)
+      renderedRef.current += (targetRef.current - renderedRef.current) * a
+      if (Math.abs(targetRef.current - renderedRef.current) < 0.0004) {
+        renderedRef.current = targetRef.current
+      }
     }
 
     applyStyles(renderedRef.current)
@@ -269,32 +267,35 @@ export default function HomeHeroMobile({
     rafRef.current = requestAnimationFrame(tick)
   }, [tick])
 
+  /* ⚠️ 모션 최소화여도 스크롤 캡처/리스너는 유지(섹션이 100dvh로 접혀 콘텐츠가
+     통째로 사라지는 회귀 방지). 관성만 tick()에서 끈다. */
   useEffect(() => {
-    if (reducedMotion) {
-      targetRef.current = 1
-      renderedRef.current = 1
-      applyStyles(1)
-      return
-    }
     renderedRef.current = 0
     targetRef.current = 0
+
+    const lenis = (window as Window & {
+      __lenis?: { on?: (e: string, cb: () => void) => void; off?: (e: string, cb: () => void) => void }
+    }).__lenis
+
     window.addEventListener('scroll', kick, { passive: true })
     window.addEventListener('resize', kick)
+    lenis?.on?.('scroll', kick)
     kick()
     return () => {
       window.removeEventListener('scroll', kick)
       window.removeEventListener('resize', kick)
+      lenis?.off?.('scroll', kick)
       if (rafRef.current != null) {
         cancelAnimationFrame(rafRef.current)
         rafRef.current = null
       }
     }
-  }, [reducedMotion, kick, applyStyles])
+  }, [kick])
 
   /* 리렌더 직후, paint 전에 현재 진행값을 다시 적용 → 깜빡임 방지 */
   useIsoLayoutEffect(() => {
-    applyStyles(reducedMotion ? 1 : renderedRef.current)
-  }, [reducedMotion, applyStyles])
+    applyStyles(renderedRef.current)
+  }, [applyStyles])
 
   /* 버튼/종료 → 하단 섹션으로 스크롤 */
   const scrollToNext = useCallback(() => {
@@ -307,14 +308,14 @@ export default function HomeHeroMobile({
     else window.scrollTo({ top: target, behavior: 'smooth' })
   }, [])
 
-  /* 초기 프레임(첫 paint 값) — 모션 최소화면 최종 상태(1), 아니면 진입 상태(0) */
-  const f0 = computeFrame(reducedMotion ? 1 : 0)
+  /* 초기 프레임(첫 paint 값) — 항상 진입 상태(0). 모션 최소화여도 스크롤로 스크럽. */
+  const f0 = computeFrame(0)
 
   return (
     <div
       ref={containerRef}
       className={`relative ${className}`}
-      style={{ height: reducedMotion ? '100dvh' : scrollHeight, overscrollBehaviorX: 'none' }}
+      style={{ height: scrollHeight, overscrollBehaviorX: 'none' }}
       aria-label="히어로 섹션"
     >
       {/* ── Sticky 시각 영역 (100dvh 풀블리드) ── */}
@@ -325,10 +326,7 @@ export default function HomeHeroMobile({
         <style
           dangerouslySetInnerHTML={{
             __html:
-              /* translate3d 사용: GPU 컴포지터에서 합성 → Windows 서브픽셀 진동(덜덜거림) 방지 */
-              '@keyframes heroFloatA{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-12px,0)}}' +
-              '@keyframes heroFloatB{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-18px,0)}}' +
-              '@keyframes heroWorkFloat{0%,100%{transform:translate3d(0,0,0) rotate(0deg)}50%{transform:translate3d(0,-10px,0) rotate(-1deg)}}' +
+              /* idle 플로팅 키프레임 제거 — DPR1 합성 레이어 정수 픽셀 스냅 떨림 방지 */
               '.hero-strip-m{-ms-overflow-style:none;scrollbar-width:none}.hero-strip-m::-webkit-scrollbar{display:none}',
           }}
         />
@@ -347,12 +345,11 @@ export default function HomeHeroMobile({
                 position: 'absolute',
                 ...L.anchor,
                 width: L.w,
+                /* 레이어 승격(will-change) 없이 평범한 2D transform — DPR1 합성 스냅 떨림 방지 */
                 transform: `translate(${tx}px, ${ty}px)`,
                 opacity,
-                ...(f0.scatter > 0 ? { filter: `blur(${f0.scatter * 7}px)` } : null),
                 zIndex: 10,
                 pointerEvents: 'none',
-                willChange: 'transform, opacity',
               }}
             >
               <div style={{ transform: `rotate(${L.rot}deg)` }}>
@@ -361,16 +358,7 @@ export default function HomeHeroMobile({
                   src={L.src}
                   alt=""
                   aria-hidden
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    height: 'auto',
-                    animation: `${L.bob} ${L.bobDur}s ease-in-out ${L.bobDelay}s infinite`,
-                    /* 애니메이션 요소를 독립 GPU 레이어로 승격 → 픽셀 그리드 스냅(진동) 제거 */
-                    willChange: 'transform',
-                    backfaceVisibility: 'hidden',
-                    WebkitBackfaceVisibility: 'hidden',
-                  }}
+                  style={{ display: 'block', width: '100%', height: 'auto' }}
                 />
               </div>
             </div>
@@ -393,8 +381,7 @@ export default function HomeHeroMobile({
           }}
         >
           <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group block">
-            {/* drop-shadow는 정적 부모로 분리: 애니메이션 요소에 filter가 걸리면
-                Windows에서 매 프레임 그림자 재래스터로 떨림이 발생하므로 분리한다 */}
+            {/* idle 플로팅 제거(윈도우 떨림 원인) */}
             <div
               className="transition-transform duration-300 ease-out group-hover:scale-[1.04]"
               style={{ filter: 'drop-shadow(-12px 30px 18px rgba(0,0,0,0.10))' }}
@@ -403,15 +390,7 @@ export default function HomeHeroMobile({
               <img
                 alt="WORK"
                 src={ASSET.work}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  height: 'auto',
-                  animation: 'heroWorkFloat 6s ease-in-out infinite',
-                  willChange: 'transform',
-                  backfaceVisibility: 'hidden',
-                  WebkitBackfaceVisibility: 'hidden',
-                }}
+                style={{ display: 'block', width: '100%', height: 'auto' }}
               />
             </div>
           </Link>
@@ -502,7 +481,7 @@ export default function HomeHeroMobile({
           <div aria-hidden style={{ flex: 'none', width: 'calc(50% - 41.5%)' }} />
         </div>
 
-        {/* ── NWCN, + 슬로건 (좌하단, scale + 블러 인) ── */}
+        {/* ── NWCN, + 슬로건 (좌하단, scale + 페이드 인, blur 제거) ── */}
         <div
           ref={headingRef}
           style={{
@@ -512,10 +491,9 @@ export default function HomeHeroMobile({
             transformOrigin: 'left center',
             transform: `scale(${0.72 + f0.headingIn * 0.28})`,
             opacity: f0.headingIn,
-            ...(f0.headingIn < 1 ? { filter: `blur(${(1 - f0.headingIn) * 10}px)` } : null),
             zIndex: 25,
             pointerEvents: 'none',
-            willChange: 'transform, opacity, filter',
+            willChange: 'transform, opacity',
           }}
         >
           <p style={{ margin: 0, fontWeight: 700, fontSize: 'clamp(20px, 6.2vw, 26px)', lineHeight: 1.2, color: TEXT_COLOR }}>NWCN,</p>
@@ -526,7 +504,7 @@ export default function HomeHeroMobile({
           </p>
         </div>
 
-        {/* ── 가운데 카피 (상승 + 블러 + 페이드아웃) ── */}
+        {/* ── 가운데 카피 (상승 + 페이드아웃, blur 제거) ── */}
         <div
           ref={introRef}
           style={{
@@ -536,7 +514,6 @@ export default function HomeHeroMobile({
             width: '88%',
             transform: `translate(-50%, calc(-50% - ${f0.introExit * 120}px))`,
             opacity: 1 - f0.introExit,
-            ...(f0.introExit > 0 ? { filter: `blur(${f0.introExit * 12}px)` } : null),
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -544,7 +521,7 @@ export default function HomeHeroMobile({
             color: TEXT_COLOR,
             zIndex: 30,
             pointerEvents: 'none',
-            willChange: 'transform, opacity, filter',
+            willChange: 'transform, opacity',
           }}
         >
           {COPY_LINES.map((line, i) => (

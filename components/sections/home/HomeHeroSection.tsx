@@ -10,10 +10,10 @@
  * 스크롤 UX (디자이너 시안 반영):
  *   1) 진입: 흰 배경 + NWCN 3D 낱자(배경 요소) + 가운데 카피 + nwcn 알약 버튼
  *   2) 스크롤 시
- *      - 가운데 글자: 위로 흐릿(블러)해지며 상승 후 사라짐
- *      - 배경 3D 요소: 살짝 떠오른 뒤 자리에서 흐릿해지며 양옆으로 흩어져 사라짐
+ *      - 가운데 글자: 위로 상승하며 페이드아웃
+ *      - 배경 3D 요소: 살짝 떠오른 뒤 양옆으로 흩어지며 페이드아웃
  *      - WORK 3D: 오른쪽 → 왼쪽으로 등장
- *      - NWCN/슬로건: 작게 흐릿하다가 커지며 또렷해짐(scale + 블러 인)
+ *      - NWCN/슬로건: 작게 시작해 커지며 또렷해짐(scale + 페이드 인)
  *      - 게시물(최대 4): 오른쪽 → 왼쪽으로 등장하며 가로로 흘러감
  *   3) 게시물이 모두 지나가거나 버튼을 누르면 하단 섹션으로 스크롤
  *   4) 역스크롤 시 전 구간 역재생 (progress 기반)
@@ -28,7 +28,10 @@
  *       · 진행값에 관성을 줘서 스크롤이 시각요소를 살짝 "쫓아오게" → 자연스러움
  *       · 프레임레이트 독립 보간(dt 기반)이라 60/120Hz에서 동일한 감각
  *   - 타임라인 구간을 겹치도록 배치해 "스크롤해도 아무 일 없는 빈 구간"을 제거
- *   - prefers-reduced-motion: 스크롤 캡처를 끄고 최종(해석된) 화면을 정적으로 표시
+ *   - prefers-reduced-motion: 스크롤 캡처·콘텐츠는 유지하되 관성(댐핑)을 끄고
+ *     스크롤 위치를 그대로 매핑(idle 플로팅·blur 제거로 윈도우 떨림/빈 레이어 방지)
+ *   - 윈도우(DPR1) 떨림 방지: scale() 안의 애니메이션 요소를 GPU 레이어로 승격하지
+ *     않는다(translateZ/will-change 미사용) — 합성 레이어 정수 픽셀 스냅이 떨림의 원인
  *
  * ⚠️ 3D 이미지(에셋)는 현재 Figma 임시 export URL(약 7일 유효)을 사용합니다.
  *    추후 /public/images/home 으로 내려받아 ASSET 경로만 교체하면 됩니다.
@@ -78,15 +81,13 @@ type Letter = {
   cx: number; cy: number; w: number
   rot: number; op: number
   scatter: { x: number; y: number }
-  /** 대기 중 둥둥 떠다니는 플로팅 */
-  bob: 'heroFloatA' | 'heroFloatB'; bobDur: number; bobDelay: number
 }
 
 const LETTERS: Letter[] = [
-  { src: '/images/home/letter-1.png', cx: 295, cy: 140, w: 255, rot: -8, op: 0.95, scatter: { x: -380, y: -60 }, bob: 'heroFloatA', bobDur: 5.0, bobDelay: 0 },    // N
-  { src: '/images/home/letter-2.png', cx: 470, cy: 470, w: 320, rot: -20, op: 0.6, scatter: { x: -460, y: 130 }, bob: 'heroFloatB', bobDur: 6.4, bobDelay: -1.6 }, // C
-  { src: '/images/home/letter-3.png', cx: 1180, cy: 150, w: 280, rot: 6, op: 0.85, scatter: { x: 430, y: -70 }, bob: 'heroFloatA', bobDur: 5.6, bobDelay: -0.9 },  // W
-  { src: '/images/home/letter-4.png', cx: 900, cy: 660, w: 200, rot: 16, op: 0.45, scatter: { x: 300, y: 200 }, bob: 'heroFloatB', bobDur: 6.9, bobDelay: -2.4 },  // N
+  { src: '/images/home/letter-1.png', cx: 295, cy: 140, w: 255, rot: -8, op: 0.95, scatter: { x: -380, y: -60 } },    // N
+  { src: '/images/home/letter-2.png', cx: 470, cy: 470, w: 320, rot: -20, op: 0.6, scatter: { x: -460, y: 130 } },   // C
+  { src: '/images/home/letter-3.png', cx: 1180, cy: 150, w: 280, rot: 6, op: 0.85, scatter: { x: 430, y: -70 } },    // W
+  { src: '/images/home/letter-4.png', cx: 900, cy: 660, w: 200, rot: 16, op: 0.45, scatter: { x: 300, y: 200 } },    // N
 ]
 
 /* 게시물(최대 4) — page.tsx 에서 실제 쇼케이스 작품을 주입 */
@@ -160,12 +161,15 @@ export default function HomeHeroSection({
   /* 모바일(≤767px) / 모션 최소화 선호 — 마운트 후 결정(SSR 하이드레이션 미스매치 방지) */
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
+  /* rAF 루프(tick)에서 매 프레임 읽는 최신 값 — 콜백 재생성 없이 참조 */
+  const reducedMotionRef = useRef(false)
   useEffect(() => {
     const mqMobile = window.matchMedia('(max-width: 767px)')
     const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)')
     const update = () => {
       setIsMobile(mqMobile.matches)
       setReducedMotion(mqReduce.matches)
+      reducedMotionRef.current = mqReduce.matches
     }
     update()
     mqMobile.addEventListener('change', update)
@@ -210,10 +214,10 @@ export default function HomeHeroSection({
       const L = LETTERS[i]
       const tx = L.scatter.x * f.scatter
       const ty = -f.floatUp * 26 + L.scatter.y * f.scatter
-      el.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) translateZ(0)`
+      // translateZ/별도 레이어 승격을 두지 않는다 — DPR1(윈도우 100%)에서 합성
+      // 레이어가 매 프레임 정수 픽셀로 스냅되며 생기는 ±1px 진동(덜덜) 방지.
+      el.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`
       el.style.opacity = `${L.op * (1 - f.scatter)}`
-      // idle(scatter=0)엔 filter 속성 자체를 제거해 합성 레이어를 깨끗이 유지
-      el.style.filter = f.scatter > 0 ? `blur(${f.scatter * 8}px)` : ''
     }
 
     // 게시물 스트립
@@ -229,18 +233,17 @@ export default function HomeHeroSection({
       workRef.current.style.pointerEvents = f.workIn > 0.9 ? 'auto' : 'none'
     }
 
-    // NWCN/슬로건
+    // NWCN/슬로건 (scale + 페이드 인 — blur 제거: 윈도우에서 blur 레이어가 빈
+    // 화면으로 래스터되는 버그 회피 + 매 프레임 filter 재패스 비용 제거)
     if (headingRef.current) {
-      headingRef.current.style.transform = `scale(${0.62 + f.headingIn * 0.38})`
+      headingRef.current.style.transform = `scale(${0.7 + f.headingIn * 0.3})`
       headingRef.current.style.opacity = `${f.headingIn}`
-      headingRef.current.style.filter = f.headingIn < 1 ? `blur(${(1 - f.headingIn) * 12}px)` : ''
     }
 
-    // 가운데 카피
+    // 가운데 카피 (상승 + 페이드아웃 — blur 제거)
     if (introRef.current) {
       introRef.current.style.transform = `translate(-50%, calc(-50% - ${f.introExit * 150}px))`
       introRef.current.style.opacity = `${1 - f.introExit}`
-      introRef.current.style.filter = f.introExit > 0 ? `blur(${f.introExit * 14}px)` : ''
     }
 
     // 스크롤 힌트
@@ -262,11 +265,17 @@ export default function HomeHeroSection({
       targetRef.current = scrollable > 0 ? clamp01(-rect.top / scrollable) : 0
     }
 
-    // 프레임레이트 독립 보간계수
-    const a = 1 - Math.exp(-dt / SMOOTH_TAU)
-    renderedRef.current += (targetRef.current - renderedRef.current) * a
-    if (Math.abs(targetRef.current - renderedRef.current) < 0.0004) {
+    if (reducedMotionRef.current) {
+      // 모션 최소화: 관성(댐핑) 없이 스크롤 위치를 그대로 매핑(스윔/멀미 방지).
+      // ※ 스크롤 캡처 자체는 유지 → 콘텐츠가 통째로 사라지지 않음.
       renderedRef.current = targetRef.current
+    } else {
+      // 프레임레이트 독립 보간계수
+      const a = 1 - Math.exp(-dt / SMOOTH_TAU)
+      renderedRef.current += (targetRef.current - renderedRef.current) * a
+      if (Math.abs(targetRef.current - renderedRef.current) < 0.0004) {
+        renderedRef.current = targetRef.current
+      }
     }
 
     applyStyles(renderedRef.current)
@@ -284,36 +293,41 @@ export default function HomeHeroSection({
     rafRef.current = requestAnimationFrame(tick)
   }, [tick])
 
-  /* 스크롤/리사이즈 → 루프 가동 (데스크탑 · 모션 허용 시) */
+  /* 스크롤/리사이즈 → 루프 가동 (데스크탑).
+     ⚠️ 모션 최소화(prefers-reduced-motion: reduce, 윈도우에서 흔함)여도 스크롤 캡처와
+     리스너는 그대로 붙인다. 예전엔 이때 높이를 100vh로 접고 리스너를 안 달아
+     "히어로 스크롤 구간이 통째로 사라지는" 회귀가 있었음 → 제거.
+     관성(댐핑)만 tick()에서 끈다. */
   useEffect(() => {
     if (isMobile !== false) return
-    if (reducedMotion) {
-      // 모션 최소화: 캡처 없이 최종 해석 상태 고정
-      targetRef.current = 1
-      renderedRef.current = 1
-      applyStyles(1)
-      return
-    }
     renderedRef.current = 0
     targetRef.current = 0
+
+    // Lenis 가상 스크롤에서도 진행값 갱신을 보장(네이티브 scroll 이벤트 의존 축소)
+    const lenis = (window as Window & {
+      __lenis?: { on?: (e: string, cb: () => void) => void; off?: (e: string, cb: () => void) => void }
+    }).__lenis
+
     window.addEventListener('scroll', kick, { passive: true })
     window.addEventListener('resize', kick)
+    lenis?.on?.('scroll', kick)
     kick()
     return () => {
       window.removeEventListener('scroll', kick)
       window.removeEventListener('resize', kick)
+      lenis?.off?.('scroll', kick)
       if (rafRef.current != null) {
         cancelAnimationFrame(rafRef.current)
         rafRef.current = null
       }
     }
-  }, [isMobile, reducedMotion, kick, applyStyles])
+  }, [isMobile, kick])
 
   /* 리렌더(vw 변경 등) 직후, paint 전에 현재 진행값을 다시 적용 → 깜빡임 방지 */
   useIsoLayoutEffect(() => {
     if (isMobile !== false) return
-    applyStyles(reducedMotion ? 1 : renderedRef.current)
-  }, [vw, isMobile, reducedMotion, applyStyles])
+    applyStyles(renderedRef.current)
+  }, [vw, isMobile, applyStyles])
 
   /* 게시물 가로 스냅 스트립 — 세로 스크롤과 분리.
      트랙패드 가로 스와이프/터치는 네이티브 scroll-snap 으로 한 칸씩, 마우스는 드래그로 스크롤. */
@@ -386,26 +400,24 @@ export default function HomeHeroSection({
     return <HomeHeroMobile posts={posts} scrollHeight={scrollHeight} className={className} />
   }
 
-  /* 초기 프레임(첫 paint 값) — 모션 최소화면 최종 상태(1), 아니면 진입 상태(0) */
-  const f0 = computeFrame(reducedMotion ? 1 : 0)
+  /* 초기 프레임(첫 paint 값) — 항상 진입 상태(0)에서 시작.
+     모션 최소화여도 스크롤로 스크럽되므로 최종 상태로 점프시키지 않는다. */
+  const f0 = computeFrame(0)
 
   return (
     <div
       ref={containerRef}
       className={`relative ${className}`}
-      style={{ height: reducedMotion ? '100vh' : scrollHeight, overscrollBehaviorX: 'none' }}
+      style={{ height: scrollHeight, overscrollBehaviorX: 'none' }}
       aria-label="히어로 섹션"
     >
       {/* ── Sticky 시각 영역 ── */}
       <div className="sticky top-0 w-full overflow-hidden bg-white" style={{ height: '100vh' }}>
-        {/* 낱자 대기 플로팅 키프레임 */}
+        {/* 게시물 스트립 스크롤바 숨김 (idle 플로팅 키프레임은 제거 —
+            scale() 안의 GPU 레이어가 DPR1에서 정수 픽셀로 스냅되며 떨리는 원인) */}
         <style
           dangerouslySetInnerHTML={{
             __html:
-              /* translate3d 사용: GPU 컴포지터에서 합성 → Windows 서브픽셀 진동(덜덜거림) 방지 */
-              '@keyframes heroFloatA{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-15px,0)}}' +
-              '@keyframes heroFloatB{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-23px,0)}}' +
-              '@keyframes heroWorkFloat{0%,100%{transform:translate3d(0,0,0) rotate(0deg)}50%{transform:translate3d(0,-16px,0) rotate(-1.2deg)}}' +
               '.hero-strip{-ms-overflow-style:none;scrollbar-width:none}.hero-strip::-webkit-scrollbar{display:none}.hero-strip:active{cursor:grabbing}',
           }}
         />
@@ -439,25 +451,20 @@ export default function HomeHeroSection({
                 ref={(el) => { lettersRef.current[i] = el }}
                 style={{
                   position: 'absolute', left: L.cx, top: L.cy, width: L.w,
-                  /* translateZ(0): 2D transform 조상(scale·rotate) 안에서도 이 레이어를
-                     3D 합성 컨텍스트로 승격 → Windows(Chrome)에서 애니메이션 위치를
-                     정수 픽셀로 스냅(덜덜 떨림)하지 않고 서브픽셀로 부드럽게 이동. */
-                  transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) translateZ(0)`,
+                  /* 레이어 승격(translateZ/will-change)을 두지 않는다 — scale() 조상 안의
+                     독립 합성 레이어가 DPR1(윈도우 100%)에서 매 프레임 정수 픽셀로 스냅되며
+                     ±1px 떨리는 게 "덜덜거림"의 실제 원인. 평범한 2D transform 으로 두면
+                     stage 레이어에 서브픽셀로 그려져 떨리지 않는다. */
+                  transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`,
                   opacity: L.op * (1 - f0.scatter),
-                  ...(f0.scatter > 0 ? { filter: `blur(${f0.scatter * 8}px)` } : null),
-                  zIndex: 10, pointerEvents: 'none', willChange: 'transform, opacity',
+                  zIndex: 10, pointerEvents: 'none',
                 }}
               >
-                <div style={{ transform: `rotate(${L.rot}deg) translateZ(0)` }}>
+                <div style={{ transform: `rotate(${L.rot}deg)` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={L.src} alt="" aria-hidden
-                    style={{
-                      display: 'block', width: '100%', height: 'auto',
-                      animation: `${L.bob} ${L.bobDur}s ease-in-out ${L.bobDelay}s infinite`,
-                      /* 애니메이션 요소를 독립 GPU 레이어로 승격 → 픽셀 그리드 스냅(진동) 제거 */
-                      willChange: 'transform', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-                    }}
+                    style={{ display: 'block', width: '100%', height: 'auto' }}
                   />
                 </div>
               </div>
@@ -542,16 +549,16 @@ export default function HomeHeroSection({
             style={{
               position: 'absolute', left: 76, top: 110, width: 732,
               transform: `translateX(${(1 - f0.workIn) * 1500}px)`,
-              /* zIndex 는 카드 스트립(20)보다 낮게: WORK 이미지(775×400)의 투명 오른쪽
-                 여백이 첫 카드 좌측을 덮어 카드 클릭을 /work/showcase 로 가로채던 문제 방지.
-                 보이는 WORK 글자(좌측)는 스트립과 겹치지 않아 시각 변화 없음. */
-              opacity: f0.workIn, zIndex: 18, willChange: 'transform, opacity',
+              /* WORK 는 카드 스트립(20)보다 위 — 시안대로 최상단 배치.
+                 카드 클릭은 setPointerCapture 제거로 이미 정상 동작한다.
+                 WORK 글자(이미지 폭의 약 3~99% 차지)가 첫 카드 좌측을 살짝 덮는 구간은
+                 '보이는 WORK 글자' 위이므로 showcase 로 이동하는 게 의도된 동작이다. */
+              opacity: f0.workIn, zIndex: 30, willChange: 'transform, opacity',
               pointerEvents: f0.workIn > 0.9 ? 'auto' : 'none',
             }}
           >
             <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group" style={{ display: 'block' }}>
-              {/* drop-shadow는 정적 부모로 분리: 애니메이션 요소에 filter가 걸리면
-                  Windows에서 매 프레임 그림자 재래스터로 떨림이 발생하므로 분리한다 */}
+              {/* idle 플로팅 제거(윈도우 떨림 원인). hover 시에만 살짝 확대. */}
               <div
                 className="transition-transform duration-300 ease-out group-hover:scale-[1.04]"
                 style={{ filter: 'drop-shadow(-18px 46px 22px rgba(0,0,0,0.10))' }}
@@ -559,26 +566,21 @@ export default function HomeHeroSection({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   alt="WORK" src={ASSET.work}
-                  style={{
-                    display: 'block', width: '100%', height: 'auto',
-                    animation: 'heroWorkFloat 6s ease-in-out infinite',
-                    willChange: 'transform', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-                  }}
+                  style={{ display: 'block', width: '100%', height: 'auto' }}
                 />
               </div>
             </Link>
           </div>
 
-          {/* ── NWCN, + 슬로건 (scale + 블러 인) ── */}
+          {/* ── NWCN, + 슬로건 (scale + 페이드 인, blur 제거) ── */}
           <div
             ref={headingRef}
             style={{
               position: 'absolute', left: 126, top: 430, width: 760,
               transformOrigin: 'left center',
-              transform: `scale(${0.62 + f0.headingIn * 0.38})`,
+              transform: `scale(${0.7 + f0.headingIn * 0.3})`,
               opacity: f0.headingIn,
-              ...(f0.headingIn < 1 ? { filter: `blur(${(1 - f0.headingIn) * 12}px)` } : null),
-              zIndex: 30, pointerEvents: 'none', willChange: 'transform, opacity, filter',
+              zIndex: 30, pointerEvents: 'none', willChange: 'transform, opacity',
             }}
           >
             <p style={{ margin: 0, fontWeight: 700, fontSize: 32, lineHeight: 1.2, color: '#3a3a3b' }}>NWCN,</p>
@@ -588,19 +590,16 @@ export default function HomeHeroSection({
             </p>
           </div>
 
-          {/* ── 가운데 카피 (상승 + 블러 + 페이드아웃) ── */}
+          {/* ── 가운데 카피 (상승 + 페이드아웃, blur 제거) ── */}
           <div
             ref={introRef}
             style={{
               position: 'absolute', left: '50%', top: 283, width: DESIGN_W - 94, height: 360,
               transform: `translate(-50%, calc(-50% - ${f0.introExit * 150}px))`,
               opacity: 1 - f0.introExit,
-              /* idle엔 blur(0) 정적 필터 제거 — 떠다니는 낱자 repaint에 휩쓸려
-                 매 프레임 필터 재패스가 일어나면 Windows에서 텍스트가 떨린다. */
-              ...(f0.introExit > 0 ? { filter: `blur(${f0.introExit * 14}px)` } : null),
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
               textAlign: 'center', color: '#3a3a3b', zIndex: 40, pointerEvents: 'none',
-              willChange: 'transform, opacity, filter',
+              willChange: 'transform, opacity',
             }}
           >
             <p style={{ margin: 0, fontWeight: 200, fontSize: 77, lineHeight: '90px' }}>WHEN THE SENSIBILITY OF ART</p>
