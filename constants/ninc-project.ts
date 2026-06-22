@@ -21,10 +21,10 @@ export interface PartnerLogo {
 }
 
 export const PARTNER_LOGOS: PartnerLogo[] = [
-  { name: 'Partner 1', logoSrc: '/images/ninc/partners/0.png', href: '#' },
-  { name: '소머정', logoSrc: '/images/ninc/partners/1.png', href: '#' },
-  { name: 'MOON COMPANY', logoSrc: '/images/ninc/partners/2.png', href: '#' },
-  { name: 'EAST', logoSrc: '/images/ninc/partners/3.png', href: '#' },
+  { name: '티슈오피스', logoSrc: '/images/ninc/partners/0.png', href: 'https://www.tissueoffice.info/' },
+  { name: '소이정', logoSrc: '/images/ninc/partners/1.png', href: 'https://www.soijeong.com/' },
+  { name: '모온 컴퍼니', logoSrc: '/images/ninc/partners/2.png', href: 'https://themo-on.com/' },
+  { name: '이스트허그', logoSrc: '/images/ninc/partners/3.png', href: 'https://www.easthug.com/index' },
 ]
 
 /** 쇼케이스 슬라이드(개별 프로젝트) */
