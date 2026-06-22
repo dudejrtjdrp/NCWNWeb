@@ -248,15 +248,8 @@ export default function HomeHeroSection({
             left: '50%',
             width: DESIGN_W,
             height: DESIGN_H,
-            /* ⚠️ 떨림(덜덜) 근본 원인 제거:
-               transform: scale() 는 자식 GPU 레이어를 "원본 래스터 → 소수배율 확대"
-               경로로 그려, Windows(DPR 1)에서 플로팅 애니메이션마다 텍스처 리샘플 +
-               정수 픽셀 스냅이 일어나 진동한다(Mac=DPR 2라 안 보임).
-               zoom 은 자식을 처음부터 확대된 해상도로 래스터하므로 리샘플 진동이 사라진다.
-               (zoom 은 전 모던 브라우저 지원. 레이아웃은 scale 과 동일하게 중앙 정렬됨)
-               ↩︎ 되돌리려면 이 줄을 transform 의 scale() 로 복원. */
-            transform: 'translate(-50%, -50%)',
-            zoom: scale,
+            transform: `translate(-50%, -50%) scale(${scale})`,
+            transformOrigin: 'center center',
           }}
         >
           {/* 배경 그라데이션 오버레이 */}
@@ -277,7 +270,10 @@ export default function HomeHeroSection({
                 key={L.src}
                 style={{
                   position: 'absolute', left: L.cx, top: L.cy, width: L.w,
-                  transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`,
+                  /* translateZ(0): 2D transform 조상(scale·rotate) 안에서도 이 레이어를
+                     3D 합성 컨텍스트로 승격 → Windows(Chrome)에서 애니메이션 위치를
+                     정수 픽셀로 스냅(덜덜 떨림)하지 않고 서브픽셀로 부드럽게 이동. */
+                  transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) translateZ(0)`,
                   opacity,
                   /* idle(scatter=0)엔 filter 속성 자체를 빼서 합성 레이어를 깨끗이 유지
                      (filter:'none'도 필터 컨텍스트를 만들어 메인스레드 폴백을 유발할 수 있음) */
@@ -285,7 +281,7 @@ export default function HomeHeroSection({
                   zIndex: 10, pointerEvents: 'none', willChange: 'transform, opacity',
                 }}
               >
-                <div style={{ transform: `rotate(${L.rot}deg)` }}>
+                <div style={{ transform: `rotate(${L.rot}deg) translateZ(0)` }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={L.src} alt="" aria-hidden
@@ -428,7 +424,10 @@ export default function HomeHeroSection({
             style={{
               position: 'absolute', left: '50%', top: 283, width: DESIGN_W - 94, height: 360,
               transform: `translate(-50%, calc(-50% - ${introExit * 150}px))`,
-              opacity: 1 - introExit, filter: `blur(${introExit * 14}px)`,
+              opacity: 1 - introExit,
+              /* idle엔 blur(0) 정적 필터 제거 — 떠다니는 낱자 repaint에 휩쓸려
+                 매 프레임 필터 재패스가 일어나면 Windows에서 텍스트가 떨린다. */
+              ...(introExit > 0 ? { filter: `blur(${introExit * 14}px)` } : null),
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
               textAlign: 'center', color: '#3a3a3b', zIndex: 40, pointerEvents: 'none',
               willChange: 'transform, opacity, filter',
