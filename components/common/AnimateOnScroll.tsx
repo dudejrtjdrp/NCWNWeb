@@ -17,7 +17,7 @@ interface AnimateOnScrollProps {
   children: ReactNode;
   variant?: AnimationVariant;
   delay?: number;       // ms 단위 딜레이
-  duration?: number;    // ms 단위 지속시간 (기본 600ms)
+  duration?: number;    // ms 단위 지속시간 (기본 700ms)
   className?: string;
   style?: React.CSSProperties;
   as?: ElementType;
@@ -25,21 +25,22 @@ interface AnimateOnScrollProps {
   once?: boolean;
 }
 
+/* 이동 거리는 24px(translate-*-6)로 절제 — 큰 점프보다 미세한 등장이 더 자연스럽다 */
 const variantStyles: Record<AnimationVariant, { hidden: string; visible: string }> = {
   'fade-up': {
-    hidden: 'opacity-0 translate-y-8',
+    hidden: 'opacity-0 translate-y-6',
     visible: 'opacity-100 translate-y-0',
   },
   'fade-down': {
-    hidden: 'opacity-0 -translate-y-8',
+    hidden: 'opacity-0 -translate-y-6',
     visible: 'opacity-100 translate-y-0',
   },
   'fade-left': {
-    hidden: 'opacity-0 translate-x-8',
+    hidden: 'opacity-0 translate-x-6',
     visible: 'opacity-100 translate-x-0',
   },
   'fade-right': {
-    hidden: 'opacity-0 -translate-x-8',
+    hidden: 'opacity-0 -translate-x-6',
     visible: 'opacity-100 translate-x-0',
   },
   'fade': {
@@ -56,11 +57,14 @@ const variantStyles: Record<AnimationVariant, { hidden: string; visible: string 
   },
 };
 
+/* 부드럽게 안착하는 easeOutQuint 계열 커브 — 일반 ease-out보다 끝에서 더 우아하게 정착 */
+const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
 export default function AnimateOnScroll({
   children,
   variant = 'fade-up',
   delay = 0,
-  duration = 600,
+  duration = 700,
   className,
   style,
   as: Tag = 'div',
@@ -74,11 +78,13 @@ export default function AnimateOnScroll({
     <Tag
       ref={ref as React.Ref<HTMLDivElement>}
       className={cn(
-        'transition-all ease-out will-change-transform',
+        'will-change-transform',
         isVisible ? animStyles.visible : animStyles.hidden,
         className
       )}
       style={{
+        transitionProperty: 'opacity, transform',
+        transitionTimingFunction: EASE,
         transitionDuration: `${duration}ms`,
         transitionDelay: isVisible ? `${delay}ms` : '0ms',
         ...style,

@@ -18,19 +18,37 @@
  *   3) 게시물이 모두 지나가거나 버튼을 누르면 하단 섹션으로 스크롤
  *   4) 역스크롤 시 전 구간 역재생 (progress 기반)
  *
- * 구현:
+ * 구현 (자연스러운 스크롤 UX):
  *   - {scrollHeight} 높이 컨테이너로 스크롤을 "캡처"
  *   - 내부 시각 영역은 position: sticky, height: 100vh (흰 배경)
  *   - 1440×725 디자인 좌표를 그대로 쓰는 stage 를 뷰포트 너비에 맞춰 scale
- *   - scrollProgress(0→1) 로 각 요소 transform/opacity/blur 제어
+ *   - 스크롤 진행률(0→1)을 매 프레임 setState 하지 않고, ref + 단일 rAF 루프에서
+ *     "댐핑(lerp)"으로 부드럽게 보간한 뒤 각 요소 style 에 직접 적용한다.
+ *       · React 리렌더(재조정) 없이 합성만 갱신 → 잼(끊김) 제거
+ *       · 진행값에 관성을 줘서 스크롤이 시각요소를 살짝 "쫓아오게" → 자연스러움
+ *       · 프레임레이트 독립 보간(dt 기반)이라 60/120Hz에서 동일한 감각
+ *   - 타임라인 구간을 겹치도록 배치해 "스크롤해도 아무 일 없는 빈 구간"을 제거
+ *   - prefers-reduced-motion: 스크롤 캡처를 끄고 최종(해석된) 화면을 정적으로 표시
  *
  * ⚠️ 3D 이미지(에셋)는 현재 Figma 임시 export URL(약 7일 유효)을 사용합니다.
  *    추후 /public/images/home 으로 내려받아 ASSET 경로만 교체하면 됩니다.
  */
 
-import { useRef, useEffect, useState, useCallback, type CSSProperties, type PointerEvent as ReactPointerEvent, type MouseEvent as ReactMouseEvent } from 'react'
+import {
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+  type MouseEvent as ReactMouseEvent,
+} from 'react'
 import { Link } from '@/i18n/navigation'
 import HomeHeroMobile from './HomeHeroMobile'
+
+/** SSR 경고 없이 클라이언트에선 layout effect 사용 */
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
 /* ──────────────────────────────────────────────────────────
  * 에셋 (TODO: 로컬 /public/images/home/* 로 교체)
@@ -105,58 +123,200 @@ const norm = (x: number, a: number, b: number) => clamp01((x - a) / (b - a))
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
+/* ── 타임라인 (progress 0→1) ──
+ * 구간을 서로 겹치도록 배치해 모션이 끊기지 않고 이어지게 한다.
+ *   인트로 퇴장 → 낱자 분산 → WORK 등장 → 슬로건 인 → 게시물 스트립
+ * (이전: 0.28~0.34 / 0.86~1.0 빈 구간 → 제거) */
+type Frame = {
+  introExit: number
+  floatUp: number
+  scatter: number
+  workIn: number
+  headingIn: number
+  stripIn: number
+}
+function computeFrame(p: number): Frame {
+  return {
+    introExit: easeInOut(norm(p, 0.0, 0.20)),   // 가운데 카피: 상승 + 블러 + 페이드아웃
+    floatUp: easeOut(norm(p, 0.0, 0.16)),        // 3D 낱자: 살짝 떠오름
+    scatter: easeInOut(norm(p, 0.05, 0.30)),     // 3D 낱자: 양옆 분산 + 페이드아웃
+    workIn: easeOut(norm(p, 0.26, 0.58)),        // WORK: 우 → 좌 등장 (낱자 분산과 살짝 겹침)
+    headingIn: easeOut(norm(p, 0.48, 0.74)),     // NWCN/슬로건: scale + 블러 인
+    stripIn: easeOut(norm(p, 0.60, 0.94)),       // 게시물 스트립: 우측 슬라이드 + 페이드 인 (끝까지 채움)
+  }
+}
+
+/** 진행값 댐핑 시간상수(초). 작을수록 스크롤에 즉각, 클수록 더 미끄러지듯 따라옴. */
+const SMOOTH_TAU = 0.075
+
 export default function HomeHeroSection({
   scrollHeight = '320vh',
   posts = DEFAULT_POSTS,
   className = '',
 }: HomeHeroSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [progress, setProgress] = useState(0) // 0 ~ 1
   const [vw, setVw] = useState(DESIGN_W)
-  const rafRef = useRef<number | null>(null)
 
-  /* 모바일(≤767px) 감지 — 마운트 후 결정(SSR 하이드레이션 미스매치 방지) */
+  /* 모바일(≤767px) / 모션 최소화 선호 — 마운트 후 결정(SSR 하이드레이션 미스매치 방지) */
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
+  const [reducedMotion, setReducedMotion] = useState(false)
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const update = () => setIsMobile(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-
-  /* 스크롤 진행률 계산 */
-  const updateProgress = useCallback(() => {
-    if (!containerRef.current) return
-    const rect = containerRef.current.getBoundingClientRect()
-    const scrollable = containerRef.current.offsetHeight - window.innerHeight
-    if (scrollable > 0) {
-      setProgress(clamp01(-rect.top / scrollable))
+    const mqMobile = window.matchMedia('(max-width: 767px)')
+    const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const update = () => {
+      setIsMobile(mqMobile.matches)
+      setReducedMotion(mqReduce.matches)
     }
-    rafRef.current = null
+    update()
+    mqMobile.addEventListener('change', update)
+    mqReduce.addEventListener('change', update)
+    return () => {
+      mqMobile.removeEventListener('change', update)
+      mqReduce.removeEventListener('change', update)
+    }
   }, [])
 
-  const onScroll = useCallback(() => {
-    if (rafRef.current !== null) return
-    rafRef.current = requestAnimationFrame(updateProgress)
-  }, [updateProgress])
-
+  /* 뷰포트 너비(stage scale 용) */
   useEffect(() => {
     const onResize = () => setVw(window.innerWidth)
     onResize()
-    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
-    updateProgress()
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  /* ── 애니메이션 대상 ref (imperative 적용 — React 리렌더 없이 합성만 갱신) ── */
+  const lettersRef = useRef<(HTMLDivElement | null)[]>([])
+  const stripRef = useRef<HTMLDivElement>(null)
+  const workRef = useRef<HTMLDivElement>(null)
+  const headingRef = useRef<HTMLDivElement>(null)
+  const introRef = useRef<HTMLDivElement>(null)
+  const hintRef = useRef<HTMLDivElement>(null)
+  const debugRef = useRef<HTMLDivElement>(null)
+
+  /* 진행값: target(원시 스크롤) → rendered(댐핑된 값) */
+  const targetRef = useRef(0)
+  const renderedRef = useRef(0)
+  const rafRef = useRef<number | null>(null)
+  const lastTsRef = useRef(0)
+
+  /** rendered progress(p)를 각 요소 style 에 직접 적용 */
+  const applyStyles = useCallback((p: number) => {
+    const f = computeFrame(p)
+
+    // 배경 낱자
+    for (let i = 0; i < LETTERS.length; i++) {
+      const el = lettersRef.current[i]
+      if (!el) continue
+      const L = LETTERS[i]
+      const tx = L.scatter.x * f.scatter
+      const ty = -f.floatUp * 26 + L.scatter.y * f.scatter
+      el.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) translateZ(0)`
+      el.style.opacity = `${L.op * (1 - f.scatter)}`
+      // idle(scatter=0)엔 filter 속성 자체를 제거해 합성 레이어를 깨끗이 유지
+      el.style.filter = f.scatter > 0 ? `blur(${f.scatter * 8}px)` : ''
     }
-  }, [onScroll, updateProgress])
+
+    // 게시물 스트립
+    if (stripRef.current) {
+      stripRef.current.style.transform = `translateX(${(1 - f.stripIn) * 240}px)`
+      stripRef.current.style.opacity = `${f.stripIn}`
+    }
+
+    // WORK
+    if (workRef.current) {
+      workRef.current.style.transform = `translateX(${(1 - f.workIn) * 1500}px)`
+      workRef.current.style.opacity = `${f.workIn}`
+      workRef.current.style.pointerEvents = f.workIn > 0.9 ? 'auto' : 'none'
+    }
+
+    // NWCN/슬로건
+    if (headingRef.current) {
+      headingRef.current.style.transform = `scale(${0.62 + f.headingIn * 0.38})`
+      headingRef.current.style.opacity = `${f.headingIn}`
+      headingRef.current.style.filter = f.headingIn < 1 ? `blur(${(1 - f.headingIn) * 12}px)` : ''
+    }
+
+    // 가운데 카피
+    if (introRef.current) {
+      introRef.current.style.transform = `translate(-50%, calc(-50% - ${f.introExit * 150}px))`
+      introRef.current.style.opacity = `${1 - f.introExit}`
+      introRef.current.style.filter = f.introExit > 0 ? `blur(${f.introExit * 14}px)` : ''
+    }
+
+    // 스크롤 힌트
+    if (hintRef.current) hintRef.current.style.opacity = `${Math.max(0, 1 - p * 6)}`
+
+    // dev 진행률
+    if (debugRef.current) debugRef.current.textContent = `${Math.round(p * 100)}%`
+  }, [])
+
+  /* 단일 rAF 루프 — target 측정 + 댐핑 보간 + 적용. 안정되면 멈추고 스크롤 시 재가동. */
+  const tick = useCallback((now: number) => {
+    const dt = Math.min(0.05, (now - lastTsRef.current) / 1000 || 0)
+    lastTsRef.current = now
+
+    const el = containerRef.current
+    if (el) {
+      const scrollable = el.offsetHeight - window.innerHeight
+      const rect = el.getBoundingClientRect()
+      targetRef.current = scrollable > 0 ? clamp01(-rect.top / scrollable) : 0
+    }
+
+    // 프레임레이트 독립 보간계수
+    const a = 1 - Math.exp(-dt / SMOOTH_TAU)
+    renderedRef.current += (targetRef.current - renderedRef.current) * a
+    if (Math.abs(targetRef.current - renderedRef.current) < 0.0004) {
+      renderedRef.current = targetRef.current
+    }
+
+    applyStyles(renderedRef.current)
+
+    if (renderedRef.current !== targetRef.current) {
+      rafRef.current = requestAnimationFrame(tick)
+    } else {
+      rafRef.current = null // 안정 → 정지(배터리 절약)
+    }
+  }, [applyStyles])
+
+  const kick = useCallback(() => {
+    if (rafRef.current != null) return
+    lastTsRef.current = performance.now()
+    rafRef.current = requestAnimationFrame(tick)
+  }, [tick])
+
+  /* 스크롤/리사이즈 → 루프 가동 (데스크탑 · 모션 허용 시) */
+  useEffect(() => {
+    if (isMobile !== false) return
+    if (reducedMotion) {
+      // 모션 최소화: 캡처 없이 최종 해석 상태 고정
+      targetRef.current = 1
+      renderedRef.current = 1
+      applyStyles(1)
+      return
+    }
+    renderedRef.current = 0
+    targetRef.current = 0
+    window.addEventListener('scroll', kick, { passive: true })
+    window.addEventListener('resize', kick)
+    kick()
+    return () => {
+      window.removeEventListener('scroll', kick)
+      window.removeEventListener('resize', kick)
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+    }
+  }, [isMobile, reducedMotion, kick, applyStyles])
+
+  /* 리렌더(vw 변경 등) 직후, paint 전에 현재 진행값을 다시 적용 → 깜빡임 방지 */
+  useIsoLayoutEffect(() => {
+    if (isMobile !== false) return
+    applyStyles(reducedMotion ? 1 : renderedRef.current)
+  }, [vw, isMobile, reducedMotion, applyStyles])
 
   /* 게시물 가로 스냅 스트립 — 세로 스크롤과 분리.
      트랙패드 가로 스와이프/터치는 네이티브 scroll-snap 으로 한 칸씩, 마우스는 드래그로 스크롤. */
-  const stripRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef({ down: false, startX: 0, startLeft: 0, moved: false })
 
   const onStripPointerDown = useCallback((e: ReactPointerEvent) => {
@@ -197,19 +357,7 @@ export default function HomeHeroSection({
     else window.scrollTo({ top: target, behavior: 'smooth' })
   }, [])
 
-  /* ── 타임라인 (progress 0→1) ── */
-  const p = progress
-  const introExit = easeInOut(norm(p, 0.0, 0.18))     // 가운데 카피: 상승 + 블러 + 페이드아웃
-  const floatUp = easeOut(norm(p, 0.0, 0.12))          // 3D 낱자: 살짝 떠오름
-  const scatter = easeInOut(norm(p, 0.06, 0.28))       // 3D 낱자: 양옆 분산 + 페이드아웃
-  const workIn = easeOut(norm(p, 0.34, 0.62))          // WORK: 우 → 좌 등장
-  const headingIn = easeOut(norm(p, 0.50, 0.74))       // NWCN/슬로건: scale + 블러 인
-  const stripIn = easeOut(norm(p, 0.62, 0.86))         // 게시물 스트립: 우측에서 슬라이드 + 페이드 인
-
   const scale = vw / DESIGN_W
-
-  /* 초기 스크롤 힌트 페이드 */
-  const hintOpacity = Math.max(0, 1 - p * 6)
 
   /* 결정 전: 스크롤 높이만 유지하는 플레이스홀더(히어로 깜빡임/하이드레이션 미스매치 방지) */
   if (isMobile === null) {
@@ -220,11 +368,14 @@ export default function HomeHeroSection({
     return <HomeHeroMobile posts={posts} scrollHeight={scrollHeight} className={className} />
   }
 
+  /* 초기 프레임(첫 paint 값) — 모션 최소화면 최종 상태(1), 아니면 진입 상태(0) */
+  const f0 = computeFrame(reducedMotion ? 1 : 0)
+
   return (
     <div
       ref={containerRef}
       className={`relative ${className}`}
-      style={{ height: scrollHeight, overscrollBehaviorX: 'none' }}
+      style={{ height: reducedMotion ? '100vh' : scrollHeight, overscrollBehaviorX: 'none' }}
       aria-label="히어로 섹션"
     >
       {/* ── Sticky 시각 영역 ── */}
@@ -261,23 +412,21 @@ export default function HomeHeroSection({
           />
 
           {/* ── 배경 NWCN 3D 낱자 (개별 PNG, 대기 중 둥둥 플로팅) ── */}
-          {LETTERS.map((L) => {
-            const opacity = L.op * (1 - scatter)
-            const tx = L.scatter.x * scatter
-            const ty = -floatUp * 26 + L.scatter.y * scatter
+          {LETTERS.map((L, i) => {
+            const tx = L.scatter.x * f0.scatter
+            const ty = -f0.floatUp * 26 + L.scatter.y * f0.scatter
             return (
               <div
                 key={L.src}
+                ref={(el) => { lettersRef.current[i] = el }}
                 style={{
                   position: 'absolute', left: L.cx, top: L.cy, width: L.w,
                   /* translateZ(0): 2D transform 조상(scale·rotate) 안에서도 이 레이어를
                      3D 합성 컨텍스트로 승격 → Windows(Chrome)에서 애니메이션 위치를
                      정수 픽셀로 스냅(덜덜 떨림)하지 않고 서브픽셀로 부드럽게 이동. */
                   transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) translateZ(0)`,
-                  opacity,
-                  /* idle(scatter=0)엔 filter 속성 자체를 빼서 합성 레이어를 깨끗이 유지
-                     (filter:'none'도 필터 컨텍스트를 만들어 메인스레드 폴백을 유발할 수 있음) */
-                  ...(scatter > 0 ? { filter: `blur(${scatter * 8}px)` } : null),
+                  opacity: L.op * (1 - f0.scatter),
+                  ...(f0.scatter > 0 ? { filter: `blur(${f0.scatter * 8}px)` } : null),
                   zIndex: 10, pointerEvents: 'none', willChange: 'transform, opacity',
                 }}
               >
@@ -313,8 +462,8 @@ export default function HomeHeroSection({
               display: 'flex', gap: CARD_GAP, alignItems: 'center',
               overflowX: 'auto', overflowY: 'hidden',
               scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain',
-              transform: `translateX(${(1 - stripIn) * 240}px)`,
-              opacity: stripIn, zIndex: 20, cursor: 'grab', touchAction: 'pan-x',
+              transform: `translateX(${(1 - f0.stripIn) * 240}px)`,
+              opacity: f0.stripIn, zIndex: 20, cursor: 'grab', touchAction: 'pan-x',
               willChange: 'transform, opacity',
             }}
           >
@@ -375,11 +524,12 @@ export default function HomeHeroSection({
 
           {/* ── WORK 3D (우 → 좌 등장 + 둥실둥실 플로팅 + hover 인터랙션) ── */}
           <div
+            ref={workRef}
             style={{
               position: 'absolute', left: 76, top: 110, width: 732,
-              transform: `translateX(${(1 - workIn) * 1500}px)`,
-              opacity: workIn, zIndex: 30, willChange: 'transform, opacity',
-              pointerEvents: workIn > 0.9 ? 'auto' : 'none',
+              transform: `translateX(${(1 - f0.workIn) * 1500}px)`,
+              opacity: f0.workIn, zIndex: 30, willChange: 'transform, opacity',
+              pointerEvents: f0.workIn > 0.9 ? 'auto' : 'none',
             }}
           >
             <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group" style={{ display: 'block' }}>
@@ -404,11 +554,13 @@ export default function HomeHeroSection({
 
           {/* ── NWCN, + 슬로건 (scale + 블러 인) ── */}
           <div
+            ref={headingRef}
             style={{
               position: 'absolute', left: 126, top: 430, width: 760,
               transformOrigin: 'left center',
-              transform: `scale(${0.62 + headingIn * 0.38})`,
-              opacity: headingIn, filter: `blur(${(1 - headingIn) * 12}px)`,
+              transform: `scale(${0.62 + f0.headingIn * 0.38})`,
+              opacity: f0.headingIn,
+              ...(f0.headingIn < 1 ? { filter: `blur(${(1 - f0.headingIn) * 12}px)` } : null),
               zIndex: 30, pointerEvents: 'none', willChange: 'transform, opacity, filter',
             }}
           >
@@ -421,13 +573,14 @@ export default function HomeHeroSection({
 
           {/* ── 가운데 카피 (상승 + 블러 + 페이드아웃) ── */}
           <div
+            ref={introRef}
             style={{
               position: 'absolute', left: '50%', top: 283, width: DESIGN_W - 94, height: 360,
-              transform: `translate(-50%, calc(-50% - ${introExit * 150}px))`,
-              opacity: 1 - introExit,
+              transform: `translate(-50%, calc(-50% - ${f0.introExit * 150}px))`,
+              opacity: 1 - f0.introExit,
               /* idle엔 blur(0) 정적 필터 제거 — 떠다니는 낱자 repaint에 휩쓸려
                  매 프레임 필터 재패스가 일어나면 Windows에서 텍스트가 떨린다. */
-              ...(introExit > 0 ? { filter: `blur(${introExit * 14}px)` } : null),
+              ...(f0.introExit > 0 ? { filter: `blur(${f0.introExit * 14}px)` } : null),
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
               textAlign: 'center', color: '#3a3a3b', zIndex: 40, pointerEvents: 'none',
               willChange: 'transform, opacity, filter',
@@ -466,8 +619,9 @@ export default function HomeHeroSection({
 
         {/* ── 초기 스크롤 힌트 ── */}
         <div
+          ref={hintRef}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[60] pointer-events-none"
-          style={{ opacity: hintOpacity }}
+          style={{ opacity: reducedMotion ? 0 : 1 }}
         >
           <span className="font-body text-[11px] tracking-[0.2em] text-[#3a3a3b]/70 uppercase">Scroll</span>
           <div className="w-px h-8 bg-gradient-to-b from-[#3a3a3b]/50 to-transparent" />
@@ -475,8 +629,8 @@ export default function HomeHeroSection({
 
         {/* ── 진행률 디버그 (dev only) ── */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="absolute top-20 right-4 z-[60] bg-black/50 text-white text-xs px-2 py-1 rounded font-mono">
-            {Math.round(progress * 100)}%
+          <div ref={debugRef} className="absolute top-20 right-4 z-[60] bg-black/50 text-white text-xs px-2 py-1 rounded font-mono">
+            0%
           </div>
         )}
       </div>

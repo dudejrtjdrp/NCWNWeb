@@ -10,7 +10,8 @@ interface UseScrollAnimationOptions {
 
 export function useScrollAnimation({
   threshold = 0.15,
-  rootMargin = '0px 0px -60px 0px',
+  // 뷰포트 하단보다 살짝 일찍 트리거 → 스크롤과 등장 사이 "빈 박자" 감소
+  rootMargin = '0px 0px -12% 0px',
   once = true,
 }: UseScrollAnimationOptions = {}) {
   const ref = useRef<HTMLElement | null>(null);
@@ -19,6 +20,15 @@ export function useScrollAnimation({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // 모션 최소화 선호 시: 애니메이션 없이 즉시 표시(가려짐 방지)
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setIsVisible(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
