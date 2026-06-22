@@ -342,6 +342,51 @@ export default function ProfessorDetailSection({
         </div>
       </section>
 
+      {/* ══════════════════════════════════════════════════════
+          추가 이력 섹션 (PUBLICATION / PERFORMANCE / EXHIBITION / JOURNAL)
+          프로필 섹션과 인터뷰 섹션 사이에 위치.
+          CAREER와 동일한 green 라벨 스타일, 전체폭 좌측 정렬 (긴 인용 가독성).
+          데스크탑/모바일 공용 — clamp 기반 반응형이라 별도 분기 불필요.
+          ══════════════════════════════════════════════════════ */}
+      {faculty.extraSections && faculty.extraSections.length > 0 && (
+        <section
+          className="relative bg-[#fcfcfc]"
+          style={{ zIndex: 10 }}
+          aria-label="추가 이력"
+        >
+          <div
+            className="mx-auto flex flex-col"
+            style={{
+              maxWidth: 1440,
+              paddingTop: 'clamp(32px, 4.17vw, 60px)',
+              paddingBottom: 'clamp(40px, 5.56vw, 80px)',
+              paddingLeft: 'clamp(24px, 9.44vw, 136px)',
+              paddingRight: 'clamp(24px, 9.44vw, 136px)',
+              rowGap: 'clamp(32px, 3.33vw, 48px)',
+            }}
+          >
+            {faculty.extraSections.map((sec) => (
+              <div key={sec.label} className="flex flex-col gap-[clamp(14px,1.46vw,21px)]">
+                <p className="font-body font-extrabold text-[clamp(20px,1.82vw,26px)] text-nwcn-green leading-normal">
+                  {sec.label}
+                </p>
+                <ul className="flex flex-col gap-[clamp(8px,0.83vw,12px)]">
+                  {sec.items.map((item, i) => (
+                    <li
+                      key={i}
+                      className="font-body font-normal text-[clamp(14px,1.25vw,18px)] text-[#050505]"
+                      style={{ lineHeight: 1.7 }}
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ══ NWCN 배경 #2 ══
           Figma: top=709(page) → 프로필 섹션 아래 여백에 위치
           relative 섹션으로 높이를 확보하고 absolute NWCN bg 배치 */}

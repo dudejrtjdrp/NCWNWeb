@@ -27,6 +27,16 @@ export interface FacultyInterview {
   }
 }
 
+/**
+ * CAREER 외 추가 이력 섹션 (논문/공연/전시/학술지 등)
+ * label: 영문 대문자 헤딩 (e.g., "PUBLICATION") — CAREER와 동일 스타일로 렌더
+ * items: 항목 리스트
+ */
+export interface FacultyExtraSection {
+  label: string
+  items: string[]
+}
+
 export interface FacultyData {
   id: string
   nameEn: string
@@ -43,6 +53,8 @@ export interface FacultyData {
   email?: string
   education?: string[]
   career?: string[]
+  /** CAREER 아래에 추가로 표시할 이력 섹션 (논문/공연/전시/학술지 등) */
+  extraSections?: FacultyExtraSection[]
   interview?: FacultyInterview
 }
 
@@ -117,6 +129,24 @@ export const FACULTY_LIST: FacultyData[] = [
     photoUrl: photoUrl('lee-gwang-soo'),
     colorVariant: 'green-gradient',
     quote: '미디어의 경계를 넘어 새로운 가능성을 탐구하는 여정을 함께합니다.',
+    email: 'marklee@dima.ac.kr',
+    career: [
+      '경기대학교 인터넷비즈니스 전공 (석사)',
+      '경기대학교 e-비즈니스 전공 (박사)',
+      '전) 아이앤에이치 대표이사',
+    ],
+    extraSections: [
+      {
+        label: 'PUBLICATION',
+        items: [
+          '이광수. 2022. "The Effect of Lifelong Education Quality on City Brand Equity and Intention to Reuse Focusing on the Case of Lifelong Education in Osan". IJOC, 18(2).',
+          '이광수. 2024. "Influence of YouTube Content Characteristics on Destination Image, Visit Intention, and e-WOM : Focused on Fishing Village Tourism on YouTube". The e-Business Studies, 25(1).',
+          '이광수 외 2명. 2024. 기업 브랜드 아이덴티티가 소비자 브랜드 관계 및 충성도에 미치는 영향에 관한 연구. 아시아태평양융합연구교류논문지, 10(11).',
+          '이광수. 2025. "메타버스 가상체험이 구전의도에 미치는 영향 : 원격실재감과 몰입의 이중매개 효과". 미디어예술연구지. vol.9.',
+          '이광수 외 3. 2025. "Sustainable Consumer Behavior in the Social Exclusion Context: Impact on Upcycled Product Adoption and Environmental Sustainability Metrics". Sustainability. Vol.17.',
+        ],
+      },
+    ],
   },
   {
     id: 'lee-seock-hee',
@@ -178,6 +208,36 @@ export const FACULTY_LIST: FacultyData[] = [
       '중앙대학교 예술공학 석사 (2010)',
       '일본 와세다대학교 영상공학 방문교수 (2000~2002)',
       '스페인 바르셀로나 Estudio Nomada 작가 레지던시 (2014)',
+    ],
+    extraSections: [
+      {
+        label: 'PERFORMANCE',
+        items: [
+          '사운드 아트 퍼포먼스 Nows Tomorrow 공연영상감독 (M theater, 서울)',
+          'AYAF 콘서트 춤 공연영상감독 (Olympus Hall, 서울)',
+          '콘서트 박학기의 서정시대 공연영상감독 (학전블루, 서울)',
+          '인터랙티브 미디어 공연영상 행복 한 접시 하실래요 공연영상감독 (재능문화센터, 서울)',
+        ],
+      },
+      {
+        label: 'EXHIBITION',
+        items: [
+          '인터랙티브 미디어 설치 Oriental Mirror, Slow Walking (CENTQUATRE:104, 파리, 프랑스)',
+          '인터랙티브 미디어 설치 Memorial Bell 2 (Digital Playground in Island 2013, Malaysia)',
+          '인터랙티브 미디어 설치 Ring A Bell (Loop Barcelona 2014, 바르셀로나, 스페인)',
+          '증강현실(AR) 미디어 설치 Ssitkim: a litany (2017, Requiem for Hybrid Life, 서울시립미술관 세마창고, 서울)',
+          '증강현실(AR) 미디어 설치 Epilogue (2017, 북촌 동재, 서울)',
+          '증강현실(AR) 미디어 설치 보이는 것과 보이지 않는 것 (2017, 개인전, 세운상가 ColonB 아츠, 서울)',
+        ],
+      },
+      {
+        label: 'JOURNAL',
+        items: [
+          'Joohun Lee and et al., "A Study on User Interface Based on Hand Gesture Recognition", Intl. Jour. of u- and e- Service, Science & Tech, Vol.8, No. 6, 2015.',
+          '이주헌, "증강현실을 이용한 미디어아트 교육" 정보처리학회지, 25(2), 한국정보처리학회, 2018.',
+          '이주헌, "현대미술의 도구로서 증강현실을 활용한 미디어아트의 유용성", 문화와융합, 41(4), 한국문화융합학회, 2019.',
+        ],
+      },
     ],
     interview: {
       qa: [
@@ -267,18 +327,18 @@ export const FACULTY_LIST: FacultyData[] = [
     quote: '디지털 시대의 변화를 이끄는 창의적 콘텐츠 크리에이터를 함께 만들어갑니다.',
     email: 'youkksw0@naver.com',
     career: [
-      '국민대학교 디자인대학원 석사',
+      '국민대학교 디자인대학원 시각디자인 석사',
       '국민대학교 공간디자인 학사',
-      '(현) 모티웨이브 대표',
-      '(전) 알렉시스리얼리티 실장',
-      '(전) 수담 책임연구원',
-      '(전) 맥스트 선임연구원',
-      '2023 마포구청 XR 공간 제작',
-      '2022 서울디자인페스티벌 참여',
-      '2022 우정국 NFT 제작',
-      '2022 캐릭터라이선싱페어 참여',
-      '2022 키즈페어 참여',
-      '2021 서울디자인페스티벌 영디자이너 선발',
+      '모티웨이브 대표',
+      '전 (주)알렉시스리얼리티 실장',
+      '전 수담 책임연구원',
+      '전 (주)맥스트 선임연구원',
+      '2023 마포구청 주관 과학창의페스티벌 초청기업',
+      '2022 서울디자인페스티벌 브랜드페어',
+      "2022 우정국 NFT 미디어 아트전 'NEXT STEP' 참여작가",
+      '2022 캐릭터라이선싱페어 참여기업',
+      '2022 키즈페어 유아교육전 참여기업',
+      '2021 서울디자인페스티벌 2021 영디자이너 선정',
     ],
     interview: {
       qa: [
@@ -318,5 +378,9 @@ export const FACULTY_LIST: FacultyData[] = [
     photoUrl: photoUrl('park-min-yu'),
     colorVariant: 'yellow',
     quote: '학과 생활의 첫걸음을 함께하며 든든한 지원군이 되겠습니다.',
+    email: 'minyoopark@dima.ac.kr',
+    career: [
+      '동아방송예술대학교 뉴미디어콘텐츠과 졸업',
+    ],
   },
 ]
