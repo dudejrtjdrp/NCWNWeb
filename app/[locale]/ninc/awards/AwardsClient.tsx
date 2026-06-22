@@ -39,6 +39,7 @@ export default function AwardsClient({ initialAwards }: Props) {
 
   const pagedItems = paged.map((a) => ({
     id: a.id,
+    thumbnail: a.thumbnail_url,
     caption: a.competition,
     subCaption: `${a.year}`,
     badge: (
