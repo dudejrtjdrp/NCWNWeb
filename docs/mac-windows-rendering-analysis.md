@@ -131,3 +131,39 @@ font-family: 'Pretendard Variable','Pretendard', -apple-system, BlinkMacSystemFo
 | **P3** | sticky `backdrop-blur` 성능 점검 | Header 등 | 낮음 | 헤더 떨림 |
 
 가장 가성비 높은 즉시 조치는 **P0 두 개**다. `scroll-behavior` 제거는 1줄이고, 히어로 stage의 소수 배율 스냅이 영상 속 떨림의 직접 원인이다.
+
+---
+
+## 적용 내역 (2026-06-22)
+
+타입 체크(`tsc --noEmit`)·ESLint 통과 확인.
+
+**적용됨**
+
+- **P0-1** `app/globals.css`
+  - `html { scroll-behavior: smooth }` → `auto` (Lenis와 충돌 제거)
+  - Lenis 권장 CSS 블록 추가(`.lenis.lenis-smooth { scroll-behavior: auto !important }` 등)
+  - `html { scrollbar-gutter: stable }` 추가(Windows 스크롤바 가로 점프 방지)
+- **P0-2** `components/sections/home/HomeHeroSection.tsx`
+  - 히어로 stage `transform: scale(vw/1440)` → **`zoom`** 전환(자식 레이어를 확대 해상도로 래스터 → 리샘플 진동 제거)
+  - 낱자 idle 상태에서 `filter:'none'` 제거(합성 레이어 클린 유지)
+
+> ⚠️ **검증 요청**: 떨림은 Windows·DPR 1 특정 증상이라 이 개발 환경(Mac/Linux)에서는 재현·확인이 불가능하다. 실제 **Windows + Mac 양쪽에서 히어로 정렬과 떨림을 눈으로 확인** 필요. 만약 Mac에서 히어로 레이아웃이 어긋나면 `HomeHeroSection.tsx`의 `zoom: scale` 줄을 `transform: translate(-50%,-50%) scale(${scale})` 로 1줄 복원하면 즉시 원복된다.
+
+**보류/의도적 유지 (사유)**
+
+- **폰트 스무딩**(`-webkit-font-smoothing: antialiased`): Mac 전용 의도된 심미 설정이라 유지. Windows가 더 두껍게 보이는 건 버그가 아닌 OS 차이 → Windows 기준 디자인 QA로 대응 권장.
+- **CertCarousel `scale()` 패턴**: 동일 떨림 가능성이 있으나 Swiper 내부 transform과 얽혀 있어 blind 수정은 위험. Windows에서 캐러셀도 떨리면 동일 `zoom` 접근으로 별도 처리(주의 필요).
+- **웹폰트 self-host(`next/font`)·preload**: FOUT·fallback 개선 효과는 크나 폰트 인프라 변경이라 별도 작업으로 분리.
+- **`100vh` → `100dvh` 일괄 치환**: 데스크탑 Mac/Win 영향은 미미, 모바일 관리자 레이아웃 회귀 위험이 있어 보류.
+
+**커밋(=git 쓰기가 이 mount에서 막혀 Mac에서 실행 권장)**
+
+```bash
+# 작업트리에 진행 중이던 category_url 작업은 건드리지 않고, 이번 변경 파일만 커밋
+rm -f .git/index.lock                      # mount에서 막혔던 스테일 락 제거(Mac에선 정상 동작)
+git add docs/mac-windows-rendering-analysis.md
+git commit -m "docs(perf): Mac·Windows 렌더링 차이 분석 리포트 추가"
+git add app/globals.css components/sections/home/HomeHeroSection.tsx
+git commit -m "fix(home): 윈도우 히어로 떨림·Lenis 스크롤 충돌 해소"
+```
