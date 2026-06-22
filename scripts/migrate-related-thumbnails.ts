@@ -216,6 +216,15 @@ function needsThumbnail(url: string | null): boolean {
   return PLACEHOLDER_PATTERNS.some((p) => url.includes(p))
 }
 
+/** REPLACE_DEAD=1 일 때, 비어있지 않은 URL도 HEAD 요청이 실패(깨진 링크)하면 교체 대상에 포함 */
+async function shouldReplace(url: string | null): Promise<boolean> {
+  if (needsThumbnail(url)) return true
+  if (process.env.REPLACE_DEAD && url) {
+    try { const r = await fetch(url, { method: 'HEAD' }); return !r.ok } catch { return true }
+  }
+  return false
+}
+
 const previewDir = resolve(process.cwd(), 'scripts/.thumbnail-preview')
 
 async function processRow(
@@ -240,8 +249,33 @@ async function processRow(
   else console.log(`  ✅ ${kind}/${row.id} → ${url}`)
 }
 
+/** 진단: 현재 thumbnail_url 과 실제 응답 상태를 출력 (LIST=1) */
+async function listAll() {
+  const check = async (url: string | null): Promise<string> => {
+    if (!url || !url.trim()) return 'NULL'
+    if (PLACEHOLDER_PATTERNS.some((p) => url.includes(p))) return 'PLACEHOLDER'
+    try {
+      const res = await fetch(url, { method: 'HEAD' })
+      return res.ok ? `OK ${res.status}` : `DEAD ${res.status}`
+    } catch {
+      return 'UNREACHABLE'
+    }
+  }
+  const { data: projects } = await supabase.from('projects').select('id, title, thumbnail_url').order('year', { ascending: false })
+  console.log(`\n📦 projects (${projects?.length ?? 0})`)
+  for (const p of projects ?? []) console.log(`  [${await check(p.thumbnail_url)}] ${p.title}\n       ${p.thumbnail_url ?? '(없음)'}`)
+
+  const { data: awards } = await supabase.from('awards').select('id, competition, thumbnail_url').order('year', { ascending: false })
+  console.log(`\n🏆 awards (${awards?.length ?? 0})`)
+  for (const a of awards ?? []) console.log(`  [${await check(a.thumbnail_url)}] ${a.competition}\n       ${a.thumbnail_url ?? '(없음)'}`)
+  console.log('\n[OK]=정상 이미지, [DEAD/UNREACHABLE]=깨진 링크(교체 필요), [PLACEHOLDER/NULL]=마이그레이션 대상\n')
+  process.exit(0)
+}
+
 async function run() {
   console.log(`\n🎨 관련 썸네일 마이그레이션 시작 ${DRY_RUN ? '(DRY_RUN)' : ''}${FORCE ? ' (FORCE)' : ''}`)
+
+  if (process.env.LIST) { await listAll(); return }
 
   // ── projects ──
   const { data: projects, error: pErr } = await supabase
@@ -249,7 +283,8 @@ async function run() {
     .select('id, title, type, partner, year, category, thumbnail_url')
   if (pErr) { console.error('projects 조회 실패:', pErr.message); process.exit(1) }
 
-  const projTargets = (projects ?? []).filter((p) => needsThumbnail(p.thumbnail_url))
+  const projTargets = [] as NonNullable<typeof projects>
+  for (const p of projects ?? []) if (await shouldReplace(p.thumbnail_url)) projTargets.push(p)
   console.log(`\n📦 projects: ${projTargets.length}/${projects?.length ?? 0} 대상`)
   for (const p of projTargets) {
     const isIntl = p.type === 'international'
@@ -269,7 +304,8 @@ async function run() {
     .select('id, competition, award_name, hosted_by, year, thumbnail_url')
   if (aErr) { console.error('awards 조회 실패:', aErr.message); process.exit(1) }
 
-  const awardTargets = (awards ?? []).filter((a) => needsThumbnail(a.thumbnail_url))
+  const awardTargets = [] as NonNullable<typeof awards>
+  for (const a of awards ?? []) if (await shouldReplace(a.thumbnail_url)) awardTargets.push(a)
   console.log(`\n🏆 awards: ${awardTargets.length}/${awards?.length ?? 0} 대상`)
   const TOP_GRADES = ['대상', '금상', '최우수상', 'Winner']
   for (const a of awardTargets) {
