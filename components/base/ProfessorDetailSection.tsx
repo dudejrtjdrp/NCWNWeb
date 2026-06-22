@@ -27,6 +27,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { FacultyData } from '@/lib/faculty-data'
+import CareerList from '@/components/base/CareerList'
 
 const IMG_NWCN_BG = '/images/department/nwcn-logo.png'
 
@@ -57,6 +58,41 @@ function parseAnswer(answer: string) {
       {parseInlineText(para)}
     </p>
   ))
+}
+
+/* ──────────────────────────────────────────────────────
+   마무리 인용문 렌더 — 강조 문구를 손그림 동그라미 SVG로 감싼다.
+   기존: 교수마다 절대좌표(top/left)를 수동 지정 → 위치가 어긋남.
+   개선: 강조 단어 위에 인라인으로 원을 겹쳐 화면 크기·교수와 무관하게 항상 정렬.
+   ────────────────────────────────────────────────────── */
+function renderClosingQuote(quote: string, highlight: string | undefined, svgSrc: string) {
+  const lines = quote.split('\n')
+  return lines.map((line, li) => {
+    const idx = highlight ? line.indexOf(highlight) : -1
+    return (
+      <span key={li}>
+        {idx >= 0 && highlight ? (
+          <>
+            {line.slice(0, idx)}
+            <span className="relative inline-block whitespace-nowrap">
+              <img
+                src={svgSrc}
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none select-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2"
+                style={{ width: '122%', height: 'auto' }}
+              />
+              <span className="relative z-10">{highlight}</span>
+            </span>
+            {line.slice(idx + highlight.length)}
+          </>
+        ) : (
+          line
+        )}
+        {li < lines.length - 1 && <br />}
+      </span>
+    )
+  })
 }
 
 /* ── Props ── */
@@ -229,14 +265,14 @@ export default function ProfessorDetailSection({
               <p className="font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full">
                 CAREER
               </p>
-              <div
-                className="w-full font-body font-normal text-[20px] text-[#050505]"
-                style={{ lineHeight: '34.467px' }}
-              >
-                {faculty.career.map((item, i) => (
-                  <p key={i}>{item}</p>
-                ))}
-              </div>
+              <CareerList
+                items={faculty.career}
+                collapsedCount={5}
+                className="w-full"
+                itemClassName="w-full font-body font-normal text-[20px] text-[#050505]"
+                lineHeight="34.467px"
+                buttonClassName="text-[17px]"
+              />
             </div>
           )}
         </div>
@@ -294,12 +330,13 @@ export default function ProfessorDetailSection({
               <p className="font-body font-extrabold text-[20px] text-nwcn-green leading-normal">
                 CAREER
               </p>
-              <div
-                className="font-body font-normal text-[14px] text-[#050505]"
-                style={{ lineHeight: 1.75 }}
-              >
-                {faculty.career.map((item, i) => <p key={i}>{item}</p>)}
-              </div>
+              <CareerList
+                items={faculty.career}
+                collapsedCount={4}
+                itemClassName="font-body font-normal text-[14px] text-[#050505]"
+                lineHeight={1.75}
+                buttonClassName="text-[14px]"
+              />
             </div>
           )}
         </div>
@@ -387,32 +424,15 @@ export default function ProfessorDetailSection({
                     {faculty.interview.closingQuestion}
                   </p>
 
-                  {/* 인용 문구 + 하이라이트 SVG overlay */}
+                  {/* 인용 문구 — 강조 단어를 감싸는 인라인 동그라미(자동 정렬) */}
                   <div className="w-full flex justify-center">
                     <div className="relative max-w-[916px] w-full">
-                      {faculty.interview.closingHighlight && (
-                        <img
-                          src={`/images/faculty/${faculty.id}-highlight.svg`}
-                          alt=""
-                          aria-hidden="true"
-                          className="absolute pointer-events-none select-none"
-                          style={{
-                            top: faculty.interview.closingHighlightStyle?.top ?? 39,
-                            left: 'clamp(60px,15.97vw,230px)',
-                            width: 'clamp(120px,17.23vw,248px)',
-                            height: 'auto',
-                            transform: 'rotate(-0.28deg)',
-                            zIndex: 0,
-                          }}
-                        />
-                      )}
-                      <p className="relative font-body font-bold text-[clamp(20px,2.5vw,36px)] text-black text-center leading-normal z-10">
-                        {faculty.interview.closingQuote.split('\n').map((line, li, arr) => (
-                          <span key={li}>
-                            {line}
-                            {li < arr.length - 1 && <br />}
-                          </span>
-                        ))}
+                      <p className="font-body font-bold text-[clamp(20px,2.5vw,36px)] text-black text-center leading-[1.7]">
+                        {renderClosingQuote(
+                          faculty.interview.closingQuote,
+                          faculty.interview.closingHighlight,
+                          `/images/faculty/${faculty.id}-highlight.svg`,
+                        )}
                       </p>
                     </div>
                   </div>
