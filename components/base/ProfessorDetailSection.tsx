@@ -27,7 +27,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { FacultyData } from '@/lib/faculty-data'
-import CareerList from '@/components/base/CareerList'
+import CareerColumn, { type CareerSection } from '@/components/base/CareerColumn'
 
 const IMG_NWCN_BG = '/images/department/nwcn-logo.png'
 
@@ -109,6 +109,15 @@ export default function ProfessorDetailSection({
     ? `${faculty.nameKo} (${faculty.roleLabel})`
     : faculty.nameKo
   const hasInterview = !!faculty.interview
+
+  /* 우측 컬럼: CAREER 를 맨 앞에 두고 추가 이력을 이어붙여 하나의 목록으로 처리.
+     더보기/접기는 이 묶음 전체에 단 하나만 노출된다. */
+  const careerSections: CareerSection[] = [
+    ...(faculty.career && faculty.career.length > 0
+      ? [{ label: 'CAREER', items: faculty.career }]
+      : []),
+    ...(faculty.extraSections ?? []),
+  ]
 
   return (
     /* ─────────────────────────────────────────────────────────
@@ -258,50 +267,20 @@ export default function ProfessorDetailSection({
               flow 배치 — 내용/토글 펼침에 따라 섹션 높이가 함께 늘어남.
               사진/이름은 absolute 라 좌상단에 고정 유지.
               ─────────────────────────────────────────────── */}
-          {(faculty.career?.length || faculty.extraSections?.length) ? (
+          {careerSections.length > 0 && (
             <div
-              className="relative flex flex-col"
+              className="relative"
               style={{
                 marginLeft: '52.43%',
                 width: '34.58%',
                 paddingTop: 'clamp(42px, 4.77vw, 69px)',
                 paddingBottom: 'clamp(24px, 3.06vw, 44px)',
-                rowGap: 'clamp(28px, 3.13vw, 45px)',
                 zIndex: 10,
               }}
             >
-              {faculty.career && faculty.career.length > 0 && (
-                <div className="w-full flex flex-col gap-[21px] items-end">
-                  <p className="font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full">
-                    CAREER
-                  </p>
-                  <CareerList
-                    items={faculty.career}
-                    collapsedCount={5}
-                    className="w-full"
-                    itemClassName="w-full font-body font-normal text-[20px] text-[#050505]"
-                    lineHeight="34.467px"
-                    buttonClassName="text-[17px]"
-                  />
-                </div>
-              )}
-              {faculty.extraSections?.map((sec) => (
-                <div key={sec.label} className="w-full flex flex-col gap-[21px] items-end">
-                  <p className="font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full">
-                    {sec.label}
-                  </p>
-                  <CareerList
-                    items={sec.items}
-                    collapsedCount={3}
-                    className="w-full"
-                    itemClassName="w-full font-body font-normal text-[16px] text-[#050505]"
-                    lineHeight="28px"
-                    buttonClassName="text-[17px]"
-                  />
-                </div>
-              ))}
+              <CareerColumn variant="desktop" sections={careerSections} collapsedCount={5} />
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* ── 모바일 레이아웃 (<lg) ── */}
@@ -351,36 +330,10 @@ export default function ProfessorDetailSection({
               </a>
             )}
           </div>
-          {/* CAREER */}
-          {faculty.career && faculty.career.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <p className="font-body font-extrabold text-[20px] text-nwcn-green leading-normal">
-                CAREER
-              </p>
-              <CareerList
-                items={faculty.career}
-                collapsedCount={4}
-                itemClassName="font-body font-normal text-[14px] text-[#050505]"
-                lineHeight={1.75}
-                buttonClassName="text-[14px]"
-              />
-            </div>
+          {/* CAREER + 추가 이력 — 통합 단일 더보기/접기 */}
+          {careerSections.length > 0 && (
+            <CareerColumn variant="mobile" sections={careerSections} collapsedCount={4} />
           )}
-          {/* 추가 이력 (PUBLICATION / PERFORMANCE / EXHIBITION / JOURNAL) */}
-          {faculty.extraSections?.map((sec) => (
-            <div key={sec.label} className="flex flex-col gap-3">
-              <p className="font-body font-extrabold text-[20px] text-nwcn-green leading-normal">
-                {sec.label}
-              </p>
-              <CareerList
-                items={sec.items}
-                collapsedCount={3}
-                itemClassName="font-body font-normal text-[14px] text-[#050505]"
-                lineHeight={1.75}
-                buttonClassName="text-[14px]"
-              />
-            </div>
-          ))}
         </div>
       </section>
 
