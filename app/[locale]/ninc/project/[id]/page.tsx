@@ -4,6 +4,7 @@
  */
 
 import Link from 'next/link'
+import Image from 'next/image'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { notFound } from 'next/navigation'
 import { getProjectById } from '@/lib/supabase/queries/projects'
@@ -49,6 +50,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             <span className={`font-body text-sm font-semibold px-4 py-1.5 rounded-full ${TYPE_STYLE[project.type]}`}>
               {TYPE_LABEL[project.type]}
             </span>
+            {project.category && (
+              <span className="font-body text-sm text-nwcn-text-muted border border-black/10 px-3 py-1.5 rounded-full">
+                {project.category}
+              </span>
+            )}
             {project.partner && (
               <span className="font-body text-sm text-nwcn-text-sub">{project.partner}</span>
             )}
@@ -73,20 +79,37 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             {/* 사이드바 */}
             <aside className="lg:col-span-1 order-2 lg:order-1">
               <div className="border border-black/10 rounded-2xl overflow-hidden sticky top-24">
-                <div className="aspect-[4/3] bg-[#efefef] flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-2 opacity-30">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.5">
-                      <rect x="2" y="3" width="20" height="14" rx="2" />
-                      <path d="M8 21h8M12 17v4" />
-                    </svg>
-                    <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
-                  </div>
+                <div className="relative aspect-[4/3] bg-[#efefef] flex items-center justify-center">
+                  {project.thumbnail_url ? (
+                    <Image
+                      src={project.thumbnail_url}
+                      alt={project.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 opacity-30">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.5">
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <path d="M8 21h8M12 17v4" />
+                      </svg>
+                      <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-6 space-y-4">
                   {project.partner && (
                     <div>
                       <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('partner')}</p>
                       <p className="font-body text-sm font-semibold text-nwcn-text-default">{project.partner}</p>
+                    </div>
+                  )}
+                  {project.category && (
+                    <div>
+                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('category')}</p>
+                      <p className="font-body text-sm text-nwcn-text-muted">{project.category}</p>
                     </div>
                   )}
                   {project.duration && (
@@ -112,6 +135,19 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                         ))}
                       </div>
                     </div>
+                  )}
+                  {project.project_url && (
+                    <a
+                      href={project.project_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full mt-2 py-2.5 rounded-xl bg-nwcn-green text-nwcn-text-default font-body text-sm font-semibold hover:brightness-105 transition-all"
+                    >
+                      {t('viewProject')}
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                    </a>
                   )}
                 </div>
               </div>

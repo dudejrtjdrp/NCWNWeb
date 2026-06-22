@@ -929,6 +929,12 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
   const type           = formData.get('type')             as string
   const partner        = (formData.get('partner')        as string)?.trim()
   const yearStr        = formData.get('year')             as string
+  const duration       = (formData.get('duration')       as string)?.trim()
+  const category       = (formData.get('category')       as string)?.trim()
+  const projectUrl     = (formData.get('project_url')    as string)?.trim()
+  const participantsRaw= (formData.get('participants')   as string)?.trim()
+  const skillsRaw      = (formData.get('skills')         as string)?.trim()
+  const outcome        = (formData.get('outcome')        as string)?.trim()
   const description    = (formData.get('description')    as string)?.trim()
   const description_en = (formData.get('description_en') as string)?.trim()
   const outcome_en     = (formData.get('outcome_en')     as string)?.trim()
@@ -943,6 +949,16 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
 
   const year = parseInt(yearStr)
   if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
+
+  // 쉼표 구분 → 배열 (참여 학생 / 활용 기술)
+  const participants = participantsRaw
+    ? participantsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : null
+  const skills = skillsRaw
+    ? skillsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : null
+  // 관련 링크는 http(s)만 허용
+  const project_url = projectUrl && /^https?:\/\//i.test(projectUrl) ? projectUrl : null
 
   if (thumbnail && thumbnail.size > 0) {
     const fileErr = validateImage(thumbnail)
@@ -962,6 +978,12 @@ export async function saveProject(_: unknown, formData: FormData): Promise<Actio
     type:           type || 'industry',
     partner:        partner || null,
     year,
+    duration:       duration || null,
+    category:       category || null,
+    project_url,
+    participants,
+    skills,
+    outcome:        outcome || null,
     description:    description || null,
     description_en: description_en || null,
     outcome_en:     outcome_en || null,
@@ -992,6 +1014,11 @@ export async function updateProject(id: string, formData: FormData): Promise<Act
   const partner        = (formData.get('partner')        as string)?.trim()
   const yearStr        = formData.get('year')             as string
   const duration       = (formData.get('duration')       as string)?.trim()
+  const category       = (formData.get('category')       as string)?.trim()
+  const projectUrl     = (formData.get('project_url')    as string)?.trim()
+  const participantsRaw= (formData.get('participants')   as string)?.trim()
+  const skillsRaw      = (formData.get('skills')         as string)?.trim()
+  const outcome        = (formData.get('outcome')        as string)?.trim()
   const description    = (formData.get('description')    as string)?.trim()
   const description_en = (formData.get('description_en') as string)?.trim()
   const outcome_en     = (formData.get('outcome_en')     as string)?.trim()
@@ -1007,6 +1034,15 @@ export async function updateProject(id: string, formData: FormData): Promise<Act
   const year = parseInt(yearStr)
   if (!year || year < 2000 || year > 2100) return { error: '연도를 올바르게 입력해주세요.' }
 
+  // 쉼표 구분 → 배열 (참여 학생 / 활용 기술)
+  const participants = participantsRaw
+    ? participantsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : null
+  const skills = skillsRaw
+    ? skillsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+    : null
+  const project_url = projectUrl && /^https?:\/\//i.test(projectUrl) ? projectUrl : null
+
   if (thumbnail && thumbnail.size > 0) {
     const fileErr = validateImage(thumbnail)
     if (fileErr) return { error: fileErr }
@@ -1019,6 +1055,11 @@ export async function updateProject(id: string, formData: FormData): Promise<Act
     partner:        partner || null,
     year,
     duration:       duration || null,
+    category:       category || null,
+    project_url,
+    participants,
+    skills,
+    outcome:        outcome || null,
     description:    description || null,
     description_en: description_en || null,
     outcome_en:     outcome_en || null,

@@ -19,6 +19,10 @@ export interface ProjectItem {
   duration: string | null
   outcome: string | null
   skills: string[] | null
+  /** 프로젝트 분야 (예: 영상제작, 브랜딩, UX/UI) */
+  category: string | null
+  /** 관련 결과물/외부 링크 (http(s) URL) */
+  project_url: string | null
   created_at: string
   // 영어 원문 (admin 편집용)
   title_en?: string | null

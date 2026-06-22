@@ -17,6 +17,11 @@ interface ProjectItem {
   partner: string | null
   year: number
   duration: string | null
+  category: string | null
+  project_url: string | null
+  participants: string[] | null
+  skills: string[] | null
+  outcome: string | null
   description: string | null
   description_en: string | null
   outcome_en: string | null
@@ -63,11 +68,22 @@ function ProjectForm({ project, onSuccess, onCancel }: { project: ProjectItem | 
           </div>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><Label>분야</Label><Input name="category" defaultValue={project?.category ?? ''} placeholder="영상제작 / 브랜딩 / UX·UI / 전시" /></div>
+          <div><Label>관련 링크</Label><Input name="project_url" type="url" defaultValue={project?.project_url ?? ''} placeholder="https://..." /></div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><Label>참여 학생 (쉼표 구분)</Label><Input name="participants" defaultValue={project?.participants?.join(', ') ?? ''} placeholder="홍길동, 이영희, 김민수" /></div>
+          <div><Label>활용 기술/역량 (쉼표 구분)</Label><Input name="skills" defaultValue={project?.skills?.join(', ') ?? ''} placeholder="영상 기획, 촬영, 편집, 모션그래픽" /></div>
+        </div>
+
         <LangTab
           koContent={
             <div className="space-y-4">
               <div><Label>프로젝트명 *</Label><Input name="title" defaultValue={project?.title ?? ''} placeholder="○○ 기업 브랜드 영상 제작" required /></div>
               <div><Label>프로젝트 설명</Label><Textarea name="description" defaultValue={project?.description ?? ''} placeholder="프로젝트 배경 및 진행 내용..." rows={5} /></div>
+              <div><Label>성과</Label><Textarea name="outcome" defaultValue={project?.outcome ?? ''} placeholder="기업 공식 채널 업로드, 전시 개최 등 결과..." rows={3} /></div>
             </div>
           }
           enContent={
@@ -112,7 +128,7 @@ export default function ProjectTab() {
       const supabase = createClient()
       const { data } = await supabase
         .from('projects')
-        .select('id, title, title_en, type, partner, year, duration, description, description_en, outcome_en, thumbnail_url')
+        .select('id, title, title_en, type, partner, year, duration, category, project_url, participants, skills, outcome, description, description_en, outcome_en, thumbnail_url')
         .order('year', { ascending: false })
         .limit(30)
       setProjects((data ?? []) as ProjectItem[])

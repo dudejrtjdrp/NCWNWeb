@@ -5,6 +5,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { notFound } from 'next/navigation'
 import { getAwardById } from '@/lib/supabase/queries/awards'
@@ -122,13 +123,24 @@ export default async function AwardDetailPage({ params }: PageProps) {
             <aside className="lg:col-span-1 order-2 lg:order-1">
               <div className="border border-black/10 rounded-2xl overflow-hidden sticky top-24">
                 {/* 썸네일 */}
-                <div className="aspect-[4/3] bg-[#efefef] flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-2 opacity-30">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.5">
-                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                    </svg>
-                    <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
-                  </div>
+                <div className="relative aspect-[4/3] bg-[#efefef] flex items-center justify-center">
+                  {award.thumbnail_url ? (
+                    <Image
+                      src={award.thumbnail_url}
+                      alt={`${award.competition} ${award.award_name}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 opacity-30">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.5">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                      </svg>
+                      <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* 정보 목록 */}
