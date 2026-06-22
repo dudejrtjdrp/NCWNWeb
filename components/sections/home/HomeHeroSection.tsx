@@ -319,15 +319,14 @@ export default function HomeHeroSection({
      트랙패드 가로 스와이프/터치는 네이티브 scroll-snap 으로 한 칸씩, 마우스는 드래그로 스크롤. */
   const dragRef = useRef({ down: false, startX: 0, startLeft: 0, moved: false })
 
-  const onStripPointerDown = useCallback((e: ReactPointerEvent) => {
-    if (e.pointerType !== 'mouse') return // 터치/펜은 네이티브 스크롤에 맡김
-    const strip = stripRef.current
-    if (!strip) return
-    dragRef.current = { down: true, startX: e.clientX, startLeft: strip.scrollLeft, moved: false }
-    strip.style.scrollSnapType = 'none'   // 드래그 중에는 스냅 해제
-    strip.setPointerCapture?.(e.pointerId)
-  }, [])
-  const onStripPointerMove = useCallback((e: ReactPointerEvent) => {
+  /* 드래그 중 pointermove/up 은 strip 이 아니라 window 에서 듣는다.
+     ⚠️ 예전엔 strip.setPointerCapture() 로 캡처했는데, Chromium 은 포인터 캡처가
+        걸렸던 시퀀스의 click 타깃을 "캡처 엘리먼트(=strip)"로 바꿔버린다. 그러면
+        click 이 자식 카드(<a>)를 거치지 않아 링크 이동이 통째로 막힌다
+        (커서는 pointer 인데 눌러도 무반응). → 캡처를 버리고 window 리스너로
+        커서가 strip 밖으로 나가도 드래그가 이어지게 하면, click 은 실제 카드에
+        정상 도달해 이동한다. */
+  const onWinPointerMove = useCallback((e: PointerEvent) => {
     const d = dragRef.current
     const strip = stripRef.current
     if (!d.down || !strip) return
@@ -335,16 +334,35 @@ export default function HomeHeroSection({
     if (Math.abs(dx) > 4) d.moved = true
     strip.scrollLeft = d.startLeft - dx
   }, [])
-  const endStripDrag = useCallback((e: ReactPointerEvent) => {
+  const onWinPointerUp = useCallback(() => {
     const strip = stripRef.current
     if (!dragRef.current.down) return
     dragRef.current.down = false
     if (strip) strip.style.scrollSnapType = '' // 스냅 복원 → 놓으면 가까운 카드로 정렬
-    strip?.releasePointerCapture?.(e.pointerId)
-  }, [])
+    window.removeEventListener('pointermove', onWinPointerMove)
+    window.removeEventListener('pointerup', onWinPointerUp)
+    // moved 플래그는 다음 pointerdown 까지 유지 → 직후 click 을 onClickCapture 가 읽음
+  }, [onWinPointerMove])
+  const onStripPointerDown = useCallback((e: ReactPointerEvent) => {
+    if (e.pointerType !== 'mouse') return // 터치/펜은 네이티브 스크롤에 맡김
+    const strip = stripRef.current
+    if (!strip) return
+    dragRef.current = { down: true, startX: e.clientX, startLeft: strip.scrollLeft, moved: false }
+    strip.style.scrollSnapType = 'none'   // 드래그 중에는 스냅 해제
+    window.addEventListener('pointermove', onWinPointerMove)
+    window.addEventListener('pointerup', onWinPointerUp)
+  }, [onWinPointerMove, onWinPointerUp])
   const onStripClickCapture = useCallback((e: ReactMouseEvent) => {
     if (dragRef.current.moved) { e.preventDefault(); e.stopPropagation() } // 드래그였으면 링크 클릭 무시
   }, [])
+
+  /* 언마운트가 드래그 도중일 수 있으니 window 리스너 정리 */
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('pointermove', onWinPointerMove)
+      window.removeEventListener('pointerup', onWinPointerUp)
+    }
+  }, [onWinPointerMove, onWinPointerUp])
 
   /* 버튼/종료 → 하단 섹션으로 스크롤 */
   const scrollToNext = useCallback(() => {
@@ -450,10 +468,6 @@ export default function HomeHeroSection({
           <div
             ref={stripRef}
             onPointerDown={onStripPointerDown}
-            onPointerMove={onStripPointerMove}
-            onPointerUp={endStripDrag}
-            onPointerCancel={endStripDrag}
-            onPointerLeave={endStripDrag}
             onClickCapture={onStripClickCapture}
             className="hero-strip"
             style={{
@@ -528,7 +542,10 @@ export default function HomeHeroSection({
             style={{
               position: 'absolute', left: 76, top: 110, width: 732,
               transform: `translateX(${(1 - f0.workIn) * 1500}px)`,
-              opacity: f0.workIn, zIndex: 30, willChange: 'transform, opacity',
+              /* zIndex 는 카드 스트립(20)보다 낮게: WORK 이미지(775×400)의 투명 오른쪽
+                 여백이 첫 카드 좌측을 덮어 카드 클릭을 /work/showcase 로 가로채던 문제 방지.
+                 보이는 WORK 글자(좌측)는 스트립과 겹치지 않아 시각 변화 없음. */
+              opacity: f0.workIn, zIndex: 18, willChange: 'transform, opacity',
               pointerEvents: f0.workIn > 0.9 ? 'auto' : 'none',
             }}
           >
