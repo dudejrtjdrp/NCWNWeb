@@ -4,6 +4,7 @@ import NincCardGrid from '@/components/base/NincCardGrid'
 import Tag from '@/components/base/Tag'
 import { useFilter } from '@/hooks/useFilter'
 import { usePagination } from '@/hooks/usePagination'
+import { resolveThumbnail } from '@/lib/mock-thumbnail'
 import type { ProjectItem } from '@/lib/supabase/queries/projects'
 
 const PROJECT_TAG: Record<'industry' | 'international', 'primary' | 'secondary'> = {
@@ -41,6 +42,7 @@ export default function ProjectClient({ initialProjects }: Props) {
 
   const pagedItems = paged.map((p) => ({
     id: p.id,
+    thumbnail: resolveThumbnail(p.thumbnail_url, p.id),
     caption: p.title,
     subCaption: `${p.partner ?? ''} · ${p.year}`,
     badge: (
