@@ -67,6 +67,8 @@ type Letter = {
   rot: number
   op: number
   scatter: { x: number; y: number }
+  /** 대기 중 상하 부유(px) — rAF에서 직접 적용(데스크탑과 동일 기법) */
+  bobAmp: number; bobDur: number; bobPhase: number
 }
 
 const LETTERS: Letter[] = [
@@ -76,6 +78,7 @@ const LETTERS: Letter[] = [
     anchor: { top: '-2%', left: '-5%' },
     w: 'clamp(132px, 40vw, 200px)',
     rot: -7.5, op: 1, scatter: { x: -170, y: -140 },
+    bobAmp: 9, bobDur: 7.0, bobPhase: 0,
   },
   // W — 우상단
   {
@@ -83,6 +86,7 @@ const LETTERS: Letter[] = [
     anchor: { top: '5%', right: '-7%' },
     w: 'clamp(112px, 34vw, 174px)',
     rot: -12, op: 0.8, scatter: { x: 170, y: -120 },
+    bobAmp: 8, bobDur: 6.6, bobPhase: 1.0,
   },
   // C — 좌측 중하단
   {
@@ -90,6 +94,7 @@ const LETTERS: Letter[] = [
     anchor: { top: '49%', left: '1%' },
     w: 'clamp(116px, 35vw, 178px)',
     rot: -21.8, op: 0.4, scatter: { x: -185, y: 70 },
+    bobAmp: 9, bobDur: 7.6, bobPhase: 1.9,
   },
   // N — 우측 하단
   {
@@ -97,6 +102,7 @@ const LETTERS: Letter[] = [
     anchor: { bottom: '3%', right: '3%' },
     w: 'clamp(100px, 30vw, 150px)',
     rot: 18.8, op: 0.2, scatter: { x: 150, y: 150 },
+    bobAmp: 8, bobDur: 7.2, bobPhase: 2.6,
   },
 ]
 
@@ -154,6 +160,7 @@ function computeFrame(p: number): Frame {
 
 /** 진행값 댐핑 시간상수(초) */
 const SMOOTH_TAU = 0.075
+const TWO_PI = Math.PI * 2
 
 export default function HomeHeroMobile({
   scrollHeight = '320vh',
@@ -190,22 +197,29 @@ export default function HomeHeroMobile({
   const rafRef = useRef<number | null>(null)
   const lastTsRef = useRef(0)
 
-  /** rendered progress(p)를 각 요소 style 에 직접 적용 */
-  const applyStyles = useCallback((p: number) => {
+  /** rendered progress(p) + 시간(now)을 각 요소 style 에 직접 적용.
+   *  부유(bob)도 CSS가 아니라 rAF에서 직접 — 데스크탑과 동일 기법(맥·윈도우 동일 부드러움). */
+  const applyStyles = useCallback((p: number, now: number) => {
     const f = computeFrame(p)
+    const t = now / 1000
+    const canFloat = !reducedMotionRef.current
+    const bob = (amp: number, dur: number, phase: number) =>
+      canFloat ? -amp * (0.5 - 0.5 * Math.cos((t / dur) * TWO_PI + phase)) : 0
 
     for (let i = 0; i < LETTERS.length; i++) {
       const el = lettersRef.current[i]
       if (!el) continue
       const L = LETTERS[i]
+      const bobY = bob(L.bobAmp, L.bobDur, L.bobPhase) * (1 - f.scatter)
       const tx = L.scatter.x * f.scatter
-      const ty = -f.floatUp * 18 + L.scatter.y * f.scatter
+      const ty = -f.floatUp * 18 + L.scatter.y * f.scatter + bobY
       el.style.transform = `translate(${tx}px, ${ty}px)`
       el.style.opacity = `${L.op * (1 - f.scatter)}`
     }
 
     if (workRef.current) {
-      workRef.current.style.transform = `translateX(calc(-50% + ${(1 - f.workIn) * 460}px))`
+      const bobY = bob(9, 6.8, 0) * f.workIn
+      workRef.current.style.transform = `translateX(calc(-50% + ${(1 - f.workIn) * 460}px)) translateY(${bobY}px)`
       workRef.current.style.opacity = `${f.workIn}`
       workRef.current.style.pointerEvents = f.workIn > 0.9 ? 'auto' : 'none'
     }
@@ -234,11 +248,13 @@ export default function HomeHeroMobile({
     const dt = Math.min(0.05, (now - lastTsRef.current) / 1000 || 0)
     lastTsRef.current = now
 
+    let inView = true
     const el = containerRef.current
     if (el) {
       const scrollable = el.offsetHeight - window.innerHeight
       const rect = el.getBoundingClientRect()
       targetRef.current = scrollable > 0 ? clamp01(-rect.top / scrollable) : 0
+      inView = rect.bottom > 0 && rect.top < window.innerHeight
     }
 
     if (reducedMotionRef.current) {
@@ -252,9 +268,11 @@ export default function HomeHeroMobile({
       }
     }
 
-    applyStyles(renderedRef.current)
+    applyStyles(renderedRef.current, now)
 
-    if (renderedRef.current !== targetRef.current) {
+    // 부유는 시간 기반이라 화면 안이면 계속 갱신
+    const idleAnimating = !reducedMotionRef.current && inView
+    if (renderedRef.current !== targetRef.current || idleAnimating) {
       rafRef.current = requestAnimationFrame(tick)
     } else {
       rafRef.current = null
@@ -294,7 +312,7 @@ export default function HomeHeroMobile({
 
   /* 리렌더 직후, paint 전에 현재 진행값을 다시 적용 → 깜빡임 방지 */
   useIsoLayoutEffect(() => {
-    applyStyles(renderedRef.current)
+    applyStyles(renderedRef.current, performance.now())
   }, [applyStyles])
 
   /* 버튼/종료 → 하단 섹션으로 스크롤 */
@@ -377,7 +395,7 @@ export default function HomeHeroMobile({
             opacity: f0.workIn,
             zIndex: 20,
             pointerEvents: f0.workIn > 0.9 ? 'auto' : 'none',
-            willChange: 'transform, opacity',
+            /* will-change 미사용 — JS 부유가 합성 레이어로 떠 떨리는 것 방지(메인스레드 서브픽셀) */
           }}
         >
           <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group block">

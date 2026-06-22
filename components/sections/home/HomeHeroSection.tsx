@@ -81,13 +81,17 @@ type Letter = {
   cx: number; cy: number; w: number
   rot: number; op: number
   scatter: { x: number; y: number }
+  /** 대기 중 상하 부유 — globals.css `floaty`(7s, 0→-14px)와 동일 감각.
+   *  ⚠️ CSS animation 대신 rAF에서 직접 적용한다(아래 applyStyles): scale() stage 안의
+   *  CSS/합성 애니메이션은 DPR1(윈도우 100%)에서 정수 픽셀로 스냅돼 떨리기 때문. */
+  bobAmp: number; bobDur: number; bobPhase: number
 }
 
 const LETTERS: Letter[] = [
-  { src: '/images/home/letter-1.png', cx: 295, cy: 140, w: 255, rot: -8, op: 0.95, scatter: { x: -380, y: -60 } },    // N
-  { src: '/images/home/letter-2.png', cx: 470, cy: 470, w: 320, rot: -20, op: 0.6, scatter: { x: -460, y: 130 } },   // C
-  { src: '/images/home/letter-3.png', cx: 1180, cy: 150, w: 280, rot: 6, op: 0.85, scatter: { x: 430, y: -70 } },    // W
-  { src: '/images/home/letter-4.png', cx: 900, cy: 660, w: 200, rot: 16, op: 0.45, scatter: { x: 300, y: 200 } },    // N
+  { src: '/images/home/letter-1.png', cx: 295, cy: 140, w: 255, rot: -8, op: 0.95, scatter: { x: -380, y: -60 }, bobAmp: 10, bobDur: 7.0, bobPhase: 0 },    // N
+  { src: '/images/home/letter-2.png', cx: 470, cy: 470, w: 320, rot: -20, op: 0.6, scatter: { x: -460, y: 130 }, bobAmp: 12, bobDur: 7.6, bobPhase: 1.9 },  // C
+  { src: '/images/home/letter-3.png', cx: 1180, cy: 150, w: 280, rot: 6, op: 0.85, scatter: { x: 430, y: -70 }, bobAmp: 10, bobDur: 6.6, bobPhase: 1.0 },   // W
+  { src: '/images/home/letter-4.png', cx: 900, cy: 660, w: 200, rot: 16, op: 0.45, scatter: { x: 300, y: 200 }, bobAmp: 11, bobDur: 7.2, bobPhase: 2.6 },   // N
 ]
 
 /* 게시물(최대 4) — page.tsx 에서 실제 쇼케이스 작품을 주입 */
@@ -149,6 +153,7 @@ function computeFrame(p: number): Frame {
 
 /** 진행값 댐핑 시간상수(초). 작을수록 스크롤에 즉각, 클수록 더 미끄러지듯 따라옴. */
 const SMOOTH_TAU = 0.075
+const TWO_PI = Math.PI * 2
 
 export default function HomeHeroSection({
   scrollHeight = '320vh',
@@ -203,18 +208,28 @@ export default function HomeHeroSection({
   const rafRef = useRef<number | null>(null)
   const lastTsRef = useRef(0)
 
-  /** rendered progress(p)를 각 요소 style 에 직접 적용 */
-  const applyStyles = useCallback((p: number) => {
+  /** rendered progress(p) + 시간(now)을 각 요소 style 에 직접 적용.
+   *  부유(bob)도 CSS animation 이 아니라 여기서 직접 계산해 적용한다 —
+   *  scale() stage 안의 GPU/CSS 애니메이션은 DPR1에서 정수 픽셀로 스냅돼 떨리므로,
+   *  레이어 승격 없는 요소에 rAF로 transform 을 주면 메인스레드 서브픽셀로 그려져
+   *  맥·윈도우 어느 DPR에서도 동일하게 부드럽다. */
+  const applyStyles = useCallback((p: number, now: number) => {
     const f = computeFrame(p)
+    const t = now / 1000
+    const canFloat = !reducedMotionRef.current
+    /** floaty(0→-amp→0, ease-in-out) 동일 곡선 */
+    const bob = (amp: number, dur: number, phase: number) =>
+      canFloat ? -amp * (0.5 - 0.5 * Math.cos((t / dur) * TWO_PI + phase)) : 0
 
-    // 배경 낱자
+    // 배경 낱자 (대기 중 상하 부유, 스크롤 시 분산하며 부유는 잦아듦)
     for (let i = 0; i < LETTERS.length; i++) {
       const el = lettersRef.current[i]
       if (!el) continue
       const L = LETTERS[i]
+      const bobY = bob(L.bobAmp, L.bobDur, L.bobPhase) * (1 - f.scatter)
       const tx = L.scatter.x * f.scatter
-      const ty = -f.floatUp * 26 + L.scatter.y * f.scatter
-      // translateZ/별도 레이어 승격을 두지 않는다 — DPR1(윈도우 100%)에서 합성
+      const ty = -f.floatUp * 26 + L.scatter.y * f.scatter + bobY
+      // 레이어 승격(translateZ/will-change)을 두지 않는다 — DPR1(윈도우 100%)에서 합성
       // 레이어가 매 프레임 정수 픽셀로 스냅되며 생기는 ±1px 진동(덜덜) 방지.
       el.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`
       el.style.opacity = `${L.op * (1 - f.scatter)}`
@@ -226,9 +241,12 @@ export default function HomeHeroSection({
       stripRef.current.style.opacity = `${f.stripIn}`
     }
 
-    // WORK
+    // WORK (등장 후 살짝 부유 + 미세 회전 — 등장 진행도 workIn 만큼만)
     if (workRef.current) {
-      workRef.current.style.transform = `translateX(${(1 - f.workIn) * 1500}px)`
+      const bobY = bob(12, 6.8, 0) * f.workIn
+      const rot = canFloat ? Math.sin((t / 6.8) * TWO_PI) * -1.1 * f.workIn : 0
+      workRef.current.style.transform =
+        `translateX(${(1 - f.workIn) * 1500}px) translateY(${bobY}px) rotate(${rot}deg)`
       workRef.current.style.opacity = `${f.workIn}`
       workRef.current.style.pointerEvents = f.workIn > 0.9 ? 'auto' : 'none'
     }
@@ -253,16 +271,19 @@ export default function HomeHeroSection({
     if (debugRef.current) debugRef.current.textContent = `${Math.round(p * 100)}%`
   }, [])
 
-  /* 단일 rAF 루프 — target 측정 + 댐핑 보간 + 적용. 안정되면 멈추고 스크롤 시 재가동. */
+  /* 단일 rAF 루프 — target 측정 + 댐핑 보간 + 적용.
+     안정 + (모션 최소화 또는 화면 밖) 이면 멈추고, 부유가 살아있고 화면 안이면 계속 돈다. */
   const tick = useCallback((now: number) => {
     const dt = Math.min(0.05, (now - lastTsRef.current) / 1000 || 0)
     lastTsRef.current = now
 
+    let inView = true
     const el = containerRef.current
     if (el) {
       const scrollable = el.offsetHeight - window.innerHeight
       const rect = el.getBoundingClientRect()
       targetRef.current = scrollable > 0 ? clamp01(-rect.top / scrollable) : 0
+      inView = rect.bottom > 0 && rect.top < window.innerHeight
     }
 
     if (reducedMotionRef.current) {
@@ -278,12 +299,14 @@ export default function HomeHeroSection({
       }
     }
 
-    applyStyles(renderedRef.current)
+    applyStyles(renderedRef.current, now)
 
-    if (renderedRef.current !== targetRef.current) {
+    // 부유(idle bob)는 시간 기반이라 화면 안이면 계속 갱신해야 함.
+    const idleAnimating = !reducedMotionRef.current && inView
+    if (renderedRef.current !== targetRef.current || idleAnimating) {
       rafRef.current = requestAnimationFrame(tick)
     } else {
-      rafRef.current = null // 안정 → 정지(배터리 절약)
+      rafRef.current = null // 정지(배터리 절약) — 스크롤/리사이즈로 재가동
     }
   }, [applyStyles])
 
@@ -326,7 +349,7 @@ export default function HomeHeroSection({
   /* 리렌더(vw 변경 등) 직후, paint 전에 현재 진행값을 다시 적용 → 깜빡임 방지 */
   useIsoLayoutEffect(() => {
     if (isMobile !== false) return
-    applyStyles(renderedRef.current)
+    applyStyles(renderedRef.current, performance.now())
   }, [vw, isMobile, applyStyles])
 
   /* 게시물 가로 스냅 스트립 — 세로 스크롤과 분리.
@@ -553,12 +576,14 @@ export default function HomeHeroSection({
                  카드 클릭은 setPointerCapture 제거로 이미 정상 동작한다.
                  WORK 글자(이미지 폭의 약 3~99% 차지)가 첫 카드 좌측을 살짝 덮는 구간은
                  '보이는 WORK 글자' 위이므로 showcase 로 이동하는 게 의도된 동작이다. */
-              opacity: f0.workIn, zIndex: 30, willChange: 'transform, opacity',
+              /* will-change(레이어 승격) 미사용 — JS 부유가 합성 레이어로 떠서 DPR1에
+                 스냅되는 걸 막는다(메인스레드 서브픽셀 렌더로 맥·윈도우 동일). */
+              opacity: f0.workIn, zIndex: 30,
               pointerEvents: f0.workIn > 0.9 ? 'auto' : 'none',
             }}
           >
             <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group" style={{ display: 'block' }}>
-              {/* idle 플로팅 제거(윈도우 떨림 원인). hover 시에만 살짝 확대. */}
+              {/* 부유(상하·미세회전)는 wrapper(workRef)에 rAF로 적용. hover 시 살짝 확대. */}
               <div
                 className="transition-transform duration-300 ease-out group-hover:scale-[1.04]"
                 style={{ filter: 'drop-shadow(-18px 46px 22px rgba(0,0,0,0.10))' }}
