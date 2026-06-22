@@ -18,6 +18,7 @@
 import Link from 'next/link'
 import Tag from '@/components/base/Tag'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
+import DecorLetter from '@/components/sections/home/DecorLetter'
 import { getHomeNcrReports, type HomeNcrReport } from '@/lib/supabase/queries/home'
 
 // ── 목데이터 (Supabase에 데이터 없을 때 fallback) ─────────────
@@ -81,11 +82,29 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
 
   return (
     <section
-      className={`bg-white py-[60px] px-4 ${className}`}
+      className={`relative isolate bg-white py-[clamp(48px,7vw,72px)] ${className}`}
+      style={{ overflowX: 'clip' }}
       data-node-id="376:1609"
       aria-label="NCR Trend"
     >
-      <div className="max-w-[1266px] mx-auto">
+      {/* 카드 뒤 희미한 라운드 패널 (Figma 376:1563 UnderBackground) */}
+      <div
+        aria-hidden="true"
+        className="absolute z-0 left-1/2 -translate-x-1/2 w-[min(95vw,1440px)] top-[clamp(64px,9vw,120px)] bottom-[clamp(20px,4vw,48px)] rounded-[clamp(18px,2.5vw,32px)] bg-[#F5F5F6]"
+      />
+
+      {/* 장식 레터 N — 우측 상단, 위쪽으로 블리드 */}
+      <DecorLetter
+        src="/images/home/letter-4.png"
+        delay={2000}
+        style={{
+          width: 'clamp(200px, 36vw, 540px)',
+          top: 'clamp(-150px, -9vw, -36px)',
+          right: 'clamp(-40px, -2vw, 12px)',
+        }}
+      />
+
+      <div className="relative z-10 max-w-[1266px] mx-auto px-4">
         {/* 섹션 헤더 */}
         <AnimateOnScroll variant="fade-up" className="mb-[29px]">
           <p

@@ -202,6 +202,15 @@ html.lenis body { height: auto; }
   }
 }
 
+/* 홈 장식 3D 레터(NWCN) 부유 — 느리고 절제된 상하 이동 */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+.animate-floaty {
+  animation: floaty 7s ease-in-out infinite;
+}
+
 /* prefers-reduced-motion: 접근성 고려 */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
