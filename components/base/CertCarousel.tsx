@@ -4,10 +4,39 @@ import { useEffect, useRef } from 'react'
 import styles from './CertCarousel.module.css'
 
 /* ── 실제 자격증 이미지 ──
-   파일을 public/images/department/cert/ 에 넣고 아래 배열에 경로를 추가하세요.
-   예: ['/images/department/cert/1.png', '/images/department/cert/2.png', ...]
-   배열이 비어 있으면 아래 색상 플레이스홀더가 표시됩니다. */
-const CERT_IMAGES: string[] = []
+   public/images/department/cert/ 의 자격증서 목업(380×500 세로형, 2x).
+   CERT_NAMES 와 순서를 1:1로 맞춰 alt 텍스트에 사용한다.
+   배열이 비어 있으면 아래 색상 플레이스홀더가 표시된다. */
+const CERT_IMAGES: string[] = [
+  '/images/department/cert/cert-01.png',
+  '/images/department/cert/cert-02.png',
+  '/images/department/cert/cert-03.png',
+  '/images/department/cert/cert-04.png',
+  '/images/department/cert/cert-05.png',
+  '/images/department/cert/cert-06.png',
+  '/images/department/cert/cert-07.png',
+  '/images/department/cert/cert-08.png',
+  '/images/department/cert/cert-09.png',
+  '/images/department/cert/cert-10.png',
+  '/images/department/cert/cert-11.png',
+  '/images/department/cert/cert-12.png',
+]
+
+/* ── 자격증명 (alt 텍스트용, CERT_IMAGES 와 동일 순서) ── */
+const CERT_NAMES: string[] = [
+  '정보처리산업기사',
+  '멀티미디어콘텐츠제작전문가',
+  'GTQ',
+  '웹디자인기능사',
+  '컬러리스트산업기사',
+  '사무자동화산업기사',
+  '인터넷정보관리사',
+  '웹마스터전문가',
+  '인터넷정보검색사',
+  '한국영상자격원 영상전문인(편집)',
+  '한국영상자격원 영상전문인(촬영)',
+  '한국영상자격원 영상전문인(연출)',
+]
 
 /* ── 플레이스홀더 (실제 이미지 없을 때만 사용) ── */
 const PLACEHOLDER_COLORS = [
@@ -218,7 +247,7 @@ export default function CertCarousel() {
               className={styles.card}
               ref={(el) => { cardsRef.current[i] = el }}
             >
-              <img src={src} alt={`자격증 ${i + 1}`} draggable={false} />
+              <img src={src} alt={CERT_NAMES[i] ?? `자격증 ${i + 1}`} draggable={false} />
             </div>
           ))}
         </div>
