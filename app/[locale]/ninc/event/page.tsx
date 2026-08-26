@@ -33,10 +33,11 @@ export default async function EventPage({ params }: { params: Promise<{ locale: 
 
   return (
     <SubPageLayout headerVariant="transparent" overlapHeader>
-      {/* 히어로 배너 (확대 + 투명 네비바) */}
+      {/* 히어로 배너 (확대 + 투명 네비바)
+          — 로컬 event-hero.png 미존재로 404가 나던 것을 실제 학과 행사(2026 MT) 사진(R2)으로 교체 */}
       <NincHeroBanner
         pageName="EVENT"
-        heroImageUrl="/images/ninc/event-hero.png"
+        heroImageUrl="https://assets.dima-nwcn.com/ncr-thumbnails/season-3/ae64ad1a-d9bc-4c9c-b13a-b3f92fa1f05f.jpg"
         tagline={EventTagline}
       />
 

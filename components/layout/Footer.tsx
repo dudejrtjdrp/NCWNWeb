@@ -29,7 +29,7 @@ export default function Footer({ className = '' }: FooterProps) {
     { labelKey: 'contact.schoolName', value: t('contact.schoolNameValue') },
     { labelKey: 'contact.deptContact', value: '031-670-6680' },
     { labelKey: 'contact.deptName', value: t('contact.deptNameValue') },
-    { labelKey: 'contact.deptEmail', value: '02-000-0000' },
+    { labelKey: 'contact.deptEmail', value: 'minyoopark@dima.ac.kr' },
   ]
 
   return (

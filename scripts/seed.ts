@@ -166,8 +166,8 @@ async function seedAwards() {
     {
       competition: '대한민국 광고대상',
       award_name: '금상',
-      winner: '홍길동',
-      team_members: ['홍길동', '이영희'],
+      winner: '김태윤',
+      team_members: ['김태윤', '이서연'],
       year: 2025,
       category: '광고',
       hosted_by: '한국광고총연합회',
@@ -176,8 +176,8 @@ async function seedAwards() {
     {
       competition: 'K-콘텐츠 공모전',
       award_name: '최우수상',
-      winner: '이영희',
-      team_members: ['이영희'],
+      winner: '이서연',
+      team_members: ['이서연'],
       year: 2025,
       category: '콘텐츠',
       hosted_by: '문화체육관광부',
@@ -240,7 +240,7 @@ async function seedAwards() {
       team_members: ['정은서'],
       year: 2023,
       category: '리포트',
-      hosted_by: 'NCR',
+      hosted_by: '뉴미디어콘텐츠과 NCR 기자단',
       description: 'NCR에서 주관하는 미디어 트렌드 리포트 공모전에서 대상을 수상하였습니다.',
     },
     {
@@ -282,13 +282,18 @@ async function seedAwards() {
     const thumbnail_url = `https://picsum.photos/seed/nwcn-award-${i + 1}/800/600`
     const { data: existing } = await supabase
       .from('awards')
-      .select('id')
+      .select('id, thumbnail_url')
       .eq('competition', row.competition)
       .eq('year', row.year)
       .maybeSingle()
 
     if (existing) {
-      // 이미 시드된 행은 이미지 컬럼만 백필
+      // 실제 이미지가 이미 등록된 행은 절대 덮어쓰지 않는다 (빈값/placeholder만 백필)
+      const cur = existing.thumbnail_url as string | null
+      if (cur && !cur.includes('picsum.photos')) {
+        console.log(`  ↩ SKIP: ${row.competition} ${row.year} (실제 이미지 존재)`)
+        continue
+      }
       const { error: upErr } = await supabase.from('awards').update({ thumbnail_url }).eq('id', existing.id)
       console.log(upErr ? `  ❌ UPDATE 실패 (${row.competition}): ${upErr.message}` : `  🖼  IMG: ${row.competition} ${row.year}`)
       continue
@@ -306,36 +311,36 @@ async function seedAwards() {
 async function seedProjects() {
   const rows = [
     {
-      title: '○○ 기업 브랜드 영상 제작',
+      title: '티슈오피스 브랜드 필름 제작',
       type: 'industry',
-      partner: '○○ 주식회사',
+      partner: '티슈오피스',
       year: 2025,
-      description: '산학협력을 통한 기업 홍보 영상 제작 프로젝트입니다. 브랜드 아이덴티티를 영상으로 표현하는 과정에서 학생들이 실무 경험을 쌓았습니다.',
-      participants: ['홍길동', '이영희', '김민수'],
+      description: '가족회사 티슈오피스와 함께한 브랜드 필름 제작 프로젝트입니다. 브랜드 아이덴티티 분석부터 콘티 기획, 촬영, 후반 작업까지 전 과정을 학생 제작진이 주도하며 실무 경험을 쌓았습니다.',
+      participants: ['김태윤', '이서연', '김민수'],
       duration: '2025.03 – 2025.06',
-      outcome: '기업 공식 유튜브 채널 업로드 및 사내 행사 활용',
+      outcome: '티슈오피스 공식 채널 공개 및 사내 브랜딩 자료 활용',
       skills: ['영상 기획', '촬영', '편집', '모션그래픽'],
     },
     {
       title: '해외 미디어아트 교류전',
       type: 'international',
-      partner: '일본 ○○대학교',
+      partner: 'RMIT University Vietnam',
       year: 2024,
-      description: '일본 자매결연 대학과의 공동 미디어아트 전시 프로젝트입니다. 양교 학생들이 공동으로 작품을 기획·제작하여 양국의 문화적 감수성을 담은 미디어아트를 선보였습니다.',
+      description: '자매결연 대학인 베트남 RMIT과의 공동 미디어아트 전시 프로젝트입니다. 양교 학생들이 원격 협업으로 작품을 기획·제작하여 양국의 문화적 감수성을 담은 미디어아트를 선보였습니다.',
       participants: ['박나연', '최지우', '정은서'],
       duration: '2024.08 – 2024.11',
-      outcome: '도쿄 갤러리 전시 및 온라인 아카이브 공개',
+      outcome: '호치민 캠퍼스 갤러리 전시 및 온라인 아카이브 공개',
       skills: ['미디어아트', '설치미술', '인터랙션 디자인'],
     },
     {
-      title: '지역 문화콘텐츠 제작 지원',
+      title: '안성시 문화관광 콘텐츠 제작 지원',
       type: 'industry',
-      partner: '○○ 시청',
+      partner: '안성시청',
       year: 2024,
-      description: '지역 문화 홍보 콘텐츠 기획 및 제작 프로젝트입니다. 지역의 역사·문화 자원을 발굴하고 이를 영상·그래픽 콘텐츠로 제작하여 시민들과 소통하였습니다.',
+      description: '학교가 위치한 안성시의 문화·관광 자원을 알리는 콘텐츠 기획·제작 프로젝트입니다. 안성맞춤 브랜드와 바우덕이축제 등 지역 자원을 발굴해 영상·그래픽 콘텐츠로 제작하여 시민들과 소통하였습니다.',
       participants: ['한서윤', '이준호'],
       duration: '2024.04 – 2024.07',
-      outcome: '시청 공식 SNS 채널 콘텐츠 시리즈 제작 완료',
+      outcome: '안성시 공식 SNS 채널 콘텐츠 시리즈 제작 완료',
       skills: ['콘텐츠 기획', '영상 제작', '그래픽 디자인', 'SNS 마케팅'],
     },
     {
@@ -361,14 +366,14 @@ async function seedProjects() {
       skills: ['미디어파사드', '모션그래픽', '공간연출'],
     },
     {
-      title: '○○ 공공기관 홍보영상',
+      title: '안성시시설관리공단 홍보영상 제작',
       type: 'industry',
-      partner: '○○ 공단',
+      partner: '안성시시설관리공단',
       year: 2023,
-      description: '공공기관 대상 홍보 영상 기획 및 제작 프로젝트입니다. 공공 서비스의 가치를 시민들에게 친근하게 전달하기 위한 스토리텔링 방식을 연구하고 적용하였습니다.',
+      description: '공공기관 홍보 영상 기획·제작 프로젝트입니다. 시민 생활과 맞닿은 공공 서비스의 가치를 친근하게 전달하기 위한 스토리텔링을 연구하고 인터뷰·현장 촬영에 적용하였습니다.',
       participants: ['임지민', '윤채원'],
       duration: '2023.09 – 2023.12',
-      outcome: '공단 공식 채널 및 TV 홍보 영상 납품',
+      outcome: '공단 공식 채널 및 청사 안내 영상 납품',
       skills: ['영상 기획', '인터뷰 촬영', '후반 제작'],
     },
   ]
@@ -379,13 +384,18 @@ async function seedProjects() {
     const thumbnail_url = `https://picsum.photos/seed/nwcn-project-${i + 1}/800/600`
     const { data: existing } = await supabase
       .from('projects')
-      .select('id')
+      .select('id, thumbnail_url')
       .eq('title', row.title)
       .eq('year', row.year)
       .maybeSingle()
 
     if (existing) {
-      // 이미 시드된 행은 이미지 컬럼만 백필
+      // 실제 이미지가 이미 등록된 행은 절대 덮어쓰지 않는다 (빈값/placeholder만 백필)
+      const cur = existing.thumbnail_url as string | null
+      if (cur && !cur.includes('picsum.photos')) {
+        console.log(`  ↩ SKIP: ${row.title} (실제 이미지 존재)`)
+        continue
+      }
       const { error: upErr } = await supabase.from('projects').update({ thumbnail_url }).eq('id', existing.id)
       console.log(upErr ? `  ❌ UPDATE 실패 (${row.title}): ${upErr.message}` : `  🖼  IMG: ${row.title}`)
       continue
@@ -403,19 +413,19 @@ async function seedProjects() {
 async function seedEvents() {
   const rows = [
     {
-      title: '미디어 산업 트렌드 특강',
+      title: 'OTT 시대의 콘텐츠 전략 특강',
       type: '특강',
       start_date: '2025-06-15',
-      location: '본관 강당',
-      description: '현직 방송 PD 초청 특강 — 변화하는 OTT 시장과 콘텐츠 전략을 현장 관점에서 들어봅니다.',
+      location: '본관 대강당',
+      description: '현직 예능 PD 초청 특강. 급변하는 OTT 시장과 방송 콘텐츠 기획 전략을 실제 제작 사례 중심으로 들어봅니다.',
       is_published: true,
     },
     {
       title: '영상 편집 심화 워크숍',
       type: '워크숍',
       start_date: '2025-06-22',
-      location: '실습실 201',
-      description: '프리미어 프로 & 다빈치 리졸브 고급 과정. 색 보정과 사운드 믹싱까지 실전 중심으로 진행합니다.',
+      location: '예술관 201호 실습실',
+      description: '프리미어 프로·다빈치 리졸브 심화 과정. 컷 편집부터 색 보정, 사운드 믹싱까지 실전 프로젝트로 진행합니다.',
       is_published: true,
     },
     {
@@ -423,15 +433,15 @@ async function seedEvents() {
       type: '캠퍼스투어',
       start_date: '2025-07-05',
       location: '학과 전체',
-      description: '입시생 대상 학과 탐방 행사. 재학생과 교수진이 직접 학과 시설을 안내합니다.',
+      description: '입시생 대상 학과 탐방 프로그램. 재학생 멘토와 교수진이 실습실·스튜디오 등 학과 시설을 직접 안내합니다.',
       is_published: true,
     },
     {
-      title: 'AI 콘텐츠 제작 세미나',
+      title: '생성형 AI 콘텐츠 제작 세미나',
       type: '특강',
       start_date: '2025-07-18',
       location: '미디어 스튜디오',
-      description: '생성 AI를 활용한 영상·이미지 콘텐츠 제작 최신 트렌드 세미나.',
+      description: '생성형 AI(미드저니·런웨이 등)를 활용한 영상·이미지 제작 워크플로를 실습 시연과 함께 소개합니다.',
       is_published: true,
     },
     {
@@ -439,7 +449,7 @@ async function seedEvents() {
       type: '워크숍',
       start_date: '2025-08-02',
       location: '세미나실 302',
-      description: '2025 졸업전시 준비를 위한 기획·연출 워크숍. 4학년 전용 프로그램.',
+      description: '2025 졸업전시 준비 워크숍. 전시 주제 선정부터 공간 연출·홍보 전략까지 4학년 졸업준비위원회와 함께 기획합니다.',
       is_published: true,
     },
   ]
@@ -489,7 +499,7 @@ async function seedShowcaseWorks() {
       type: 'video',
       tech_stack: ['Video', 'Motion'],
       view_count: 342,
-      video_embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      // 실제 작품 영상 링크는 어드민에서 등록 (placeholder 임베드 금지)
     },
     {
       title: 'Digital Fragments',
@@ -508,7 +518,7 @@ async function seedShowcaseWorks() {
       type: 'video',
       tech_stack: ['Web', 'Video'],
       view_count: 189,
-      video_embed: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      // 실제 작품 영상 링크는 어드민에서 등록 (placeholder 임베드 금지)
     },
     {
       title: 'Metamorphosis',
@@ -591,12 +601,12 @@ async function seedShowcaseWorks() {
 
 // ── 졸업전시 ──────────────────────────────────────────────
 async function seedExhibitions() {
+  // 실제 졸업전시 아카이브 (연도별 실제 전시 제목)
   const rows = [
-    { year: 2025, title: 'FLUX — 흐름과 변화', description: '2025 졸업전시', theme: '변화와 흐름의 미학' },
-    { year: 2024, title: 'SIGNAL — 신호와 연결', description: '2024 졸업전시', theme: '연결과 소통의 시대' },
-    { year: 2023, title: 'BOUNDARY — 경계를 넘어', description: '2023 졸업전시', theme: '경계 해체와 융합' },
-    { year: 2022, title: 'NODE — 연결의 시작', description: '2022 졸업전시', theme: '네트워크와 관계망' },
-    { year: 2021, title: 'PIXEL — 디지털의 근원', description: '2021 졸업전시', theme: '디지털 본질 탐구' },
+    { year: 2025, title: 'CONNECTION', description: '2025 졸업전시', theme: '인간과 AI, 현실과 가상을 잇는 연결' },
+    { year: 2024, title: '미(美)감·의·미(味)', description: '2024 졸업전시', theme: '아름다움과 맛의 감각적 재해석' },
+    { year: 2023, title: '가치의 재생', description: '2023 졸업전시', theme: '버려진 것들의 가치를 다시 보다' },
+    { year: 2022, title: 'NEWMEDIA UNIVERSE', description: '2022 졸업전시', theme: '뉴미디어가 펼치는 세계관' },
   ]
 
   console.log(`\n📦 exhibitions 시딩 중... (${rows.length}개)`)
@@ -605,12 +615,17 @@ async function seedExhibitions() {
     const poster_url = `https://picsum.photos/seed/nwcn-exhibition-${row.year}/600/800`
     const { data: existing } = await supabase
       .from('exhibitions')
-      .select('id')
+      .select('id, poster_url')
       .eq('year', row.year)
       .maybeSingle()
 
     if (existing) {
-      // 이미 시드된 행은 포스터 컬럼만 백필
+      // 실제 포스터가 이미 등록된 행은 절대 덮어쓰지 않는다 (빈값/placeholder만 백필)
+      const cur = existing.poster_url as string | null
+      if (cur && !cur.includes('picsum.photos')) {
+        console.log(`  ↩ SKIP: ${row.year} (실제 포스터 존재)`)
+        continue
+      }
       const { error: upErr } = await supabase.from('exhibitions').update({ poster_url }).eq('id', existing.id)
       console.log(upErr ? `  ❌ UPDATE 실패 (${row.year}): ${upErr.message}` : `  🖼  IMG: ${row.year} ${row.title}`)
       continue
