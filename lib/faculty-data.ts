@@ -280,6 +280,7 @@ export const FACULTY_LIST: FacultyData[] = [
     quote: '실무 중심의 교육으로 현장에서 즉시 활약할 수 있는 전문가를 키웁니다.',
     email: 'ray.ahn@dima.ac.kr',
     career: [
+      '한국외국어대학교 경영학석사(MBA) 마케팅 전공',
       '한국외국어대학교 광고홍보 학사',
       '(현) 더플랜지 이사',
       '(전) 웅진 놀이의발견 전략기획 이사',
