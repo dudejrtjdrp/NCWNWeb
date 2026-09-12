@@ -55,6 +55,7 @@ export default function CertCarousel() {
         maxScale={1.7}
         minScale={0.7}
         dim={0.35}
+        autoplay={24}
         fit="cover"
         className="page-container"
         aria-label="자격증 캐러셀"

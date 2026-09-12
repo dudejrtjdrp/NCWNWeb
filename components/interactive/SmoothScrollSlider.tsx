@@ -61,6 +61,13 @@ export interface SmoothScrollSliderProps {
   sensitivity?: number
   /** 자동 흐름 속도(px/s). 0이면 끔 */
   autoplay?: number
+  /**
+   * 세로 휠까지 레일이 가져갈지 여부.
+   * 원본(originkit)은 레일 위에서 페이지를 붙잡지만, 학과 사이트에서는
+   * 세로 스크롤이 막히는 편이 더 당황스러워 기본값을 false 로 둔다.
+   * (가로 트랙패드 스와이프·드래그·화살표·키보드는 항상 동작)
+   */
+  captureVerticalWheel?: boolean
   /** 레일 배경색 */
   background?: string
   /** 카드 종횡비를 유지한 채 채울지 */
@@ -86,6 +93,7 @@ export default function SmoothScrollSlider({
   minScale = 0.66,
   sensitivity = 1.1,
   autoplay = 0,
+  captureVerticalWheel = false,
   background = 'transparent',
   fit = 'cover',
   className,
@@ -100,11 +108,14 @@ export default function SmoothScrollSlider({
   const raf = useRef<number>()
   const lastTs = useRef(0)
   const dragging = useRef(false)
+  const hovering = useRef(false)
   const dragLast = useRef(0)
   const velocity = useRef(0)
 
   const [width, setWidth] = useState(0)
   const [activeId, setActiveId] = useState(items[0]?.id ?? '')
+  const activeIdRef = useRef(activeId)
+  activeIdRef.current = activeId
   const [reduced, setReduced] = useState(false)
 
   const step = slideWidth + spacing
@@ -154,7 +165,7 @@ export default function SmoothScrollSlider({
       lastTs.current = ts
 
       // 자동 흐름
-      if (autoplay && !dragging.current) target.current -= autoplay * dt
+      if (autoplay && !dragging.current && !hovering.current) target.current -= autoplay * dt
 
       // 드래그를 놓은 뒤 남은 관성
       if (!dragging.current && Math.abs(velocity.current) > 0.01) {
@@ -167,7 +178,7 @@ export default function SmoothScrollSlider({
       rendered.current = target.current + (rendered.current - target.current) * k
 
       let bestDist = Infinity
-      let bestId = activeId
+      let bestId = activeIdRef.current
 
       for (let i = 0; i < rail.length; i++) {
         const el = slideRefs.current[i]
@@ -201,7 +212,7 @@ export default function SmoothScrollSlider({
         }
       }
 
-      if (bestId !== activeId) setActiveId(bestId)
+      if (bestId !== activeIdRef.current) setActiveId(bestId)
       raf.current = requestAnimationFrame(frame)
     }
 
@@ -212,7 +223,7 @@ export default function SmoothScrollSlider({
     }
   }, [
     reduced, width, n, rail, loopLength, step, slideWidth, maxScale, minScale,
-    dim, smoothness, autoplay, activeId,
+    dim, smoothness, autoplay,
   ])
 
   /* ── 휠: 레일 영역 안에서는 페이지 대신 레일이 움직인다 ── */
@@ -220,14 +231,16 @@ export default function SmoothScrollSlider({
     const el = wrapRef.current
     if (!el || reduced) return
     const onWheel = (e: WheelEvent) => {
-      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY)
+      if (!horizontal && !captureVerticalWheel) return // 세로 스크롤은 페이지에 양보
+      const delta = horizontal ? e.deltaX : e.deltaY
       if (!delta) return
       e.preventDefault()
       target.current -= delta * sensitivity
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [reduced, sensitivity])
+  }, [reduced, sensitivity, captureVerticalWheel])
 
   /* ── 포인터 드래그 ── */
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -278,6 +291,8 @@ export default function SmoothScrollSlider({
   }
 
   const active = items.find((i) => i.id === activeId) ?? items[0]
+  // 레일 배경이 투명하면 페이지 배경(흰색)과 이어지도록 흰색으로 페이드
+  const edgeColor = background === 'transparent' ? '#ffffff' : background
 
   return (
     <div className={cn('select-none', className)}>
@@ -295,7 +310,10 @@ export default function SmoothScrollSlider({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        onPointerLeave={endDrag}
+        onPointerEnter={() => { hovering.current = true }}
+        onPointerLeave={() => { hovering.current = false; endDrag() }}
+        onFocus={() => { hovering.current = true }}
+        onBlur={() => { hovering.current = false }}
         className="focus-ring relative w-full cursor-grab overflow-hidden rounded-panel active:cursor-grabbing"
         style={{ height: slideHeight * maxScale, background }}
       >
@@ -320,8 +338,16 @@ export default function SmoothScrollSlider({
         </div>
 
         {/* 좌우 페이드 — 레일이 섹션 경계에서 잘리지 않게 */}
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[12%] bg-gradient-to-r from-white to-transparent" />
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-[12%] bg-gradient-to-l from-white to-transparent" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-[12%]"
+          style={{ background: `linear-gradient(to right, ${edgeColor}, transparent)` }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-[12%]"
+          style={{ background: `linear-gradient(to left, ${edgeColor}, transparent)` }}
+        />
       </div>
 
       {/* 캡션 + 컨트롤 */}

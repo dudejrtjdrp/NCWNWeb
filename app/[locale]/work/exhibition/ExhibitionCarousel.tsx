@@ -47,6 +47,7 @@ export default function ExhibitionCarousel({ items }: Props) {
         maxScale={1.8}
         minScale={0.68}
         dim={0.4}
+        autoplay={20}
         fit="cover"
         aria-label="졸업전시 포스터 캐러셀"
       />
