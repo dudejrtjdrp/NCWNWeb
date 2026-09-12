@@ -79,7 +79,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             {/* 사이드바 */}
             <aside className="lg:col-span-1 order-2 lg:order-1">
               <div className="border border-black/10 rounded-2xl overflow-hidden sticky top-24">
-                <div className="relative aspect-[4/3] bg-[#efefef] flex items-center justify-center">
+                <div className="relative aspect-[4/3] bg-nwcn-neutral-100 flex items-center justify-center">
                   {project.thumbnail_url ? (
                     <Image
                       src={project.thumbnail_url}
@@ -91,7 +91,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-2 opacity-30">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.5">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5">
                         <rect x="2" y="3" width="20" height="14" rx="2" />
                         <path d="M8 21h8M12 17v4" />
                       </svg>
@@ -129,7 +129,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('skills')}</p>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {project.skills.map((skill) => (
-                          <span key={skill} className="font-body text-xs px-2.5 py-1 bg-[#f0f0f0] text-nwcn-text-muted rounded-full">
+                          <span key={skill} className="font-body text-xs px-2.5 py-1 bg-nwcn-neutral-100 text-nwcn-text-muted rounded-full">
                             {skill}
                           </span>
                         ))}
@@ -141,7 +141,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       href={project.project_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full mt-2 py-2.5 rounded-xl bg-nwcn-green text-nwcn-text-default font-body text-sm font-semibold hover:brightness-105 transition-all"
+                      className="flex items-center justify-center gap-2 w-full mt-2 py-2.5 rounded-xl bg-nwcn-green text-nwcn-text-default font-body text-sm font-semibold hover:brightness-105 transition-[color,background-color,border-color,transform,box-shadow,opacity]"
                     >
                       {t('viewProject')}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -168,9 +168,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                     {t('sectionOutcome')}
                   </h2>
-                  <div className="bg-[#f5f5f5] rounded-xl p-5 flex items-start gap-4">
+                  <div className="bg-nwcn-neutral-100 rounded-xl p-5 flex items-start gap-4">
                     <div className="w-8 h-8 bg-nwcn-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-green)" strokeWidth="2">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
@@ -185,7 +185,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {project.participants.map((member) => (
-                      <div key={member} className="flex items-center gap-3 bg-[#f5f5f5] px-4 py-3 rounded-xl">
+                      <div key={member} className="flex items-center gap-3 bg-nwcn-neutral-100 px-4 py-3 rounded-xl">
                         <div className="w-9 h-9 rounded-full bg-nwcn-text-sub/20 flex items-center justify-center flex-shrink-0">
                           <span className="font-body text-sm font-semibold text-nwcn-text-muted">{member.charAt(0)}</span>
                         </div>

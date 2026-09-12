@@ -22,7 +22,7 @@ export default function Error({
       </p>
       <button
         onClick={reset}
-        className="inline-flex items-center px-6 py-3 font-body font-semibold text-[16px] bg-nwcn-green text-nwcn-dark transition-all duration-200 hover:bg-[#133728] hover:text-nwcn-green active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2"
+        className="inline-flex items-center px-6 py-3 font-body font-semibold text-[16px] bg-nwcn-green text-nwcn-dark transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn hover:bg-nwcn-green-deep hover:text-nwcn-green active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2"
       >
         다시 시도
       </button>

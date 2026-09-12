@@ -6,9 +6,9 @@
  *
  * 디자인 스펙:
  * - 탭 간격: gap-[75px]
- * - 활성 탭: font-bold, text-[#151515], 하단 라인 bar
- * - 비활성 탭: font-light, text-[#888], hover: text-[#444]
- * - 하단 보더: border-b border-[#e8e8e8]
+ * - 활성 탭: font-bold, text-nwcn-dark, 하단 라인 bar
+ * - 비활성 탭: font-light, text-nwcn-neutral-500, hover: text-nwcn-neutral-700
+ * - 하단 보더: border-b border-nwcn-neutral-200
  *
  * 순수 UI — pathname 기반 자동 활성 처리
  *
@@ -36,7 +36,7 @@ export default function SubNav({ items, className }: SubNavProps) {
 
   return (
     <div
-      className={cn('w-full bg-white border-b border-[#e8e8e8]', className)}
+      className={cn('w-full bg-white border-b border-nwcn-neutral-200', className)}
     >
       <nav
         className="max-w-[1440px] mx-auto flex justify-center items-start gap-4 sm:gap-8 lg:gap-[75px] px-2 sm:px-4 overflow-x-auto scrollbar-hide"
@@ -49,14 +49,14 @@ export default function SubNav({ items, className }: SubNavProps) {
             <Link
               key={item.label}
               href={item.href}
-              className="flex flex-col items-center gap-[6px] p-2 sm:p-[10px] flex-shrink-0 transition-all duration-150"
+              className="flex flex-col items-center gap-[6px] p-2 sm:p-[10px] flex-shrink-0 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn"
             >
               <span
                 className={cn(
                   'font-body text-[14px] sm:text-[18px] lg:text-[24px] leading-normal whitespace-nowrap transition-colors',
                   isActive
-                    ? 'font-bold text-[#151515]'
-                    : 'font-light text-[#888] hover:text-[#444]'
+                    ? 'font-bold text-nwcn-dark'
+                    : 'font-light text-nwcn-neutral-500 hover:text-nwcn-neutral-700'
                 )}
               >
                 {item.label}
@@ -65,7 +65,7 @@ export default function SubNav({ items, className }: SubNavProps) {
               {/* 활성 탭 하단 라인 */}
               {isActive && (
                 <div
-                  className="w-full h-[3px] bg-[#151515] rounded-full"
+                  className="w-full h-[3px] bg-nwcn-dark rounded-full"
                   aria-hidden="true"
                 />
               )}

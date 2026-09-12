@@ -30,7 +30,7 @@ const variants: Record<ButtonVariant, string> = {
   // Figma Primary: #09F593 bg, dark text / Hover: #133728 bg, green text
   primary:
     'bg-nwcn-green text-nwcn-dark font-semibold ' +
-    'hover:bg-[#133728] hover:text-nwcn-green',
+    'hover:bg-nwcn-green-deep hover:text-nwcn-green',
   // Figma Secondary: #E3E94D bg, dark text / Hover: #1D1E00 bg, yellow text
   secondary:
     'bg-nwcn-yellow text-nwcn-text-default font-semibold ' +
@@ -38,7 +38,7 @@ const variants: Record<ButtonVariant, string> = {
   // Figma Ghost: border #050505, dark text / Hover: #cacaca bg, white text
   ghost:
     'border border-nwcn-text-default text-nwcn-text-default font-semibold ' +
-    'hover:bg-[#cacaca] hover:text-white',
+    'hover:bg-nwcn-neutral-300 hover:text-white',
   // 하위 호환: outline → secondary 동일 스타일
   outline:
     'bg-nwcn-yellow text-nwcn-text-default font-semibold ' +
@@ -61,7 +61,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const classes = cn(
-    'inline-flex items-center gap-2 font-body transition-all duration-200 active:scale-95',
+    'inline-flex items-center gap-2 font-body transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn active:scale-95',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2',
     variants[variant],
     sizes[size],

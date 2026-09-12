@@ -64,7 +64,7 @@ export default function NotFound404Page({
 
   return (
     <div
-      className="min-h-screen bg-[#f0f0f0] flex flex-col items-center"
+      className="min-h-screen bg-nwcn-neutral-100 flex flex-col items-center"
       data-node-id="376:1202"
     >
       {/* ── NWCN 로고 ─────────────────────────────────────────────────────
@@ -110,7 +110,7 @@ export default function NotFound404Page({
           gap: 383 - (139+177) = 67px
           Pretendard Bold 48px  #444444  line-height 57px            ── */}
       <h1
-        className="font-body font-bold text-[#444444] text-center whitespace-nowrap"
+        className="font-body font-bold text-nwcn-neutral-700 text-center whitespace-nowrap"
         style={{
           marginTop: 67,
           fontSize: 'clamp(22px, 3.33vw, 48px)',
@@ -126,7 +126,7 @@ export default function NotFound404Page({
           gap: 457 - (383+57) = 17px
           Pretendard Regular 20px  #444444  line-height 28px          ── */}
       <div
-        className="font-body font-normal text-[#444444] text-center px-4"
+        className="font-body font-normal text-nwcn-neutral-700 text-center px-4"
         style={{
           marginTop: 17,
           fontSize: 'clamp(14px, 1.39vw, 20px)',
@@ -161,7 +161,7 @@ export default function NotFound404Page({
         <Button
           variant="ghost"
           onClick={onBack}
-          className="border-[#444444] text-[#444444] font-normal w-[126px] justify-center"
+          className="border-nwcn-neutral-700 text-nwcn-neutral-700 font-normal w-[126px] justify-center"
           data-node-id="376:1204"
         >
           {t('goBack')}

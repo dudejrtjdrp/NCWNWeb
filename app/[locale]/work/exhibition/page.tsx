@@ -32,7 +32,7 @@ export default async function ExhibitionPage() {
 
       {/* 졸업전시 커버플로우 캐러셀 (가로 무한 슬라이드) */}
       <div className="bg-white pt-12 sm:pt-16 lg:pt-[72px] pb-20 sm:pb-24 lg:pb-28">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
+        <div className="page-container">
           {exhibitions.length > 0 ? (
             <ExhibitionCarousel items={exhibitions} />
           ) : (

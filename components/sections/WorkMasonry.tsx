@@ -193,17 +193,17 @@ function Card({ work }: { work: WorkListItem }) {
           alt={work.title}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-slow ease-nwcn group-hover:scale-105"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#e9e9e9] to-[#dcdcdc]">
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-nwcn-neutral-200 to-nwcn-neutral-300">
           <span className="font-brand font-black text-[48px] leading-none text-white/70">{work.title[0]}</span>
         </div>
       )}
 
       <EyeBadge count={work.view_count} />
 
-      <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn group-hover:translate-y-0 group-hover:opacity-100">
         <h3 className="font-body text-[15px] font-semibold leading-tight text-white">{work.title}</h3>
         <p className="mt-0.5 font-body text-[12px] text-white/70">
           {work.author} · {work.year}

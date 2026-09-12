@@ -29,7 +29,7 @@ export interface TagProps {
 const TAG_STYLES: Record<TagType, string> = {
   primary: 'bg-nwcn-green px-[10px] py-[4px]',
   secondary: 'bg-nwcn-yellow px-[10px] py-[4px]',
-  neutral: 'bg-[#e0e0e0] px-[10px] py-[4px]',
+  neutral: 'bg-nwcn-neutral-200 px-[10px] py-[4px]',
   dark: 'bg-nwcn-dark px-[10px] py-[4px]',
   talks: 'bg-nwcn-green px-[4.051px] py-[2.026px] drop-shadow-[0px_2.701px_3.275px_rgba(0,0,0,0.16)]',
   contents: 'bg-nwcn-yellow px-[4.051px] py-[2.026px] drop-shadow-[0px_2.701px_3.275px_rgba(0,0,0,0.16)]',

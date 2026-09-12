@@ -20,7 +20,7 @@ export default function OgImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#151515',
+          backgroundColor: 'var(--color-dark)',
           fontFamily: 'sans-serif',
         }}
       >
@@ -29,7 +29,7 @@ export default function OgImage() {
             fontSize: 180,
             fontWeight: 900,
             letterSpacing: '-4px',
-            color: '#09F593',
+            color: 'var(--color-green)',
             lineHeight: 1,
           }}
         >
@@ -49,7 +49,7 @@ export default function OgImage() {
           style={{
             marginTop: 12,
             fontSize: 26,
-            color: '#B9B8B6',
+            color: 'var(--color-text-sub)',
           }}
         >
           동아방송예술대학교 New Media Contents

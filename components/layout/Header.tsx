@@ -45,7 +45,7 @@ function NwcnLogo() {
         fontFamily="'A2z', 'Arial Black', sans-serif"
         fontWeight="900"
         fontSize="22"
-        fill="#09F593"
+        fill="var(--color-green)"
         letterSpacing="-0.5"
       >
         NWCN
@@ -82,7 +82,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
       {/* ── 데스크탑 Header ── */}
       <header
         className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-colors duration-200',
+          'fixed top-0 left-0 right-0 z-50 transition-colors duration-fast ease-nwcn',
           isLight && 'bg-white',
           variant === 'dark' && 'bg-nwcn-dark/95 backdrop-blur-md border-b border-white/10',
           variant === 'transparent' && !scrolled && 'bg-transparent',
@@ -91,7 +91,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
         style={{ height: '64px' }}
         data-node-id="376:517"
       >
-        <div className="relative h-full max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
+        <div className="relative h-full page-container">
           {/* 로고 — Figma: 중앙 정렬 */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link href="/" aria-label={t('home')}>
@@ -129,12 +129,12 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                     className={cn(
                       'flex items-center px-3 py-2',
                       'font-body font-normal text-[16px] leading-normal whitespace-nowrap',
-                      'transition-colors duration-150',
+                      'transition-colors duration-fast ease-nwcn',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2 rounded',
                       active
                         ? 'text-nwcn-green'
                         : isLight
-                          ? 'text-[#323131] hover:text-nwcn-green'
+                          ? 'text-nwcn-text-muted hover:text-nwcn-green'
                           : 'text-white/70 hover:text-white'
                     )}
                   >
@@ -145,7 +145,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                   {item.children && (
                     <div
                       className={cn(
-                        'absolute top-full left-0 pt-1 transition-all duration-150',
+                        'absolute top-full left-0 pt-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn',
                         activeDropdown === item.label
                           ? 'opacity-100 translate-y-0 pointer-events-auto'
                           : 'opacity-0 -translate-y-1 pointer-events-none'
@@ -168,7 +168,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                               pathname === child.href
                                 ? 'text-nwcn-green bg-nwcn-green/5'
                                 : isLight
-                                  ? 'text-[#323131] hover:text-nwcn-green hover:bg-gray-50'
+                                  ? 'text-nwcn-text-muted hover:text-nwcn-green hover:bg-gray-50'
                                   : 'text-white/60 hover:text-white hover:bg-white/5'
                             )}
                           >
@@ -194,9 +194,9 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
             onClick={() => setMobileOpen(true)}
             aria-label={t('openMenu')}
           >
-            <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-[#323131]' : 'bg-white')} />
-            <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-[#323131]' : 'bg-white')} />
-            <span className={cn('w-4 h-[1.5px] block ml-auto', isLight ? 'bg-[#323131]' : 'bg-white')} />
+            <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
+            <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
+            <span className={cn('w-4 h-[1.5px] block ml-auto', isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
           </button>
         </div>
       </header>

@@ -48,25 +48,25 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
       <SubNav items={NCR_NAV_ITEMS} />
 
       {/* 섹션 타이틀 */}
-      <div className="bg-white pt-10 sm:pt-14 lg:pt-[60px] pb-4 sm:pb-6 lg:pb-[28px] text-center">
-        <p className="font-body font-light text-[20px] sm:text-[22px] lg:text-[24px] text-black">LATEST REPORT</p>
+      <div className="bg-white pt-section-sm pb-6 text-center">
+        <p className="section-label">LATEST REPORT</p>
       </div>
 
       <div className="bg-white pb-24">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
+        <div className="page-container">
 
           {/* 피처드 리포트 (최신) */}
           {featured ? (
             <Link href={`/ncr-trend/${featured.id}`} className="block mb-12 group">
-              <div className="border border-[#e8e8e8] rounded-3xl overflow-hidden flex flex-col lg:flex-row hover:border-nwcn-green/30 hover:shadow-lg transition-all duration-300">
+              <div className="border border-nwcn-neutral-200 rounded-3xl overflow-hidden flex flex-col lg:flex-row hover:border-nwcn-green/30 hover:shadow-lg transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                 {/* 썸네일 */}
-                <div className="lg:w-[480px] flex-shrink-0 aspect-video lg:aspect-auto bg-[#151515] relative overflow-hidden flex items-center justify-center">
+                <div className="lg:w-[480px] flex-shrink-0 aspect-video lg:aspect-auto bg-nwcn-dark relative overflow-hidden flex items-center justify-center">
                   {featured.thumbnail_url ? (
                     <Image
                       src={featured.thumbnail_url}
                       alt={featured.title}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover group-hover:scale-105 transition-transform duration-slow ease-nwcn"
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-2">
@@ -85,19 +85,19 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                   <div className="flex items-center gap-3 mb-5">
                     <Badge variant={TYPE_BADGE[featured.type] ?? 'new'}>{TYPE_LABELS[featured.type] ?? featured.type}</Badge>
                     {featured.season && (
-                      <span className="font-body text-[12px] text-[#aaa]">{featured.season}</span>
+                      <span className="font-body text-[12px] text-nwcn-neutral-400">{featured.season}</span>
                     )}
                     {featured.read_time && (
-                      <span className="font-body text-[12px] text-[#ccc]">· {featured.read_time} 읽기</span>
+                      <span className="font-body text-[12px] text-nwcn-neutral-300">· {featured.read_time} 읽기</span>
                     )}
                   </div>
                   <h2 className="font-body font-bold text-[24px] text-nwcn-text-default leading-snug mb-4 group-hover:text-nwcn-green transition-colors">
                     {featured.title}
                   </h2>
-                  <p className="font-body text-[14px] text-[#777] leading-relaxed mb-6">
+                  <p className="font-body text-[14px] text-nwcn-neutral-600 leading-relaxed mb-6">
                     {featured.excerpt}
                   </p>
-                  <p className="font-body text-[12px] text-[#bbb]">
+                  <p className="font-body text-[12px] text-nwcn-neutral-400">
                     {new Date(featured.published_at).toLocaleDateString('ko-KR')}
                   </p>
                 </div>
@@ -105,7 +105,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
             </Link>
           ) : (
             <div className="flex items-center justify-center py-24">
-              <p className="font-body text-[16px] text-[#aaa]">등록된 리포트가 없습니다</p>
+              <p className="font-body text-[16px] text-nwcn-neutral-400">등록된 리포트가 없습니다</p>
             </div>
           )}
 
@@ -116,16 +116,16 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                 <Link
                   key={report.id}
                   href={`/ncr-trend/${report.id}`}
-                  className="block group border border-[#ececec] rounded-2xl overflow-hidden hover:border-nwcn-green/30 hover:shadow-md transition-all duration-300"
+                  className="block group border border-nwcn-neutral-200 rounded-2xl overflow-hidden hover:border-nwcn-green/30 hover:shadow-md transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn"
                 >
                   {/* 썸네일 */}
-                  <div className="aspect-[16/9] bg-[#151515] relative overflow-hidden flex items-center justify-center">
+                  <div className="aspect-[16/9] bg-nwcn-dark relative overflow-hidden flex items-center justify-center">
                     {report.thumbnail_url ? (
                       <Image
                         src={report.thumbnail_url}
                         alt={report.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="object-cover group-hover:scale-105 transition-transform duration-slow ease-nwcn"
                       />
                     ) : (
                       <span className="font-brand font-black text-[40px] text-nwcn-green/[0.1] leading-none">NCR</span>
@@ -137,21 +137,21 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant={TYPE_BADGE[report.type] ?? 'new'}>{TYPE_LABELS[report.type] ?? report.type}</Badge>
                       {report.season && (
-                        <span className="font-body text-[11px] text-[#bbb]">{report.season}</span>
+                        <span className="font-body text-[11px] text-nwcn-neutral-400">{report.season}</span>
                       )}
                     </div>
                     <h3 className="font-body font-semibold text-[16px] text-nwcn-text-default leading-snug mb-3 group-hover:text-nwcn-green transition-colors">
                       {report.title}
                     </h3>
-                    <p className="font-body text-[13px] text-[#999] leading-relaxed mb-4 line-clamp-2">
+                    <p className="font-body text-[13px] text-nwcn-neutral-500 leading-relaxed mb-4 line-clamp-2">
                       {report.excerpt}
                     </p>
                     <div className="flex items-center justify-between">
-                      <p className="font-body text-[12px] text-[#ccc]">
+                      <p className="font-body text-[12px] text-nwcn-neutral-300">
                         {new Date(report.published_at).toLocaleDateString('ko-KR')}
                       </p>
                       {report.read_time && (
-                        <span className="font-body text-[12px] text-[#bbb]">{report.read_time} 읽기</span>
+                        <span className="font-body text-[12px] text-nwcn-neutral-400">{report.read_time} 읽기</span>
                       )}
                     </div>
                   </div>

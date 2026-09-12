@@ -35,11 +35,11 @@ export default function Footer({ className = '' }: FooterProps) {
   return (
     <footer
       className={`relative overflow-hidden ${className}`}
-      style={{ background: '#151515' }}
+      style={{ background: 'var(--color-dark)' }}
       data-node-id="376:637"
       aria-label="사이트 푸터"
     >
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] py-12 lg:py-[71px] relative">
+      <div className="page-container py-12 lg:py-[71px] relative">
 
         {/* ── 상단 영역 ── */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-10 lg:pb-[60px]">
@@ -62,7 +62,7 @@ export default function Footer({ className = '' }: FooterProps) {
           >
             {CONTACT_INFO.map(({ labelKey, value }) => (
               <div key={labelKey} className="flex flex-col gap-1">
-                <p className="font-body font-medium text-[#323131] text-[13px] sm:text-[14px]">
+                <p className="font-body font-medium text-nwcn-text-muted text-[13px] sm:text-[14px]">
                   {t(labelKey as Parameters<typeof t>[0])}
                 </p>
                 <p className="font-body font-normal text-white text-[11px] sm:text-[11.6px] leading-tight">

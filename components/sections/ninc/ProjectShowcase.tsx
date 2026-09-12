@@ -27,8 +27,8 @@ const ACCENT = {
 function ArrowCircle() {
   return (
     <svg width="37" height="37" viewBox="0 0 37 37" fill="none" aria-hidden="true">
-      <circle cx="18.5" cy="18.5" r="17.5" stroke="#050505" strokeWidth="1.2" />
-      <path d="M15 12l7 6.5-7 6.5" stroke="#050505" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="18.5" cy="18.5" r="17.5" stroke="var(--color-text-default)" strokeWidth="1.2" />
+      <path d="M15 12l7 6.5-7 6.5" stroke="var(--color-text-default)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -114,7 +114,7 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
   const ImagePane = (
     <div className="relative h-[300px] sm:h-[420px] lg:h-[566px] w-full overflow-hidden bg-nwcn-surface-2">
       <div
-        className="flex h-full w-full transition-transform duration-700 ease-out"
+        className="flex h-full w-full transition-transform duration-slow ease-nwcn"
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
         {slides.map((s, i) => (
@@ -139,7 +139,7 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
       <div key={index} className="animate-slide-up flex flex-col gap-5 lg:gap-[34px]">
         <span
           className={cn(
-            'inline-flex w-fit items-center rounded-full px-3 py-[3px] font-body text-[16px] lg:text-[17.6px] text-[#050505]',
+            'inline-flex w-fit items-center rounded-full px-3 py-[3px] font-body text-[16px] lg:text-[17.6px] text-nwcn-text-default',
             ACCENT[accent].badge
           )}
         >
@@ -165,7 +165,7 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
           href={current.href}
           active
           ariaLabel={`${current.title} 자세히 보기`}
-          className="mt-1 inline-block transition-transform duration-200 hover:translate-x-1"
+          className="mt-1 inline-block transition-transform duration-fast ease-nwcn hover:translate-x-1"
         >
           <ArrowCircle />
         </SlideLink>
@@ -208,7 +208,7 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
                 aria-label={`${i + 1} / ${count}: ${s.title}`}
                 onClick={() => goTo(i)}
                 className={cn(
-                  'h-[10px] flex-1 transition-colors duration-300',
+                  'h-[10px] flex-1 transition-colors duration-base ease-nwcn',
                   i === index ? ACCENT[accent].bar : 'bg-nwcn-border-muted hover:bg-nwcn-gray-faint'
                 )}
               />

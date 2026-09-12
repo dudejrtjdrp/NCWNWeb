@@ -132,7 +132,7 @@ export default function ShowcaseClient({
 
   return (
     <div className="bg-white pb-20">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
+      <div className="page-container">
         {/* 검색바 */}
         <SearchBar
           value={query}
@@ -149,7 +149,7 @@ export default function ShowcaseClient({
               key={f}
               onClick={() => setActiveFilter(f)}
               className={[
-                'px-3.5 py-1.5 rounded-full font-body text-[15px] transition-all duration-200',
+                'px-3.5 py-1.5 rounded-full font-body text-[15px] transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn',
                 activeFilter === f
                   ? 'bg-nwcn-dark text-white'
                   : 'text-nwcn-text-muted hover:text-nwcn-text-default',

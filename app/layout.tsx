@@ -13,7 +13,7 @@ import './globals.css'
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#09F593',
+  themeColor: 'var(--color-green)',
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

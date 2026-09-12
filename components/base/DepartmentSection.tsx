@@ -70,7 +70,7 @@ function GlassTag({ label }: { label: string }) {
       }}
     >
       <span
-        className="font-body font-medium text-[14px] sm:text-[16px] lg:text-[18px] text-[#888] whitespace-nowrap"
+        className="font-body font-medium text-[14px] sm:text-[16px] lg:text-[18px] text-nwcn-neutral-500 whitespace-nowrap"
       >
         {label}
       </span>
@@ -100,7 +100,7 @@ export default function DepartmentSection() {
           </div>
 
           {/* "학과 소개" 타이틀 */}
-          <p className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-8 sm:mb-12">
+          <p className="font-body font-bold text-[20px] sm:text-[24px] text-nwcn-neutral-700 text-center mb-8 sm:mb-12">
             {t('intro')}
           </p>
 
@@ -131,7 +131,7 @@ export default function DepartmentSection() {
               {t('introText2')}
             </p>
             {/* 검색 노출용 약칭 안내 (동방예대·뉴콘·NewCon 자연 문구) */}
-            <p className="mt-4 sm:mt-5 font-body font-normal text-[13px] sm:text-[14px] text-[#888]">
+            <p className="mt-4 sm:mt-5 font-body font-normal text-[13px] sm:text-[14px] text-nwcn-neutral-500">
               {t('aka')}
             </p>
           </div>
@@ -159,7 +159,7 @@ export default function DepartmentSection() {
             <img src={IMG.vecGoal} alt="" className="w-full h-full" />
           </div>
 
-          <p className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-10 sm:mb-16">
+          <p className="font-body font-bold text-[20px] sm:text-[24px] text-nwcn-neutral-700 text-center mb-10 sm:mb-16">
             {t('goal')}
           </p>
 
@@ -195,7 +195,7 @@ export default function DepartmentSection() {
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up" threshold={0.05}>
         <section className="bg-white px-4 sm:px-8 lg:px-[106px] py-12 sm:py-16 lg:py-[81px]">
-          <p className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-8 sm:mb-12 lg:mb-[75px]">
+          <p className="font-body font-bold text-[20px] sm:text-[24px] text-nwcn-neutral-700 text-center mb-8 sm:mb-12 lg:mb-[75px]">
             {t('detailGoal')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-[42px]">
@@ -219,7 +219,7 @@ export default function DepartmentSection() {
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up" threshold={0.05}>
         <section className="bg-white px-4 sm:px-8 lg:px-[98px] py-12 sm:py-16 lg:py-[80px]">
-          <p className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-8 sm:mb-12 lg:mb-[111px]">
+          <p className="font-body font-bold text-[20px] sm:text-[24px] text-nwcn-neutral-700 text-center mb-8 sm:mb-12 lg:mb-[111px]">
             {t('policy')}
           </p>
 
@@ -292,7 +292,7 @@ export default function DepartmentSection() {
               {(['careerQ1', 'careerQ2', 'careerQ3'] as const).map((key, i) => (
                 <AnimateOnScroll key={key} variant="fade-up" delay={i * 80} threshold={0.05}>
                   <span
-                    className="font-body font-bold text-[#444]"
+                    className="font-body font-bold text-nwcn-neutral-700"
                     style={{ fontSize: 'clamp(16px, 2vw, 24px)' }}
                   >
                     {t(key)}

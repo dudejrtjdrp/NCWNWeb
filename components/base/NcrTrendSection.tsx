@@ -71,7 +71,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
       {/* 카드 뒤 희미한 라운드 패널 (Figma 376:1563 UnderBackground) */}
       <div
         aria-hidden="true"
-        className="absolute z-0 left-1/2 -translate-x-1/2 w-[min(95vw,1440px)] top-[clamp(64px,9vw,120px)] bottom-[clamp(20px,4vw,48px)] rounded-[clamp(18px,2.5vw,32px)] bg-[#F5F5F6]"
+        className="absolute z-0 left-1/2 -translate-x-1/2 w-[min(95vw,1440px)] top-[clamp(64px,9vw,120px)] bottom-[clamp(20px,4vw,48px)] rounded-[clamp(18px,2.5vw,32px)] bg-nwcn-neutral-100"
       />
 
       {/* 장식 레터 N — 우측 상단, 위쪽으로 블리드 */}
@@ -90,7 +90,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
         {/* 섹션 헤더 */}
         <AnimateOnScroll variant="fade-up" className="mb-[29px]">
           <p
-            className="font-brand text-[#050505]"
+            className="font-brand text-nwcn-text-default"
             style={{ fontSize: '23.077px' }}
             data-node-id="376:1496"
           >
@@ -111,7 +111,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
           >
             <Link
               href={mainHref}
-              className={`flex flex-col gap-[22.589px] w-full flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5 ${subCard ? 'lg:w-[620px]' : 'lg:w-[720px]'}`}
+              className={`flex flex-col gap-[22.589px] w-full flex-shrink-0 cursor-pointer transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5 ${subCard ? 'lg:w-[620px]' : 'lg:w-[720px]'}`}
               data-node-id="376:1574"
             >
               {/* 썸네일 */}
@@ -127,7 +127,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
                     className="object-cover w-full h-full"
                   />
                 ) : (
-                  <div className="w-full h-full bg-[#151515] flex items-center justify-center">
+                  <div className="w-full h-full bg-nwcn-dark flex items-center justify-center">
                     <span className="font-brand font-black text-[72px] text-nwcn-green/[0.12] leading-none">NCR</span>
                   </div>
                 )}
@@ -149,7 +149,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
               {/* 제목 */}
               <p
                 className="font-body font-semibold"
-                style={{ fontSize: 'clamp(20px, 2.5vw, 31.429px)', color: '#09F593', lineHeight: 'normal' }}
+                style={{ fontSize: 'clamp(20px, 2.5vw, 31.429px)', color: 'var(--color-green)', lineHeight: 'normal' }}
                 data-node-id="427:874"
               >
                 {mainCard.title}
@@ -158,7 +158,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
               {/* 날짜 */}
               <p
                 className="font-body font-normal"
-                style={{ fontSize: '14.946px', color: '#B9B8B6' }}
+                style={{ fontSize: '14.946px', color: 'var(--color-text-sub)' }}
                 data-node-id="376:1573"
               >
                 {formatDate(mainCard.published_at)}
@@ -171,7 +171,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
             <AnimateOnScroll variant="fade-left" delay={150} className="w-full lg:w-[430px] flex-shrink-0">
               <Link
                 href={subHref}
-                className="flex flex-col gap-[26.375px] items-end w-full lg:w-[430px] flex-shrink-0 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
+                className="flex flex-col gap-[26.375px] items-end w-full lg:w-[430px] flex-shrink-0 cursor-pointer transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn hover:scale-[1.02] hover:shadow-[0_28px_52px_rgba(0,0,0,0.18)] rounded-[12px] p-5 -m-5"
                 data-node-id="376:1606"
               >
                 {/* 태그 */}
@@ -186,14 +186,14 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
                 >
                   <p
                     className="font-body font-semibold w-full"
-                    style={{ fontSize: '17.583px', color: '#323131' }}
+                    style={{ fontSize: '17.583px', color: 'var(--color-text-muted)' }}
                     data-node-id="376:1600"
                   >
                     {subCard.title}
                   </p>
                   <p
                     className="font-body font-normal"
-                    style={{ fontSize: '14.946px', color: '#B9B8B6' }}
+                    style={{ fontSize: '14.946px', color: 'var(--color-text-sub)' }}
                     data-node-id="376:1603"
                   >
                     {formatDate(subCard.published_at)}
@@ -213,7 +213,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
                       className="object-cover w-full h-full"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#151515] flex items-center justify-center">
+                    <div className="w-full h-full bg-nwcn-dark flex items-center justify-center">
                       <span className="font-brand font-black text-[40px] text-nwcn-green/[0.1] leading-none">NCR</span>
                     </div>
                   )}

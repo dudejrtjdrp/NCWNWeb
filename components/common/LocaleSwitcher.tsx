@@ -25,16 +25,16 @@ export default function LocaleSwitcher({ isLight = true, className }: LocaleSwit
     router.replace(pathname, { locale: nextLocale })
   }
 
-  const baseText = isLight ? 'text-[#323131]' : 'text-white/70'
+  const baseText = isLight ? 'text-nwcn-text-muted' : 'text-white/70'
   const activeText = 'text-nwcn-green font-semibold'
-  const divider = isLight ? 'bg-[#323131]/30' : 'bg-white/20'
+  const divider = isLight ? 'bg-nwcn-text-muted/30' : 'bg-white/20'
 
   return (
     <div className={cn('flex items-center gap-1 font-body text-[13px]', className)}>
       <button
         onClick={() => handleSwitch('ko')}
         className={cn(
-          'transition-colors duration-150 px-1',
+          'transition-colors duration-fast ease-nwcn px-1',
           locale === 'ko' ? activeText : `${baseText} hover:text-nwcn-green`
         )}
         aria-label="한국어로 전환"
@@ -45,7 +45,7 @@ export default function LocaleSwitcher({ isLight = true, className }: LocaleSwit
       <button
         onClick={() => handleSwitch('en')}
         className={cn(
-          'transition-colors duration-150 px-1',
+          'transition-colors duration-fast ease-nwcn px-1',
           locale === 'en' ? activeText : `${baseText} hover:text-nwcn-green`
         )}
         aria-label="Switch to English"

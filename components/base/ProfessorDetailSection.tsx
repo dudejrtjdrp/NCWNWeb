@@ -38,7 +38,7 @@ function parseInlineText(text: string) {
   const parts = text.split(/(\*\*[^*]+\*\*)/)
   return parts.map((part, i) =>
     part.startsWith('**') ? (
-      <strong key={i} className="font-bold text-[#050505]">
+      <strong key={i} className="font-bold text-nwcn-text-default">
         {part.slice(2, -2)}
       </strong>
     ) : (
@@ -52,7 +52,7 @@ function parseAnswer(answer: string) {
   return paras.map((para, pi) => (
     <p
       key={pi}
-      className="text-[clamp(14px,1.39vw,20px)] font-body font-normal text-[#888]"
+      className="text-[clamp(14px,1.39vw,20px)] font-body font-normal text-nwcn-neutral-500"
       style={{ lineHeight: '26px' }}
     >
       {parseInlineText(para)}
@@ -151,11 +151,11 @@ export default function ProfessorDetailSection({
 
       {/* ══════════════════════════════════════════════════════
           프로필 섹션
-          Figma 926:447 — bg-[#fcfcfc], 1440×649px
+          Figma 926:447 — bg-nwcn-neutral-50, 1440×649px
           z-10 → NWCN bg 위에 떠있는 흰 블록
           ══════════════════════════════════════════════════════ */}
       <section
-        className="relative bg-[#fcfcfc]"
+        className="relative bg-nwcn-neutral-50"
         style={{ minHeight: 'clamp(400px, 45vw, 649px)', zIndex: 10 }}
         aria-label="교수 프로필"
       >
@@ -255,7 +255,7 @@ export default function ProfessorDetailSection({
             {faculty.email && (
               <a
                 href={`mailto:${faculty.email}`}
-                className="font-body font-normal text-[24px] text-[#888] leading-normal hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-[24px] text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
               >
                 {faculty.email}
               </a>
@@ -324,7 +324,7 @@ export default function ProfessorDetailSection({
             {faculty.email && (
               <a
                 href={`mailto:${faculty.email}`}
-                className="font-body font-normal text-[15px] text-[#888] leading-normal hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-[15px] text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
               >
                 {faculty.email}
               </a>
@@ -437,7 +437,7 @@ export default function ProfessorDetailSection({
               {/* FACULTY 복귀 링크 */}
               <Link
                 href="/about/faculty"
-                className="font-body font-normal text-[clamp(14px,1.39vw,20px)] text-[#888] text-center leading-[26px] hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-[clamp(14px,1.39vw,20px)] text-nwcn-neutral-500 text-center leading-[26px] hover:text-nwcn-green transition-colors"
                 aria-label="교수진 목록으로 돌아가기"
               >
                 FACULTY
@@ -449,7 +449,7 @@ export default function ProfessorDetailSection({
         <div className="relative flex justify-center py-16" style={{ zIndex: 10 }}>
           <Link
             href="/about/faculty"
-            className="inline-flex items-center gap-2 font-body text-[14px] text-[#888] hover:text-nwcn-green transition-colors group"
+            className="inline-flex items-center gap-2 font-body text-[14px] text-nwcn-neutral-500 hover:text-nwcn-green transition-colors group"
             aria-label="교수진 목록으로 돌아가기"
           >
             <svg

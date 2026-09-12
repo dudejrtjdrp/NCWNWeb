@@ -14,12 +14,12 @@ export default function DesignViewer({ images, title }: Props) {
   return (
     <div className="w-full space-y-4">
       {/* 메인 이미지 */}
-      <div className="aspect-[4/3] w-full rounded-2xl bg-[#efefef] overflow-hidden flex items-center justify-center relative">
+      <div className="aspect-[4/3] w-full rounded-2xl bg-nwcn-neutral-100 overflow-hidden flex items-center justify-center relative">
         {images[selected] ? (
           <Image src={images[selected]!} alt={`${title} ${selected + 1}`} fill className="object-contain" />
         ) : (
           <div className="flex flex-col items-center gap-3 opacity-30">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.2">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.2">
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
@@ -36,7 +36,7 @@ export default function DesignViewer({ images, title }: Props) {
             <button
               key={i}
               onClick={() => setSelected(i)}
-              className={`aspect-square rounded-lg overflow-hidden bg-[#efefef] border-2 transition-all ${
+              className={`aspect-square rounded-lg overflow-hidden bg-nwcn-neutral-100 border-2 transition-[color,background-color,border-color,transform,box-shadow,opacity] ${
                 selected === i ? 'border-nwcn-text-default' : 'border-transparent hover:border-nwcn-text-sub/40'
               }`}
             >

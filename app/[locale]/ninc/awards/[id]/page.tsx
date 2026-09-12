@@ -123,7 +123,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
             <aside className="lg:col-span-1 order-2 lg:order-1">
               <div className="border border-black/10 rounded-2xl overflow-hidden sticky top-24">
                 {/* 썸네일 */}
-                <div className="relative aspect-[4/3] bg-[#efefef] flex items-center justify-center">
+                <div className="relative aspect-[4/3] bg-nwcn-neutral-100 flex items-center justify-center">
                   {award.thumbnail_url ? (
                     <Image
                       src={award.thumbnail_url}
@@ -135,7 +135,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-2 opacity-30">
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.5">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                       </svg>
                       <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
@@ -200,7 +200,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                   {members.map((member) => (
                     <div
                       key={member}
-                      className="flex items-center gap-3 bg-[#f5f5f5] px-4 py-3 rounded-xl"
+                      className="flex items-center gap-3 bg-nwcn-neutral-100 px-4 py-3 rounded-xl"
                     >
                       <div className="w-9 h-9 rounded-full bg-nwcn-text-sub/20 flex items-center justify-center flex-shrink-0">
                         <span className="font-body text-sm font-semibold text-nwcn-text-muted">
@@ -219,9 +219,9 @@ export default async function AwardDetailPage({ params }: PageProps) {
               </section>
 
               {/* 수상 정보 카드 */}
-              <div className="bg-[#f9f9f9] rounded-2xl p-6 flex items-center gap-4">
+              <div className="bg-nwcn-neutral-50 rounded-2xl p-6 flex items-center gap-4">
                 <div className="w-12 h-12 bg-nwcn-text-sub/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#B9B8B6" strokeWidth="1.5">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-sub)" strokeWidth="1.5">
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
                   </svg>
                 </div>

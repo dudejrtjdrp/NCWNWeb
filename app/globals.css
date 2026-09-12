@@ -70,21 +70,41 @@
   font-display: swap;
 }
 
-/* ── CSS 변수 ───────────────────────────────────── */
+/* ── CSS 변수 (tailwind.config.ts 토큰 미러) ────── */
 :root {
+  /* 브랜드 */
   --color-green: #09F593;
   --color-green-dark: #07C274;
   --color-green-darker: #058F56;
+  --color-green-deep: #133728;
   --color-yellow: #E3E94D;
+
+  /* 중립 스케일 */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f2f2f2;
+  --color-neutral-200: #e8e8e8;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #aaaaaa;
+  --color-neutral-500: #888888;
+  --color-neutral-600: #555555;
+  --color-neutral-700: #3a3a3b;
+  --color-neutral-800: #252525;
+  --color-neutral-900: #151515;
+
+  /* 시맨틱 */
   --color-dark: #151515;
   --color-text-default: #050505;
   --color-text-muted: #323131;
   --color-text-sub: #B9B8B6;
   --color-text-inverse: #ffffff;
-  --color-brand-primary: #09F593;
-  --color-brand-secondary: #E3E94D;
   --color-background-dark: #151515;
-  --color-background-default: #B9B8B6;
+
+  /* 모션 — 전 사이트 단일 easing */
+  --ease-nwcn: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 500ms;
 }
 
 /* ── Base ───────────────────────────────────────── */
@@ -159,7 +179,7 @@ html.lenis body { height: auto; }
   }
 
   .text-gradient-green {
-    background: linear-gradient(to right, #00e888, #00824c);
+    background: linear-gradient(to right, var(--color-green), var(--color-green-darker));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -174,43 +194,6 @@ html.lenis body { height: auto; }
   }
 }
 
-/* ── 스크롤 애니메이션 키프레임 ─────────────────── */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(2rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-2rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* 홈 장식 3D 레터(NWCN) 부유 — 느리고 절제된 상하 이동 */
-@keyframes floaty {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-14px); }
-}
-.animate-floaty {
-  animation: floaty 7s ease-in-out infinite;
-}
-
 /* prefers-reduced-motion: 접근성 고려 */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -222,25 +205,53 @@ html.lenis body { height: auto; }
 /* ── 공통 컴포넌트 ──────────────────────────────── */
 @layer components {
   .page-container {
-    @apply max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px];
+    @apply max-w-page mx-auto px-4 sm:px-8 lg:px-20;
   }
 
+  /* 섹션 상단 라벨 — 전 페이지 공통(기존 8곳 복붙 대체) */
   .section-label {
-    @apply font-brand text-[23px] text-nwcn-text-default text-center;
+    @apply font-body font-light text-section text-nwcn-text-default;
   }
 
-  .tag-green {
-    @apply inline-flex items-center justify-center px-[3.979px] py-[1.989px]
-           bg-nwcn-green text-nwcn-text-default
-           font-body font-medium text-[16.58px]
-           drop-shadow-sm;
+  /* 키보드 포커스 링 — 밝은 배경 / 어두운 배경 */
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2 focus-visible:ring-offset-white;
   }
+  .focus-ring-dark {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2 focus-visible:ring-offset-nwcn-dark;
+  }
+}
 
-  .tag-yellow {
-    @apply inline-flex items-center justify-center px-[3.979px] py-[1.989px]
-           bg-nwcn-yellow text-nwcn-text-default
-           font-body font-medium text-[16.58px]
-           drop-shadow-sm;
+/* ── 배경 패턴 (originkit 계열 인터랙티브 그리드에서 차용) ──
+   모두 CSS만으로 동작 — 추가 의존성/런타임 비용 없음 */
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(5, 5, 5, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(5, 5, 5, 0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .bg-dots {
+    background-image: radial-gradient(rgba(5, 5, 5, 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .bg-dots-dark {
+    background-image: radial-gradient(rgba(9, 245, 147, 0.18) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  /* 가장자리를 부드럽게 소거해 패턴이 섹션 경계에서 끊기지 않게 한다 */
+  .mask-fade-edges {
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
+    mask-image: radial-gradient(ellipse at center, #000 35%, transparent 78%);
+  }
+  .ease-nwcn {
+    transition-timing-function: var(--ease-nwcn);
   }
 }
 
@@ -258,7 +269,7 @@ html.lenis body { height: auto; }
 .article-body h2 { font-size: 26px; font-weight: 700; color: #151515; margin: 2.4em 0 0.8em; line-height: 1.3; }
 .article-body h3 { font-size: 20px; font-weight: 700; color: #151515; margin: 1.8em 0 0.6em; line-height: 1.35; }
 .article-body p { margin: 0 0 1.1em; }
-.article-body a { color: #0a9b63; text-decoration: underline; }
+.article-body a { color: var(--color-green-darker); text-decoration: underline; }
 .article-body strong { font-weight: 700; color: #151515; }
 .article-body em { font-style: italic; }
 .article-body ul, .article-body ol { margin: 0 0 1.2em 1.3em; }

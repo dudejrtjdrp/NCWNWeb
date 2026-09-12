@@ -199,7 +199,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             {article.author && (
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-nwcn-green/20 flex items-center justify-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#09F593" strokeWidth="1.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-green)" strokeWidth="1.5">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
@@ -236,7 +236,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             {/* ── 메인 본문 ── */}
             <article className="lg:col-span-3">
               {/* 썸네일 이미지 영역 */}
-              <div className="aspect-[16/7] bg-[#efefef] rounded-2xl mb-12 flex items-center justify-center overflow-hidden relative">
+              <div className="aspect-[16/7] bg-nwcn-neutral-100 rounded-2xl mb-12 flex items-center justify-center overflow-hidden relative">
                 {article.thumbnail_url ? (
                   <Image
                     src={article.thumbnail_url}
@@ -248,7 +248,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-3 opacity-20">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="1.2">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.2">
                       <rect x="3" y="3" width="18" height="18" rx="2" />
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <polyline points="21 15 16 10 5 21" />
@@ -296,7 +296,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             <aside className="lg:col-span-1">
               <div className="sticky top-24 space-y-8">
                 {/* 아티클 정보 */}
-                <div className="bg-[#f5f5f5] rounded-xl p-5">
+                <div className="bg-nwcn-neutral-100 rounded-xl p-5">
                   <p className="font-body text-xs font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
                     {t('sidebarInfo')}
                   </p>

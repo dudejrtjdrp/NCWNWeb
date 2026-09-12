@@ -89,10 +89,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ locale
       {/* 4. 산학협력 / 해외교류 쇼케이스 */}
       <section className="bg-white pt-20 sm:pt-24 lg:pt-[120px]">
         <AnimateOnScroll variant="fade-up" className="text-center pb-10 sm:pb-14 lg:pb-[70px]">
-          <h2 className="font-body font-bold text-[22px] sm:text-[24px] lg:text-[25px] text-[#050505]">
+          <h2 className="font-body font-bold text-[22px] sm:text-[24px] lg:text-[25px] text-nwcn-text-default">
             산학협력/해외교류
           </h2>
-          <p className="mt-3 lg:mt-[14px] font-body text-[15px] sm:text-[17px] lg:text-[18px] leading-[27px] text-[#888]">
+          <p className="mt-3 lg:mt-[14px] font-body text-[15px] sm:text-[17px] lg:text-[18px] leading-[27px] text-nwcn-neutral-500">
             뉴미디어콘텐츠과 학생들의 현장에서의 모습을 소개합니다
           </p>
         </AnimateOnScroll>

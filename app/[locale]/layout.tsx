@@ -10,6 +10,8 @@ import { getMessages, getTranslations } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import SmoothScroll from '@/components/providers/SmoothScroll'
 import ScrollToTopOnNavigate from '@/components/providers/ScrollToTopOnNavigate'
+import ToastProvider from '@/components/ui/Toast'
+import CircleCursor from '@/components/interactive/CircleCursor'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
@@ -92,10 +94,15 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <SmoothScroll>
-        <ScrollToTopOnNavigate />
-        {children}
-      </SmoothScroll>
+      <ToastProvider>
+        <SmoothScroll>
+          <ScrollToTopOnNavigate />
+          {children}
+        </SmoothScroll>
+        {/* 뉴미디어콘텐츠과 정체성을 드러내는 커스텀 커서 —
+            데스크톱 정밀 포인터에서만, 모션 최소화 설정이면 비활성 */}
+        <CircleCursor />
+      </ToastProvider>
     </NextIntlClientProvider>
   )
 }

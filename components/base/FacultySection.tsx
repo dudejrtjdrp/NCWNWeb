@@ -46,7 +46,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
           <SectionArrow />
           <h2
             id="faculty-heading"
-            className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-8 sm:mb-[60px]"
+            className="font-body font-bold text-[20px] sm:text-[24px] text-nwcn-neutral-700 text-center mb-8 sm:mb-[60px]"
             data-node-id="427:910"
           >
             {t('professors')}
@@ -84,7 +84,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
           <SectionArrow />
           <h2
             id="assistant-heading"
-            className="font-body font-bold text-[20px] sm:text-[24px] text-[#444] text-center mb-8 sm:mb-[60px]"
+            className="font-body font-bold text-[20px] sm:text-[24px] text-nwcn-neutral-700 text-center mb-8 sm:mb-[60px]"
             data-node-id="427:1250"
           >
             {t('assistants')}

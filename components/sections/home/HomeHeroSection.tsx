@@ -516,7 +516,7 @@ export default function HomeHeroSection({
             {posts.slice(0, 4).map((post) => {
               const cardStyle: CSSProperties = {
                 position: 'relative', display: 'block', width: CARD_W, height: CARD_H, flex: 'none',
-                borderRadius: 20, background: '#d9d9d9', overflow: 'hidden', textDecoration: 'none',
+                borderRadius: 20, background: 'var(--color-neutral-300)', overflow: 'hidden', textDecoration: 'none',
                 scrollSnapAlign: 'center',
               }
               const inner = (
@@ -525,7 +525,7 @@ export default function HomeHeroSection({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       alt={post.title} src={post.image}
-                      className="transition-transform duration-500 group-hover:scale-105"
+                      className="transition-transform duration-slow ease-nwcn group-hover:scale-105"
                       style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   )}
@@ -540,11 +540,11 @@ export default function HomeHeroSection({
                       </span>
                     )}
                     <div>
-                      <p style={{ margin: 0, fontSize: 28, fontWeight: 700, lineHeight: 1.2, color: post.image ? '#fff' : '#6f6f6f', textShadow: post.image ? '0 1px 10px rgba(0,0,0,0.4)' : 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      <p style={{ margin: 0, fontSize: 28, fontWeight: 700, lineHeight: 1.2, color: post.image ? '#fff' : 'var(--color-neutral-600)', textShadow: post.image ? '0 1px 10px rgba(0,0,0,0.4)' : 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {post.title}
                       </p>
                       {post.subtitle && (
-                        <p style={{ margin: '8px 0 0', fontSize: 16, fontWeight: 500, color: post.image ? 'rgba(255,255,255,0.85)' : '#9a9a9a' }}>
+                        <p style={{ margin: '8px 0 0', fontSize: 16, fontWeight: 500, color: post.image ? 'rgba(255,255,255,0.85)' : 'var(--color-neutral-500)' }}>
                           {post.subtitle}
                         </p>
                       )}
@@ -585,7 +585,7 @@ export default function HomeHeroSection({
             <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group" style={{ display: 'block' }}>
               {/* 부유(상하·미세회전)는 wrapper(workRef)에 rAF로 적용. hover 시 살짝 확대. */}
               <div
-                className="transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+                className="transition-transform duration-base ease-nwcn group-hover:scale-[1.04]"
                 style={{ filter: 'drop-shadow(-18px 46px 22px rgba(0,0,0,0.10))' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -608,8 +608,8 @@ export default function HomeHeroSection({
               zIndex: 30, pointerEvents: 'none', willChange: 'transform, opacity',
             }}
           >
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 32, lineHeight: 1.2, color: '#3a3a3b' }}>NWCN,</p>
-            <p style={{ margin: '18px 0 0', fontWeight: 200, fontSize: 22, lineHeight: 1.45, color: '#3a3a3b' }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 32, lineHeight: 1.2, color: 'var(--color-neutral-700)' }}>NWCN,</p>
+            <p style={{ margin: '18px 0 0', fontWeight: 200, fontSize: 22, lineHeight: 1.45, color: 'var(--color-neutral-700)' }}>
               We cultivate convergence content specialists
               <br />who can lead the new media industry.
             </p>
@@ -623,7 +623,7 @@ export default function HomeHeroSection({
               transform: `translate(-50%, calc(-50% - ${f0.introExit * 150}px))`,
               opacity: 1 - f0.introExit,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              textAlign: 'center', color: '#3a3a3b', zIndex: 40, pointerEvents: 'none',
+              textAlign: 'center', color: 'var(--color-neutral-700)', zIndex: 40, pointerEvents: 'none',
               willChange: 'transform, opacity',
             }}
           >
@@ -664,8 +664,8 @@ export default function HomeHeroSection({
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[60] pointer-events-none"
           style={{ opacity: reducedMotion ? 0 : 1 }}
         >
-          <span className="font-body text-[11px] tracking-[0.2em] text-[#3a3a3b]/70 uppercase">Scroll</span>
-          <div className="w-px h-8 bg-gradient-to-b from-[#3a3a3b]/50 to-transparent" />
+          <span className="font-body text-[11px] tracking-[0.2em] text-nwcn-neutral-700/70 uppercase">Scroll</span>
+          <div className="w-px h-8 bg-gradient-to-b from-nwcn-neutral-700/50 to-transparent" />
         </div>
 
         {/* ── 진행률 디버그 (dev only) ── */}

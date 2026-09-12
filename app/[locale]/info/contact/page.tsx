@@ -60,16 +60,16 @@ export default async function ContactPage({ params }: PageProps) {
       <SubNav items={INFO_NAV_ITEMS} />
 
       {/* 섹션 타이틀 */}
-      <div className="bg-white pt-10 sm:pt-14 lg:pt-[60px] pb-4 sm:pb-6 lg:pb-[28px] text-center">
-        <p className="font-body font-light text-[20px] sm:text-[22px] lg:text-[24px] text-black">CONTACT</p>
+      <div className="bg-white pt-section-sm pb-6 text-center">
+        <p className="section-label">CONTACT</p>
       </div>
 
       <div className="bg-white pb-24">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
+        <div className="page-container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* 연락처 카드 */}
-            <div className="border border-[#ececec] rounded-3xl p-10 space-y-8">
+            <div className="border border-nwcn-neutral-200 rounded-3xl p-10 space-y-8">
               <div>
                 <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   CONTACT INFO
@@ -81,18 +81,18 @@ export default async function ContactPage({ params }: PageProps) {
                 {items.map((item, idx) => (
                   <div key={item.label} className="flex items-start gap-5">
                     {/* 아이콘 */}
-                    <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-[#f7f7f7] flex items-center justify-center text-nwcn-green">
+                    <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-nwcn-neutral-50 flex items-center justify-center text-nwcn-green">
                       {ICONS[idx]}
                     </div>
                     {/* 텍스트 */}
                     <div>
-                      <p className="font-body text-[11px] font-semibold tracking-widest text-[#bbb] mb-1">
+                      <p className="font-body text-[11px] font-semibold tracking-widest text-nwcn-neutral-400 mb-1">
                         {item.label}
                       </p>
                       <p className="font-body text-[15px] font-medium text-nwcn-text-default mb-0.5">
                         {item.value}
                       </p>
-                      <p className="font-body text-[13px] text-[#aaa]">{item.sub}</p>
+                      <p className="font-body text-[13px] text-nwcn-neutral-400">{item.sub}</p>
                     </div>
                   </div>
                 ))}
@@ -100,7 +100,7 @@ export default async function ContactPage({ params }: PageProps) {
             </div>
 
             {/* 오시는 길 카드 */}
-            <div className="border border-[#ececec] rounded-3xl p-10 flex flex-col gap-6">
+            <div className="border border-nwcn-neutral-200 rounded-3xl p-10 flex flex-col gap-6">
               <div>
                 <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   DIRECTIONS
@@ -109,7 +109,7 @@ export default async function ContactPage({ params }: PageProps) {
               </div>
 
               {/* 지도 */}
-              <div className="flex-1 min-h-[260px] rounded-2xl overflow-hidden border border-[#e8e8e8]">
+              <div className="flex-1 min-h-[260px] rounded-2xl overflow-hidden border border-nwcn-neutral-200">
                 <SchoolMap />
               </div>
 
@@ -118,8 +118,8 @@ export default async function ContactPage({ params }: PageProps) {
                 {directions.map((d) => (
                   <div key={d.label} className="flex items-center gap-3">
                     <span className="text-[16px]">{d.icon}</span>
-                    <span className="font-body font-semibold text-[12px] text-[#bbb] w-12">{d.label}</span>
-                    <span className="font-body text-[13px] text-[#888]">{d.value}</span>
+                    <span className="font-body font-semibold text-[12px] text-nwcn-neutral-400 w-12">{d.label}</span>
+                    <span className="font-body text-[13px] text-nwcn-neutral-500">{d.value}</span>
                   </div>
                 ))}
               </div>

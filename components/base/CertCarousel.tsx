@@ -1,259 +1,64 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import styles from './CertCarousel.module.css'
+/**
+ * BASE 컴포넌트: CertCarousel
+ * ────────────────────────────────────────────────────────────
+ * 학과 취득 가능 자격증 가로형 캐러셀.
+ * 자체 구현 커버플로우 → originkit "Smooth Scroll Slider" 기반
+ * 관성 레일(SmoothScrollSlider)로 교체했다.
+ * 휠·트랙패드·드래그·키보드 모두로 조작되고, 중앙 카드가 확대되며
+ * 해당 자격증명이 아래 캡션에 표시된다.
+ */
 
-/* ── 실제 자격증 이미지 ──
-   public/images/department/cert/ 의 자격증서 목업(380×500 세로형, 2x).
-   CERT_NAMES 와 순서를 1:1로 맞춰 alt 텍스트에 사용한다.
-   배열이 비어 있으면 아래 색상 플레이스홀더가 표시된다. */
-const CERT_IMAGES: string[] = [
-  '/images/department/cert/cert-01.png',
-  '/images/department/cert/cert-02.png',
-  '/images/department/cert/cert-03.png',
-  '/images/department/cert/cert-04.png',
-  '/images/department/cert/cert-05.png',
-  '/images/department/cert/cert-06.png',
-  '/images/department/cert/cert-07.png',
-  '/images/department/cert/cert-08.png',
-  '/images/department/cert/cert-09.png',
-  '/images/department/cert/cert-10.png',
-  '/images/department/cert/cert-11.png',
-  '/images/department/cert/cert-12.png',
+import SmoothScrollSlider, { type SlideItem } from '@/components/interactive/SmoothScrollSlider'
+
+/* ── 실제 자격증서 목업 이미지 (public/images/department/cert) ── */
+const CERTS: { file: string; name: string }[] = [
+  { file: 'cert-01.png', name: '정보처리산업기사' },
+  { file: 'cert-02.png', name: '멀티미디어콘텐츠제작전문가' },
+  { file: 'cert-03.png', name: 'GTQ' },
+  { file: 'cert-04.png', name: '웹디자인기능사' },
+  { file: 'cert-05.png', name: '컬러리스트산업기사' },
+  { file: 'cert-06.png', name: '사무자동화산업기사' },
+  { file: 'cert-07.png', name: '인터넷정보관리사' },
+  { file: 'cert-08.png', name: '웹마스터전문가' },
+  { file: 'cert-09.png', name: '인터넷정보검색사' },
+  { file: 'cert-10.png', name: '한국영상자격원 영상전문인(편집)' },
+  { file: 'cert-11.png', name: '한국영상자격원 영상전문인(촬영)' },
+  { file: 'cert-12.png', name: '한국영상자격원 영상전문인(연출)' },
 ]
 
-/* ── 자격증명 (alt 텍스트용, CERT_IMAGES 와 동일 순서) ── */
-const CERT_NAMES: string[] = [
-  '정보처리산업기사',
-  '멀티미디어콘텐츠제작전문가',
-  'GTQ',
-  '웹디자인기능사',
-  '컬러리스트산업기사',
-  '사무자동화산업기사',
-  '인터넷정보관리사',
-  '웹마스터전문가',
-  '인터넷정보검색사',
-  '한국영상자격원 영상전문인(편집)',
-  '한국영상자격원 영상전문인(촬영)',
-  '한국영상자격원 영상전문인(연출)',
-]
-
-/* ── 플레이스홀더 (실제 이미지 없을 때만 사용) ── */
-const PLACEHOLDER_COLORS = [
-  '#e74c3c','#3498db','#2ecc71','#f39c12',
-  '#9b59b6','#1abc9c','#e67e22','#34495e',
-  '#e91e63','#00bcd4','#8bc34a','#ff9800',
-  '#673ab7','#009688','#ff5722','#607d8b',
-]
-const PLACEHOLDER_IMAGES = PLACEHOLDER_COLORS.map((color, i) => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="380" height="500">
-    <rect width="380" height="500" fill="${color}" rx="16"/>
-    <text x="190" y="265" text-anchor="middle" fill="white"
-      font-size="64" font-family="sans-serif" font-weight="bold">${i + 1}</text>
-  </svg>`
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`
-})
-
-const IMAGES = CERT_IMAGES.length > 0 ? CERT_IMAGES : PLACEHOLDER_IMAGES
-
-/* ── 레이아웃 상수 ── */
-const CARD_W      = 380   // 카드 너비 (px) — CSS .card width와 동일 ★ CSS 변경 시 반드시 같이 수정
-const Z_DEPTH     = 350   // 중앙 카드 z 밀림 깊이
-const PERSPECTIVE = 1000  // CSS .scene perspective 값과 반드시 동일
-const ROT_MAX     = 35    // 끝 카드 최대 rotateY (deg)
-const SHOW_R      = 1.5
-const VISIBLE_R   = 2.3
-const GAP         = 28    // 카드 간 시각적 여백 (px) — 이 값 하나로 전체 간격 조정
-const DRAG_PX     = 420
-const INIT_POS    = 7.5
-
-/* ── z 깊이 (포물선) ── */
-function zAt(absOff: number) {
-  const t = Math.min(absOff / SHOW_R, 1)
-  return -Z_DEPTH * (1 - t * t)
-}
-
-/* ────────────────────────────────────────────────────────────────
-   핵심 아이디어:
-   rotateY(θ)로 기울어진 카드의 좌·우 엣지는 서로 다른 z 깊이에 위치.
-   (예: rotateY(-35°) 카드의 왼쪽 엣지 z = -132, 오른쪽 엣지 z = +132)
-   → 같은 translateX라도 두 엣지가 perspective에 의해 비대칭 투영됨.
-   → 카드 중심이 아닌 "서로 마주보는 엣지"의 투영 위치를 직접 역산해야
-     시각적 간격이 실제로 GAP px가 됨.
-
-   엣지 투영 공식 (rotateY(θ), 카드 중심 translateX = T, translateZ = z_c):
-     오른쪽 카드 왼쪽(내향) 엣지:
-       x_world = T - W/2 · cosθ,   z_world = z_c - W/2 · sinθ
-       projected = x_world · P / (P - z_world)
-
-   T_IN, T_OUT: 균등 GAP 조건을 만족하는 translateX를 역산
-   actualXAt:  offset → T 값을 구간별 선형 보간
-──────────────────────────────────────────────────────────────── */
-const ROT_RAD = ROT_MAX * (Math.PI / 180)
-
-// 내측 카드 (|offset|=0.5) 파라미터
-const t_in  = 0.5 / SHOW_R
-const ca_in = Math.cos(t_in * ROT_RAD)   // cos of inner rotY magnitude
-const sa_in = Math.sin(t_in * ROT_RAD)   // sin of inner rotY magnitude
-const za_in = zAt(0.5)
-
-// ① 중앙 GAP 조건: 내측 카드 내향 엣지 투영 = GAP / 2
-//    → T_IN 역산
-const T_IN =
-  CARD_W / 2 * ca_in +
-  GAP / 2 * (PERSPECTIVE - za_in + CARD_W / 2 * sa_in) / PERSPECTIVE
-
-// ② 내측 카드 외향 엣지 투영 위치 계산
-const E_inner_out =
-  (T_IN + CARD_W / 2 * ca_in) * PERSPECTIVE /
-  (PERSPECTIVE - za_in - CARD_W / 2 * sa_in)
-
-// 외측 카드 (|offset|=1.5) 파라미터 (z = 0)
-const ca_out = Math.cos(ROT_RAD)
-const sa_out = Math.sin(ROT_RAD)
-
-// ③ 바깥 GAP 조건: 외측 카드 내향 엣지 투영 = E_inner_out + GAP
-//    → T_OUT 역산
-const T_OUT =
-  CARD_W / 2 * ca_out +
-  (E_inner_out + GAP) * (PERSPECTIVE + CARD_W / 2 * sa_out) / PERSPECTIVE
-
-/* ── offset → 실제 translateX (구간별 선형 보간) ── */
-function actualXAt(offset: number): number {
-  const abs  = Math.abs(offset)
-  const sign = offset >= 0 ? 1 : -1
-
-  let T: number
-  if      (abs <= 0.5) T = (abs / 0.5) * T_IN
-  else if (abs <= 1.5) T = T_IN + (abs - 0.5) * (T_OUT - T_IN)
-  else                 T = T_OUT + (abs - 1.5) * (T_OUT - T_IN)
-
-  return sign * T
-}
+const ITEMS: SlideItem[] = CERTS.map((c, i) => ({
+  id: `cert-${i + 1}`,
+  src: `/images/department/cert/${c.file}`,
+  alt: `${c.name} 자격증`,
+  caption: c.name,
+  subCaption: '취득 가능 자격증',
+}))
 
 export default function CertCarousel() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const cardsRef   = useRef<(HTMLDivElement | null)[]>([])
-
-  const scrollPos  = useRef(INIT_POS)
-  const targetPos  = useRef(INIT_POS)
-  const dragging   = useRef(false)
-  const lastX      = useRef(0)
-  const velocity   = useRef(0)
-  const rafId      = useRef(0)
-
-  useEffect(() => {
-    const section = sectionRef.current
-    if (!section) return
-
-    const update = () => {
-      const pos = scrollPos.current
-
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return
-        const offset = i - pos
-        const absOff = Math.abs(offset)
-
-        if (absOff > VISIBLE_R) {
-          card.style.opacity    = '0'
-          card.style.visibility = 'hidden'
-          return
-        }
-        card.style.visibility = 'visible'
-
-        const opacity =
-          absOff <= SHOW_R
-            ? 1
-            : 1 - (absOff - SHOW_R) / (VISIBLE_R - SHOW_R)
-        card.style.opacity = String(Math.max(0, opacity))
-
-        const x    = actualXAt(offset)
-        const z    = zAt(absOff)
-        const rotY = -(offset / SHOW_R) * ROT_MAX
-
-        card.style.transform = `translateX(${x}px) translateZ(${z}px) rotateY(${rotY}deg)`
-        card.style.zIndex    = String(Math.round(z + Z_DEPTH + 10))
-      })
-    }
-
-    const loop = () => {
-      if (!dragging.current) {
-        targetPos.current += velocity.current
-        velocity.current  *= 0.88
-
-        const MIN_POS = 0.5
-        const MAX_POS = IMAGES.length - 1.5
-        targetPos.current = Math.max(MIN_POS, Math.min(MAX_POS, targetPos.current))
-
-        const nearest = Math.round(targetPos.current - 0.5) + 0.5
-        targetPos.current += (nearest - targetPos.current) * 0.05
-      }
-      scrollPos.current += (targetPos.current - scrollPos.current) * 0.12
-      update()
-      rafId.current = requestAnimationFrame(loop)
-    }
-    loop()
-
-    const onDown = (e: PointerEvent) => {
-      e.preventDefault() // Windows에서 텍스트 선택/기본 드래그 방지
-      dragging.current = true
-      lastX.current    = e.clientX
-      velocity.current = 0
-      section.setPointerCapture(e.pointerId)
-    }
-    const onMove = (e: PointerEvent) => {
-      if (!dragging.current) return
-      e.preventDefault() // 드래그 중 스크롤 충돌 방지
-      const dx          = e.clientX - lastX.current
-      lastX.current     = e.clientX
-      const dPos        = -dx / DRAG_PX
-      targetPos.current += dPos
-      velocity.current   = dPos
-    }
-    const onUp = () => { dragging.current = false }
-
-    const onWheel = (e: WheelEvent) => {
-      // deltaX가 조금이라도 있으면 preventDefault → 브라우저 뒤로/앞으로 제스처 차단
-      // 순수 세로 스크롤(deltaX === 0)은 통과시켜 페이지 위아래 이동 가능하게 함
-      if (e.deltaX !== 0) {
-        e.preventDefault()
-        targetPos.current += e.deltaX / DRAG_PX
-      }
-    }
-
-    section.addEventListener('pointerdown',   onDown,  { passive: false })
-    section.addEventListener('pointermove',   onMove,  { passive: false })
-    section.addEventListener('pointerup',     onUp)
-    section.addEventListener('pointercancel', onUp)
-    section.addEventListener('wheel', onWheel, { passive: false })
-
-    return () => {
-      cancelAnimationFrame(rafId.current)
-      section.removeEventListener('pointerdown',   onDown)
-      section.removeEventListener('pointermove',   onMove)
-      section.removeEventListener('pointerup',     onUp)
-      section.removeEventListener('pointercancel', onUp)
-      section.removeEventListener('wheel', onWheel)
-    }
-  }, [])
-
   return (
-    <section ref={sectionRef} className={styles.section}>
-      <div className={styles.scene}>
-        <div className={styles.track}>
-          {IMAGES.map((src, i) => (
-            <div
-              key={i}
-              className={styles.card}
-              ref={(el) => { cardsRef.current[i] = el }}
-            >
-              <img src={src} alt={CERT_NAMES[i] ?? `자격증 ${i + 1}`} draggable={false} />
-            </div>
-          ))}
-        </div>
+    <section className="py-section-md" aria-label="취득 가능 자격증">
+      <div className="page-container">
+        <p className="section-label mb-2">자격증</p>
+        <p className="mb-10 font-body text-body text-nwcn-gray-text">
+          재학 중 취득할 수 있는 국가·민간 자격증입니다. 좌우로 밀어 확인해 보세요.
+        </p>
       </div>
-      <div className={styles.maskTop}    aria-hidden />
-      <div className={styles.maskBottom} aria-hidden />
+
+      <SmoothScrollSlider
+        items={ITEMS}
+        slideWidth={236}
+        slideHeight={310}
+        spacing={18}
+        radius={10}
+        maxScale={1.7}
+        minScale={0.7}
+        dim={0.35}
+        fit="cover"
+        className="page-container"
+        aria-label="자격증 캐러셀"
+      />
     </section>
   )
 }

@@ -1,46 +1,24 @@
 /**
- * BASE 컴포넌트: AboutHero (히어로 배너 전용)
- * Figma: node-id 291:76
+ * BASE 컴포넌트: AboutHero
+ * 공통 PageHero 를 ABOUT 섹션 용도로 구성한 래퍼.
  */
 
-import AnimateOnScroll from '@/components/common/AnimateOnScroll'
+import PageHero from '@/components/base/PageHero'
 
-/* ─── 에셋 경로 ─── */
 const IMG_NWCN = '/images/department/nwcn-logo.png'
 
 export default function AboutHero() {
   return (
-    <div className="bg-white">
-      {/* ── HERO ── */}
-      <div
-        className="relative w-full max-w-[1440px] mx-auto bg-white overflow-hidden flex flex-col justify-center"
-        style={{ minHeight: 'clamp(300px, 50vw, 805px)' }}
-      >
-        {/* "ABOUT" 텍스트 */}
-        <AnimateOnScroll
-          variant="fade-up"
-          delay={100}
-          as="h1"
-          className="absolute right-[5%] sm:right-[10%] lg:right-[21%] top-[20%] font-body font-extrabold leading-normal text-[#050505]"
-          style={{ fontSize: 'clamp(32px, 5vw, 56px)' }}
-        >
-          ABOUT
-        </AnimateOnScroll>
-
-        {/* NWCN 대형 로고 */}
-        <AnimateOnScroll
-          variant="fade"
-          delay={200}
-          duration={900}
-          className="w-[88%] sm:w-[80%] lg:w-[1270px] mx-auto mt-[12%] sm:mt-[10%]"
-        >
-          <img
-            src={IMG_NWCN}
-            alt="NWCN 뉴미디어콘텐츠과"
-            className="block w-full h-auto"
-          />
-        </AnimateOnScroll>
-      </div>
-    </div>
+    <PageHero
+      label="About"
+      title="ABOUT"
+      description="뉴미디어콘텐츠과의 교육 방향과 사람, 그리고 배움의 공간을 소개합니다."
+      size="lg"
+      decoration="bar"
+      media={
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={IMG_NWCN} alt="NWCN 뉴미디어콘텐츠과" className="mx-auto block h-auto w-full max-w-wide" />
+      }
+    />
   )
 }

@@ -12,9 +12,9 @@ const TYPE_BADGE: Record<string, 'new' | 'hot' | 'number'> = {
   card_news: 'number',
 }
 const SEASON_COLORS: Record<string, string> = {
-  'Season 3': '#09F593',
-  'Season 2': '#E3E94D',
-  'Season 1': '#d0d0d0',
+  'Season 3': 'var(--color-green)',
+  'Season 2': 'var(--color-yellow)',
+  'Season 1': 'var(--color-neutral-300)',
 }
 
 interface Props {
@@ -60,16 +60,16 @@ export default function ArchiveClient({ reports, seasons }: Props) {
     <>
       {/* 시즌 필터 */}
       <div className="bg-white pb-10">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] flex flex-wrap gap-2">
+        <div className="page-container flex flex-wrap gap-2">
           {[filterAll, ...seasons].map((s) => (
             <button
               key={s}
               onClick={() => setActiveSeason(s)}
               className={[
-                'px-5 py-2 rounded-full font-body text-[14px] font-medium transition-all duration-200',
+                'px-5 py-2 rounded-full font-body text-[14px] font-medium transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn',
                 activeSeason === s
                   ? 'bg-nwcn-text-default text-white'
-                  : 'border border-[#ddd] text-[#555] hover:border-nwcn-text-default hover:text-nwcn-text-default',
+                  : 'border border-nwcn-neutral-300 text-nwcn-neutral-600 hover:border-nwcn-text-default hover:text-nwcn-text-default',
               ].join(' ')}
             >
               {s}
@@ -80,10 +80,10 @@ export default function ArchiveClient({ reports, seasons }: Props) {
 
       {/* 리포트 목록 */}
       <div className="bg-white pb-24">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] space-y-14">
+        <div className="page-container space-y-14">
           {sortedSeasons.length === 0 ? (
             <div className="flex items-center justify-center py-24">
-              <p className="font-body text-[16px] text-[#aaa]">{t('noReports')}</p>
+              <p className="font-body text-[16px] text-nwcn-neutral-400">{t('noReports')}</p>
             </div>
           ) : (
             sortedSeasons.map((season) => (
@@ -92,13 +92,13 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                 <div className="flex items-center gap-4 mb-6">
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: SEASON_COLORS[season] ?? '#d0d0d0' }}
+                    style={{ backgroundColor: SEASON_COLORS[season] ?? 'var(--color-neutral-300)' }}
                   />
                   <h2 className="font-brand font-bold text-[20px] text-nwcn-text-default">
                     {season}
                   </h2>
-                  <div className="flex-1 h-[1px] bg-[#ececec]" />
-                  <span className="font-body text-[13px] text-[#bbb]">
+                  <div className="flex-1 h-[1px] bg-nwcn-neutral-200" />
+                  <span className="font-body text-[13px] text-nwcn-neutral-400">
                     {grouped[season].length}{locale === 'en' ? ` ${t('countSuffix')}` : t('countSuffix')}
                   </span>
                 </div>
@@ -109,15 +109,15 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                     <Link
                       key={report.id}
                       href={`/ncr-trend/${report.id}`}
-                      className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 sm:gap-6 p-4 sm:p-5 border border-[#ececec] rounded-2xl hover:border-nwcn-green/30 hover:shadow-sm transition-all duration-200 group bg-white"
+                      className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 sm:gap-6 p-4 sm:p-5 border border-nwcn-neutral-200 rounded-2xl hover:border-nwcn-green/30 hover:shadow-sm transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn group bg-white"
                     >
                       {/* 순번 */}
-                      <span className="font-brand font-bold text-[13px] sm:text-[14px] text-[#ddd] w-6 flex-shrink-0 text-center">
+                      <span className="font-brand font-bold text-[13px] sm:text-[14px] text-nwcn-neutral-300 w-6 flex-shrink-0 text-center">
                         {String(idx + 1).padStart(2, '0')}
                       </span>
 
                       {/* 날짜 */}
-                      <span className="font-body text-[12px] text-[#bbb] w-20 sm:w-24 flex-shrink-0">
+                      <span className="font-body text-[12px] text-nwcn-neutral-400 w-20 sm:w-24 flex-shrink-0">
                         {new Date(report.published_at).toLocaleDateString(dateLocale)}
                       </span>
 
@@ -133,7 +133,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
 
                       {/* 읽기 시간 — 모바일 숨김 */}
                       {report.read_time && (
-                        <span className="hidden sm:inline font-body text-[12px] text-[#bbb] flex-shrink-0">
+                        <span className="hidden sm:inline font-body text-[12px] text-nwcn-neutral-400 flex-shrink-0">
                           {report.read_time} {t('readSuffix')}
                         </span>
                       )}
@@ -142,7 +142,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                       <svg
                         width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" strokeWidth="2"
-                        className="hidden sm:block flex-shrink-0 text-[#ddd] group-hover:text-nwcn-green group-hover:translate-x-1 transition-all duration-200"
+                        className="hidden sm:block flex-shrink-0 text-nwcn-neutral-300 group-hover:text-nwcn-green group-hover:translate-x-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn"
                       >
                         <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>

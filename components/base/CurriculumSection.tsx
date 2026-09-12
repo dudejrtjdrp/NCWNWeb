@@ -80,7 +80,7 @@ const CURRICULUM_DATA: GradeData[] = [
       },
       {
         title: '전공필수',
-        color: '#007042',
+        color: 'var(--color-green-darker)',
         semesters: [
           {
             label: '1학기',
@@ -186,7 +186,7 @@ const CURRICULUM_DATA: GradeData[] = [
       },
       {
         title: '전공필수',
-        color: '#007042',
+        color: 'var(--color-green-darker)',
         semesters: [
           {
             label: '1학기',
@@ -268,7 +268,7 @@ const CURRICULUM_DATA: GradeData[] = [
     categories: [
       {
         title: '전공필수',
-        color: '#007042',
+        color: 'var(--color-green-darker)',
         semesters: [
           {
             label: '1학기',
@@ -372,13 +372,13 @@ function CurriculumIcon() {
       {/* 아이콘 (Figma Vector2 대체: 화살표/별 모양 아이콘) */}
       <path
         d="M32 4L36.5 20H53L39.7 29.5L44.2 45.5L32 36L19.8 45.5L24.3 29.5L11 20H27.5L32 4Z"
-        stroke="#09F593"
+        stroke="var(--color-green)"
         strokeWidth="2"
         fill="none"
       />
       <path
         d="M32 12L35 22H45.5L37 28L40 38L32 32L24 38L27 28L18.5 22H29L32 12Z"
-        fill="#09F593"
+        fill="var(--color-green)"
         opacity="0.3"
       />
     </svg>
@@ -390,12 +390,12 @@ function CourseItem({ course }: { course: Course }) {
   return (
     <div className="flex flex-col gap-3 sm:gap-4 lg:gap-[35px]">
       {/* 과목명 + 학점 */}
-      <p className="m-0 font-body font-medium text-[14px] sm:text-[16px] lg:text-[18px] leading-[1.5] lg:leading-[27px] text-[#050505]">
+      <p className="m-0 font-body font-medium text-[14px] sm:text-[16px] lg:text-[18px] leading-[1.5] lg:leading-[27px] text-nwcn-text-default">
         {course.name}
       </p>
       {/* 과목 설명 */}
       {course.description && (
-        <p className="m-0 font-body font-medium text-[13px] sm:text-[15px] lg:text-[18px] leading-[1.6] lg:leading-[27px] text-[#888] whitespace-pre-wrap">
+        <p className="m-0 font-body font-medium text-[13px] sm:text-[15px] lg:text-[18px] leading-[1.6] lg:leading-[27px] text-nwcn-neutral-500 whitespace-pre-wrap">
           {course.description}
         </p>
       )}
@@ -408,7 +408,7 @@ function SemesterBlock({ semester }: { semester: Semester }) {
   return (
     <div className="flex flex-col gap-2">
       {/* 학기 헤더 */}
-      <p className="m-0 font-body font-bold text-[15px] sm:text-[16px] lg:text-[18px] leading-[27px] text-[#050505]">
+      <p className="m-0 font-body font-bold text-[15px] sm:text-[16px] lg:text-[18px] leading-[27px] text-nwcn-text-default">
         {semester.label}
       </p>
       {/* 과목 목록 */}
@@ -430,7 +430,7 @@ function CategorySection({ category }: { category: CurriculumCategory }) {
         style={{
           width: '100%',
           height: 1,
-          background: '#E8E8E8',
+          background: 'var(--color-neutral-200)',
           margin: '0 0 81px 0',
         }}
         aria-hidden
@@ -545,7 +545,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
                 border: 'none',
                 cursor: 'pointer',
                 overflow: 'hidden',
-                background: isActive ? '#09F593' : '#B9B8B6',
+                background: isActive ? 'var(--color-green)' : 'var(--color-text-sub)',
                 boxShadow: isActive
                   ? '0px 4px 10px 0px rgba(0,0,0,0.15)'
                   : 'none',
@@ -554,7 +554,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
                 fontWeight: 700,
                 fontSize: 16,
                 lineHeight: 'normal',
-                color: '#151515',
+                color: 'var(--color-dark)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -579,7 +579,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
             {idx > 0 && (
               /* 카테고리 간 구분선 */
               <div
-                className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-[#E8E8E8] mb-8 sm:mb-12 lg:mb-[81px]"
+                className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-nwcn-neutral-200 mb-8 sm:mb-12 lg:mb-[81px]"
                 aria-hidden
               />
             )}
@@ -612,7 +612,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
 
       {/* 하단 구분선 */}
       <div
-        className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-[#E8E8E8]"
+        className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-nwcn-neutral-200"
         aria-hidden
       />
     </div>

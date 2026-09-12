@@ -10,7 +10,7 @@ import { useState } from 'react'
  * 크기: 290×379px
  * 배경 variants:
  *   - green-solid    : #09F593 단색
- *   - green-gradient : from-[#00FF95] to-[#007E4A] 그라디언트
+ *   - green-gradient : from-nwcn-green to-nwcn-green-darker 그라디언트
  *   - yellow         : #E3E94D 단색 (조교)
  * 교수 이름: 좌측 90° 회전, 그라디언트 텍스트
  * 화살표 아이콘: 우측 상단, 수평 미러
@@ -54,8 +54,8 @@ const VARIANT_STYLES: Record<FacultyCardVariant, {
     nameGradient: 'from-black to-[#007042]',
   },
   'green-gradient': {
-    bg: 'bg-gradient-to-b from-[#00FF95] to-[#007E4A]',
-    nameGradient: 'from-white via-white to-[#00FF95]',
+    bg: 'bg-gradient-to-b from-nwcn-green to-nwcn-green-darker',
+    nameGradient: 'from-white via-white to-nwcn-green',
   },
   'yellow': {
     bg: 'bg-nwcn-yellow',
@@ -117,7 +117,7 @@ export default function FacultyCard({
       className={cn(
         'group relative block w-[200px] h-[261px] sm:w-[245px] sm:h-[320px] lg:w-[290px] lg:h-[379px] rounded-[5.21px] overflow-hidden',
         'shadow-[0px_4px_5.5px_rgba(0,0,0,0.25)]',
-        'transition-transform duration-300 ease-out hover:scale-[1.04] hover:shadow-[0px_8px_20px_rgba(0,0,0,0.30)]',
+        'transition-transform duration-base ease-nwcn hover:scale-[1.04] hover:shadow-[0px_8px_20px_rgba(0,0,0,0.30)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2',
         className,
       )}
@@ -192,7 +192,7 @@ export default function FacultyCard({
           className={cn(
             '-scale-x-100 w-full h-full',
             colorVariant === 'green-gradient' ? 'text-white/80' : 'text-black/50',
-            'transition-colors duration-300 group-hover:text-black/80',
+            'transition-colors duration-base ease-nwcn group-hover:text-black/80',
           )}
         />
       </div>
@@ -203,7 +203,7 @@ export default function FacultyCard({
           'absolute inset-0 z-20',
           'bg-gradient-to-t from-black/70 via-black/20 to-transparent',
           'opacity-0 group-hover:opacity-100',
-          'transition-opacity duration-300 ease-out',
+          'transition-opacity duration-base ease-nwcn',
           'flex flex-col items-center justify-end pb-7 gap-1',
         )}
         aria-hidden="true"

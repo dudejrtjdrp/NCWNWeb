@@ -25,12 +25,12 @@ export default async function AdmissionPage({ params }: PageProps) {
       <SubNav items={INFO_NAV_ITEMS} />
 
       {/* 섹션 타이틀 */}
-      <div className="bg-white pt-10 sm:pt-14 lg:pt-[60px] pb-4 sm:pb-6 lg:pb-[28px] text-center">
-        <p className="font-body font-light text-[20px] sm:text-[22px] lg:text-[24px] text-black">ADMISSION</p>
+      <div className="bg-white pt-section-sm pb-6 text-center">
+        <p className="section-label">ADMISSION</p>
       </div>
 
       <div className="bg-white pb-24">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px] space-y-16">
+        <div className="page-container space-y-16">
 
           {/* 입학처 링크 카드 */}
           <div className="border border-nwcn-green/20 rounded-3xl p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 bg-gradient-to-br from-[#f8fffe] to-[#f0fff8]">
@@ -39,7 +39,7 @@ export default async function AdmissionPage({ params }: PageProps) {
               <h2 className="font-body text-[22px] font-bold text-nwcn-text-default mb-2">
                 {locale === 'en' ? 'Official Admissions Website' : '입학처 공식 홈페이지'}
               </h2>
-              <p className="font-body text-[14px] text-[#888] leading-relaxed">
+              <p className="font-body text-[14px] text-nwcn-neutral-500 leading-relaxed">
                 {locale === 'en'
                   ? 'Check the latest admission guidelines and schedules on the official admissions website.'
                   : '최신 모집요강 및 전형 일정은 학교 공식 입학처에서 확인하세요.'}
@@ -58,7 +58,7 @@ export default async function AdmissionPage({ params }: PageProps) {
             <h2 className="font-brand font-bold text-[28px] text-nwcn-text-default mb-8">{t('stepsTitle')}</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {steps.map((s, idx) => (
-                <div key={s.step} className="relative border border-[#ececec] rounded-2xl p-6 hover:border-nwcn-green/30 hover:shadow-sm transition-all duration-300">
+                <div key={s.step} className="relative border border-nwcn-neutral-200 rounded-2xl p-6 hover:border-nwcn-green/30 hover:shadow-sm transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                   {/* 연결 화살표 (마지막 제외) */}
                   {idx < steps.length - 1 && (
                     <div className="hidden lg:block absolute right-[-14px] top-1/2 -translate-y-1/2 z-10">
@@ -71,7 +71,7 @@ export default async function AdmissionPage({ params }: PageProps) {
                     {s.step}
                   </span>
                   <h3 className="font-body font-bold text-[16px] text-nwcn-text-default mb-2">{s.label}</h3>
-                  <p className="font-body text-[13px] text-[#999] leading-relaxed">{s.desc}</p>
+                  <p className="font-body text-[13px] text-nwcn-neutral-500 leading-relaxed">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -82,7 +82,7 @@ export default async function AdmissionPage({ params }: PageProps) {
             <h2 className="font-brand font-bold text-[28px] text-nwcn-text-default mb-8">{t('faqTitle')}</h2>
             <div className="space-y-4">
               {faqs.map((faq, idx) => (
-                <div key={idx} className="border border-[#ececec] rounded-2xl p-7 hover:border-nwcn-green/20 hover:shadow-sm transition-all duration-300">
+                <div key={idx} className="border border-nwcn-neutral-200 rounded-2xl p-7 hover:border-nwcn-green/20 hover:shadow-sm transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                   <div className="flex items-start gap-4 mb-3">
                     <span className="flex-shrink-0 w-7 h-7 rounded-full bg-nwcn-green flex items-center justify-center">
                       <span className="font-body font-bold text-[11px] text-nwcn-text-default">Q</span>
@@ -92,10 +92,10 @@ export default async function AdmissionPage({ params }: PageProps) {
                     </p>
                   </div>
                   <div className="flex items-start gap-4">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-[#f0f0f0] flex items-center justify-center">
-                      <span className="font-body font-bold text-[11px] text-[#888]">A</span>
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-nwcn-neutral-100 flex items-center justify-center">
+                      <span className="font-body font-bold text-[11px] text-nwcn-neutral-500">A</span>
                     </span>
-                    <p className="font-body text-[14px] text-[#777] leading-relaxed pt-0.5">
+                    <p className="font-body text-[14px] text-nwcn-neutral-600 leading-relaxed pt-0.5">
                       {faq.a}
                     </p>
                   </div>

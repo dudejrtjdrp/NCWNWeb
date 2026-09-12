@@ -3,10 +3,10 @@
  * Figma node-id: 280:410 (card), 280:428 (caption), 280:446 (Union trophy icon)
  *
  * 디자인 스펙:
- * - 이미지 영역: bg-[#efefef], 높이 209px, overflow-hidden
+ * - 이미지 영역: bg-nwcn-neutral-100, 높이 209px, overflow-hidden
  * - 트로피 아이콘: 35×74px, 카드 좌상단(left 36px), 카드보다 3px 위 오버랩 (absolute)
  * - 배지: 이미지 우상단 (optional)
- * - 캡션 영역: bg-[#f9f9f9], 48px 높이, 이미지와 18px 간격
+ * - 캡션 영역: bg-nwcn-neutral-50, 48px 높이, 이미지와 18px 간격
  * - caption: 좌측 텍스트 (Pretendard Medium 14px, #323131)
  * - subCaption: 우측 보조 텍스트 (12px, #B9B8B6)
  * - href: 선택적 링크 (전달 시 Next Link로 래핑, 호버 애니메이션 활성화)
@@ -65,7 +65,7 @@ export default function NincCardItem({
 
       {/* ── 이미지 영역 ── */}
       <div
-        className="relative bg-[#efefef] overflow-hidden w-full"
+        className="relative bg-nwcn-neutral-100 overflow-hidden w-full"
         style={{ height: 'clamp(140px, 14.5vw, 209px)' }}
       >
         {thumbnail ? (
@@ -73,15 +73,15 @@ export default function NincCardItem({
             src={thumbnail}
             alt={caption}
             fill
-            className={`object-cover transition-transform duration-500${href ? ' group-hover:scale-105' : ''}`}
+            className={`object-cover transition-transform duration-slow ease-nwcn${href ? ' group-hover:scale-105' : ''}`}
             unoptimized
           />
         ) : (
           /* 썸네일 없을 때 호버 오버레이 */
           href ? (
-            <div className="absolute inset-0 flex items-center justify-center transition-colors duration-300 group-hover:bg-black/10">
-              <div className="w-8 h-8 rounded-full border-2 border-nwcn-text-sub/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#323131" strokeWidth="2">
+            <div className="absolute inset-0 flex items-center justify-center transition-colors duration-base ease-nwcn group-hover:bg-black/10">
+              <div className="w-8 h-8 rounded-full border-2 border-nwcn-text-sub/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-base ease-nwcn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </div>
@@ -91,8 +91,8 @@ export default function NincCardItem({
 
         {/* 호버 오버레이 (링크 있을 때) */}
         {href && (
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300 flex items-center justify-center">
-            <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-base ease-nwcn flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn transform translate-y-2 group-hover:translate-y-0">
               <span className="font-body text-xs text-white bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
                 자세히 보기
               </span>
@@ -110,11 +110,11 @@ export default function NincCardItem({
 
       {/* ── 캡션 영역: 이미지와 18px 간격 ── */}
       <div
-        className={`bg-[#f9f9f9] flex items-center gap-2 px-4 transition-colors duration-300${href ? ' group-hover:bg-[#f0f0f0]' : ''}`}
+        className={`bg-nwcn-neutral-50 flex items-center gap-2 px-4 transition-colors duration-base ease-nwcn${href ? ' group-hover:bg-nwcn-neutral-100' : ''}`}
         style={{ minHeight: '48px', marginTop: 'clamp(10px, 1.25vw, 18px)' }}
         data-node-id="280:428"
       >
-        <p className={`font-body font-medium text-[14px] text-nwcn-text-muted leading-normal flex-1 truncate transition-colors duration-300${href ? ' group-hover:text-nwcn-text-default' : ''}`}>
+        <p className={`font-body font-medium text-[14px] text-nwcn-text-muted leading-normal flex-1 truncate transition-colors duration-base ease-nwcn${href ? ' group-hover:text-nwcn-text-default' : ''}`}>
           {caption}
         </p>
         {subCaption && (
@@ -125,7 +125,7 @@ export default function NincCardItem({
         {/* 화살표 아이콘 (링크 있을 때) */}
         {href && (
           <svg
-            className="w-3 h-3 text-nwcn-text-sub opacity-0 group-hover:opacity-100 transition-opacity duration-300 shrink-0"
+            className="w-3 h-3 text-nwcn-text-sub opacity-0 group-hover:opacity-100 transition-opacity duration-base ease-nwcn shrink-0"
             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
           >
             <path d="M5 12h14M12 5l7 7-7 7" />

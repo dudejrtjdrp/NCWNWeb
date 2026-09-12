@@ -41,7 +41,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
       <div
         aria-hidden="true"
         className={cn(
-          'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300',
+          'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-base ease-nwcn',
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         )}
         onClick={onClose}
@@ -54,7 +54,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
         aria-label="모바일 메뉴"
         aria-hidden={!isOpen}
         className={cn(
-          'fixed top-0 right-0 z-50 h-full w-80 bg-nwcn-dark-2 border-l border-white/10 transition-transform duration-300 ease-out',
+          'fixed top-0 right-0 z-50 h-full w-80 bg-nwcn-dark-2 border-l border-white/10 transition-transform duration-base ease-nwcn',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
@@ -92,7 +92,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
                     href={child.href}
                     onClick={onClose}
                     className={cn(
-                      'block px-3 py-2 font-body text-sm rounded-lg transition-colors duration-150',
+                      'block px-3 py-2 font-body text-sm rounded-lg transition-colors duration-fast ease-nwcn',
                       pathname === child.href
                         ? 'text-nwcn-green bg-nwcn-green/10'
                         : 'text-white/60 hover:text-white hover:bg-white/5'

@@ -136,7 +136,7 @@ const norm = (x: number, a: number, b: number) => clamp01((x - a) / (b - a))
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
-const TEXT_COLOR = '#3a3a3b'
+const TEXT_COLOR = 'var(--color-neutral-700)'
 
 /* ── 타임라인 (progress 0→1) — 데스크탑과 동일한 내러티브, 구간을 겹쳐 빈 박자 제거 ── */
 type Frame = {
@@ -401,7 +401,7 @@ export default function HomeHeroMobile({
           <Link href="/work/showcase" aria-label="WORK 쇼케이스 보기" className="group block">
             {/* idle 플로팅 제거(윈도우 떨림 원인) */}
             <div
-              className="transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+              className="transition-transform duration-base ease-nwcn group-hover:scale-[1.04]"
               style={{ filter: 'drop-shadow(-12px 30px 18px rgba(0,0,0,0.10))' }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -449,7 +449,7 @@ export default function HomeHeroMobile({
               aspectRatio: '325 / 183',
               flex: 'none',
               borderRadius: 14,
-              background: '#d9d9d9',
+              background: 'var(--color-neutral-300)',
               overflow: 'hidden',
               textDecoration: 'none',
               scrollSnapAlign: 'center',
@@ -474,11 +474,11 @@ export default function HomeHeroMobile({
                     </span>
                   )}
                   <div>
-                    <p style={{ margin: 0, fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: post.image ? '#fff' : '#6f6f6f', textShadow: post.image ? '0 1px 8px rgba(0,0,0,0.4)' : 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <p style={{ margin: 0, fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: post.image ? '#fff' : 'var(--color-neutral-600)', textShadow: post.image ? '0 1px 8px rgba(0,0,0,0.4)' : 'none', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {post.title}
                     </p>
                     {post.subtitle && (
-                      <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 500, color: post.image ? 'rgba(255,255,255,0.85)' : '#9a9a9a' }}>
+                      <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 500, color: post.image ? 'rgba(255,255,255,0.85)' : 'var(--color-neutral-500)' }}>
                         {post.subtitle}
                       </p>
                     )}
@@ -588,7 +588,7 @@ export default function HomeHeroMobile({
           <span className="font-body text-[10px] tracking-[0.2em] uppercase" style={{ color: 'rgba(58,58,59,0.7)' }}>
             Scroll
           </span>
-          <div className="w-px h-7 bg-gradient-to-b from-[#3a3a3b]/50 to-transparent" />
+          <div className="w-px h-7 bg-gradient-to-b from-nwcn-neutral-700/50 to-transparent" />
         </div>
       </div>
     </div>

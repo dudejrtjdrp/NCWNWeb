@@ -45,8 +45,8 @@ export default async function EventPage({ params }: { params: Promise<{ locale: 
       <SubNav items={NINC_NAV_ITEMS} />
 
       {/* 섹션 타이틀 */}
-      <div className="bg-white pt-10 sm:pt-14 lg:pt-[60px] pb-4 sm:pb-6 lg:pb-[28px] text-center">
-        <p className="font-body font-light text-[20px] sm:text-[22px] lg:text-[24px] text-black">EVENT</p>
+      <div className="bg-white pt-section-sm pb-6 text-center">
+        <p className="section-label">EVENT</p>
       </div>
 
       {/* 필터 + 이벤트 목록 (Client Component) */}

@@ -40,7 +40,7 @@ function Chevron({ open }: { open: boolean }) {
       strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+      className={`transition-transform duration-base ease-nwcn ${open ? 'rotate-180' : ''}`}
       aria-hidden="true"
     >
       <polyline points="6 9 12 15 18 9" />
@@ -55,7 +55,7 @@ const STYLES = {
     columnStyle: { rowGap: 'clamp(28px, 3.13vw, 45px)' } as React.CSSProperties,
     section: 'w-full flex flex-col gap-[21px] items-end',
     label: 'font-body font-extrabold text-[26.261px] text-nwcn-green leading-normal w-full',
-    list: 'w-full font-body font-normal text-[20px] text-[#050505]',
+    list: 'w-full font-body font-normal text-[20px] text-nwcn-text-default',
     listStyle: { lineHeight: '34.467px' } as React.CSSProperties,
     button: 'text-[17px]',
   },
@@ -64,7 +64,7 @@ const STYLES = {
     columnStyle: undefined as React.CSSProperties | undefined,
     section: 'flex flex-col gap-3',
     label: 'font-body font-extrabold text-[20px] text-nwcn-green leading-normal',
-    list: 'font-body font-normal text-[14px] text-[#050505]',
+    list: 'font-body font-normal text-[14px] text-nwcn-text-default',
     listStyle: { lineHeight: 1.75 } as React.CSSProperties,
     button: 'text-[14px]',
   },
