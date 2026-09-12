@@ -231,7 +231,7 @@ export default function ProfessorDetailSection({
                   />
                 ) : (
                   <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
-                    <span className="font-body font-extrabold text-[96px] text-black/10 leading-none">
+                    <span className="font-body font-extrabold text-hero-1 text-black/10 leading-none">
                       {faculty.nameKo[0]}
                     </span>
                   </div>
@@ -248,14 +248,14 @@ export default function ProfessorDetailSection({
             style={{ left: '13.54%', top: 'clamp(320px, 36vw, 519px)', zIndex: 10 }}
           >
             <h1
-              className="font-body font-bold text-[24.415px] text-black leading-normal"
+              className="font-body font-bold text-section text-black leading-normal"
             >
               {displayName}
             </h1>
             {faculty.email && (
               <a
                 href={`mailto:${faculty.email}`}
-                className="font-body font-normal text-[24px] text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-section text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
               >
                 {faculty.email}
               </a>
@@ -309,7 +309,7 @@ export default function ProfessorDetailSection({
                 />
               ) : (
                 <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
-                  <span className="font-body font-extrabold text-[60px] text-black/10 leading-none">
+                  <span className="font-body font-extrabold text-hero-1 text-black/10 leading-none">
                     {faculty.nameKo[0]}
                   </span>
                 </div>
@@ -318,13 +318,13 @@ export default function ProfessorDetailSection({
           )}
           {/* 이름 + 이메일 */}
           <div className="flex flex-col gap-2">
-            <h1 className="font-body font-bold text-[20px] text-black leading-normal">
+            <h1 className="font-body font-bold text-section text-black leading-normal">
               {displayName}
             </h1>
             {faculty.email && (
               <a
                 href={`mailto:${faculty.email}`}
-                className="font-body font-normal text-[15px] text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-body text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
               >
                 {faculty.email}
               </a>
@@ -449,7 +449,7 @@ export default function ProfessorDetailSection({
         <div className="relative flex justify-center py-16" style={{ zIndex: 10 }}>
           <Link
             href="/about/faculty"
-            className="inline-flex items-center gap-2 font-body text-[14px] text-nwcn-neutral-500 hover:text-nwcn-green transition-colors group"
+            className="inline-flex items-center gap-2 font-body text-body-sm text-nwcn-neutral-500 hover:text-nwcn-green transition-colors group"
             aria-label="교수진 목록으로 돌아가기"
           >
             <svg

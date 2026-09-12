@@ -62,10 +62,10 @@ export default function Footer({ className = '' }: FooterProps) {
           >
             {CONTACT_INFO.map(({ labelKey, value }) => (
               <div key={labelKey} className="flex flex-col gap-1">
-                <p className="font-body font-medium text-nwcn-text-muted text-[13px] sm:text-[14px]">
+                <p className="font-body font-medium text-nwcn-text-muted text-caption sm:text-body-sm">
                   {t(labelKey as Parameters<typeof t>[0])}
                 </p>
-                <p className="font-body font-normal text-white text-[11px] sm:text-[11.6px] leading-tight">
+                <p className="font-body font-normal text-white text-caption leading-tight">
                   {value}
                 </p>
               </div>
@@ -80,10 +80,10 @@ export default function Footer({ className = '' }: FooterProps) {
         <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pt-6 sm:pt-8 pb-6">
           {/* 주소 + Copyright */}
           <div className="flex flex-col gap-3" data-node-id="376:1616">
-            <p className="font-body font-medium text-white text-[11px] sm:text-[11.6px] leading-tight">
+            <p className="font-body font-medium text-white text-caption leading-tight">
               {t('address')}
             </p>
-            <p className="font-body font-medium text-white text-[11px] sm:text-[11.6px] leading-tight">
+            <p className="font-body font-medium text-white text-caption leading-tight">
               {t('copyright')}
             </p>
           </div>
@@ -99,7 +99,7 @@ export default function Footer({ className = '' }: FooterProps) {
                 className="flex items-center gap-[9px] text-white hover:opacity-70 transition-opacity"
               >
                 <Image src={icon} alt="" width={19} height={19} unoptimized aria-hidden="true" />
-                <span className="font-body font-medium whitespace-nowrap text-[12px] sm:text-[12.62px]">
+                <span className="font-body font-medium whitespace-nowrap text-caption ">
                   {t(key as Parameters<typeof t>[0])}
                 </span>
               </a>
@@ -108,7 +108,7 @@ export default function Footer({ className = '' }: FooterProps) {
         </div>
 
         {/* 검색 노출용 별칭·약칭 (fine print) — 동방예대/뉴콘/DIMA 등 변형 키워드 매칭용 */}
-        <p className="pb-3 font-body text-[11px] leading-relaxed text-white/30">
+        <p className="pb-3 font-body text-caption leading-relaxed text-white/30">
           {t('alias')}
         </p>
 
@@ -116,7 +116,7 @@ export default function Footer({ className = '' }: FooterProps) {
         <div className="pb-2">
           <Link
             href="/info/privacy"
-            className="font-body text-[11px] text-white/30 hover:text-white/60 transition-colors"
+            className="font-body text-caption text-white/30 hover:text-white/60 transition-colors"
           >
             {t('privacy')}
           </Link>

@@ -74,7 +74,7 @@ function renderContent(content: string) {
   for (const line of lines) {
     if (line.startsWith('## ')) {
       elements.push(
-        <h2 key={key++} className="font-body font-bold text-[20px] text-nwcn-text-default mt-10 mb-4">
+        <h2 key={key++} className="font-body font-bold text-section text-nwcn-text-default mt-10 mb-4">
           {line.replace('## ', '')}
         </h2>
       )
@@ -82,7 +82,7 @@ function renderContent(content: string) {
       elements.push(<div key={key++} className="h-4" />)
     } else {
       elements.push(
-        <p key={key++} className="font-body text-[15px] text-nwcn-text-muted leading-[1.85] mb-1">
+        <p key={key++} className="font-body text-body text-nwcn-text-muted leading-[1.85] mb-1">
           {line}
         </p>
       )
@@ -182,13 +182,13 @@ export default async function ArticleDetailPage({ params }: PageProps) {
           )}
 
           {/* 제목 */}
-          <h1 className="font-body font-bold text-[32px] md:text-[48px] lg:text-[56px] text-white leading-[1.15] mb-6 max-w-3xl">
+          <h1 className="font-body font-bold text-hero-1 text-white leading-[1.15] mb-6 max-w-3xl">
             {article.title}
           </h1>
 
           {/* 설명 */}
           {article.description && (
-            <p className="font-body text-[16px] text-white/50 leading-relaxed max-w-2xl mb-10">
+            <p className="font-body text-body text-white/50 leading-relaxed max-w-2xl mb-10">
               {article.description}
             </p>
           )}
@@ -269,7 +269,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   <div className="max-w-[680px]">{renderContent(article.content)}</div>
                 )
               ) : (
-                <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed max-w-[680px]">
+                <p className="font-body text-body text-nwcn-text-muted leading-relaxed max-w-[680px]">
                   {article.excerpt}
                 </p>
               )}
@@ -302,17 +302,17 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   </p>
                   <div className="space-y-3">
                     <div>
-                      <p className="font-body text-[11px] text-nwcn-text-sub">{t('sidebarType')}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarType')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{TYPE_LABELS[article.type] ?? article.type}</p>
                     </div>
                     {article.season && (
                       <div>
-                        <p className="font-body text-[11px] text-nwcn-text-sub">{t('sidebarSeason')}</p>
+                        <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarSeason')}</p>
                         <p className="font-body text-sm text-nwcn-text-muted">{article.season}</p>
                       </div>
                     )}
                     <div>
-                      <p className="font-body text-[11px] text-nwcn-text-sub">{t('sidebarPublishedAt')}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarPublishedAt')}</p>
                       <p className="font-body text-sm text-nwcn-text-muted">{formattedDate}</p>
                     </div>
                   </div>
@@ -331,7 +331,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                           href={`/ncr-trend/${rel.id}`}
                           className="block p-3 rounded-xl border border-black/8 hover:border-nwcn-text-sub/40 transition-colors group"
                         >
-                          <p className="font-body text-[11px] text-nwcn-green mb-1">
+                          <p className="font-body text-caption text-nwcn-green mb-1">
                             {TYPE_LABELS[rel.type] ?? rel.type}
                           </p>
                           <p className="font-body text-sm text-nwcn-text-muted group-hover:text-nwcn-text-default transition-colors leading-snug">

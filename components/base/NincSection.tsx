@@ -99,14 +99,14 @@ export default async function NincSection({ locale = 'ko', className = '' }: Nin
                 {card.link_href ? (
                   <Link
                     href={card.link_href}
-                    className="group relative w-full h-full block transform transition duration-fast ease-nwcn hover:scale-105 hover:shadow-2xl hover:z-20 focus:outline-none cursor-pointer"
+                    className="group relative w-full h-full block transform transition duration-fast ease-nwcn hover:scale-105 hover:shadow-lift-3 hover:z-20 focus:outline-none cursor-pointer"
                   >
                     {inner}
                   </Link>
                 ) : (
                   <div
                     role="img"
-                    className="group relative w-full h-full transform transition duration-fast ease-nwcn hover:scale-105 hover:shadow-2xl hover:z-20"
+                    className="group relative w-full h-full transform transition duration-fast ease-nwcn hover:scale-105 hover:shadow-lift-3 hover:z-20"
                   >
                     {inner}
                   </div>

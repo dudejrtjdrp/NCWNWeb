@@ -100,7 +100,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
           </div>
 
           {/* 대회명 */}
-          <h1 className="font-body font-bold text-[32px] md:text-[44px] text-nwcn-text-default leading-tight mb-3">
+          <h1 className="font-body font-bold text-hero-2 text-nwcn-text-default leading-tight mb-3">
             {award.competition}
           </h1>
 
@@ -183,17 +183,17 @@ export default async function AwardDetailPage({ params }: PageProps) {
             <main className="lg:col-span-2 order-1 lg:order-2">
               {/* 섹션: 수상 소개 */}
               <section className="mb-12">
-                <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
+                <h2 className="font-body font-semibold text-card text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                   {t('sectionIntro')}
                 </h2>
-                <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed">
+                <p className="font-body text-body text-nwcn-text-muted leading-relaxed">
                   {award.description ?? t('noDescription')}
                 </p>
               </section>
 
               {/* 섹션: 수상자 정보 */}
               <section className="mb-12">
-                <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
+                <h2 className="font-body font-semibold text-card text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                   {t('sectionWinners')}
                 </h2>
                 <div className="flex flex-wrap gap-3">
@@ -210,7 +210,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                       <div>
                         <p className="font-body text-sm font-medium text-nwcn-text-default">{member}</p>
                         {member === award.winner && (
-                          <p className="font-body text-[11px] text-nwcn-text-sub">{t('representative')}</p>
+                          <p className="font-body text-caption text-nwcn-text-sub">{t('representative')}</p>
                         )}
                       </div>
                     </div>

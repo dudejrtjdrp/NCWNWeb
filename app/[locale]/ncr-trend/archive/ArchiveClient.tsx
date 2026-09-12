@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import Badge from '@/components/ui/Badge'
 import Link from 'next/link'
 import type { NcrReportListItem as NcrReportItem } from '@/lib/supabase/queries/ncr'
+import { FilterChip, FilterGroup } from '@/components/ui/FilterChip'
 
 const TYPE_BADGE: Record<string, 'new' | 'hot' | 'number'> = {
   editorial: 'new',
@@ -60,22 +61,13 @@ export default function ArchiveClient({ reports, seasons }: Props) {
     <>
       {/* 시즌 필터 */}
       <div className="bg-white pb-10">
-        <div className="page-container flex flex-wrap gap-2">
+        <FilterGroup label="시즌 필터" className="page-container">
           {[filterAll, ...seasons].map((s) => (
-            <button
-              key={s}
-              onClick={() => setActiveSeason(s)}
-              className={[
-                'px-5 py-2 rounded-full font-body text-[14px] font-medium transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn',
-                activeSeason === s
-                  ? 'bg-nwcn-text-default text-white'
-                  : 'border border-nwcn-neutral-300 text-nwcn-neutral-600 hover:border-nwcn-text-default hover:text-nwcn-text-default',
-              ].join(' ')}
-            >
+            <FilterChip key={s} active={activeSeason === s} onClick={() => setActiveSeason(s)}>
               {s}
-            </button>
+            </FilterChip>
           ))}
-        </div>
+        </FilterGroup>
       </div>
 
       {/* 리포트 목록 */}
@@ -83,7 +75,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
         <div className="page-container space-y-14">
           {sortedSeasons.length === 0 ? (
             <div className="flex items-center justify-center py-24">
-              <p className="font-body text-[16px] text-nwcn-neutral-400">{t('noReports')}</p>
+              <p className="font-body text-body text-nwcn-neutral-400">{t('noReports')}</p>
             </div>
           ) : (
             sortedSeasons.map((season) => (
@@ -94,11 +86,11 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: SEASON_COLORS[season] ?? 'var(--color-neutral-300)' }}
                   />
-                  <h2 className="font-brand font-bold text-[20px] text-nwcn-text-default">
+                  <h2 className="font-brand font-bold text-section text-nwcn-text-default">
                     {season}
                   </h2>
                   <div className="flex-1 h-[1px] bg-nwcn-neutral-200" />
-                  <span className="font-body text-[13px] text-nwcn-neutral-400">
+                  <span className="font-body text-caption text-nwcn-neutral-400">
                     {grouped[season].length}{locale === 'en' ? ` ${t('countSuffix')}` : t('countSuffix')}
                   </span>
                 </div>
@@ -109,15 +101,15 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                     <Link
                       key={report.id}
                       href={`/ncr-trend/${report.id}`}
-                      className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 sm:gap-6 p-4 sm:p-5 border border-nwcn-neutral-200 rounded-2xl hover:border-nwcn-green/30 hover:shadow-sm transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn group bg-white"
+                      className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 sm:gap-6 p-4 sm:p-5 border border-nwcn-neutral-200 rounded-2xl hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn group bg-white"
                     >
                       {/* 순번 */}
-                      <span className="font-brand font-bold text-[13px] sm:text-[14px] text-nwcn-neutral-300 w-6 flex-shrink-0 text-center">
+                      <span className="font-brand font-bold text-caption sm:text-body-sm text-nwcn-neutral-300 w-6 flex-shrink-0 text-center">
                         {String(idx + 1).padStart(2, '0')}
                       </span>
 
                       {/* 날짜 */}
-                      <span className="font-body text-[12px] text-nwcn-neutral-400 w-20 sm:w-24 flex-shrink-0">
+                      <span className="font-body text-caption text-nwcn-neutral-400 w-20 sm:w-24 flex-shrink-0">
                         {new Date(report.published_at).toLocaleDateString(dateLocale)}
                       </span>
 
@@ -127,13 +119,13 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                       </Badge>
 
                       {/* 제목 — 모바일에선 줄바꿈되어 한 줄 전체 차지, 데스크탑에선 인라인 */}
-                      <p className="order-last sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 font-body text-[14px] sm:text-[15px] text-nwcn-text-default font-medium group-hover:text-nwcn-green transition-colors">
+                      <p className="order-last sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 font-body text-body-sm sm:text-body text-nwcn-text-default font-medium group-hover:text-nwcn-green transition-colors">
                         {report.title}
                       </p>
 
                       {/* 읽기 시간 — 모바일 숨김 */}
                       {report.read_time && (
-                        <span className="hidden sm:inline font-body text-[12px] text-nwcn-neutral-400 flex-shrink-0">
+                        <span className="hidden sm:inline font-body text-caption text-nwcn-neutral-400 flex-shrink-0">
                           {report.read_time} {t('readSuffix')}
                         </span>
                       )}

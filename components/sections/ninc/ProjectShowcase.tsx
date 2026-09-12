@@ -139,23 +139,23 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
       <div key={index} className="animate-slide-up flex flex-col gap-5 lg:gap-[34px]">
         <span
           className={cn(
-            'inline-flex w-fit items-center rounded-full px-3 py-[3px] font-body text-[16px] lg:text-[17.6px] text-nwcn-text-default',
+            'inline-flex w-fit items-center rounded-full px-3 py-[3px] font-body text-body text-nwcn-text-default',
             ACCENT[accent].badge
           )}
         >
           {label}
         </span>
 
-        <p className="font-body font-medium text-[16px] lg:text-[18px] leading-[27px] text-black">
+        <p className="font-body font-medium text-body lg:text-card leading-[27px] text-black">
           {current.date}
         </p>
 
         <div className="flex flex-col gap-[10px]">
-          <h3 className="font-body font-extrabold text-[20px] lg:text-[24.5px] leading-tight text-black">
+          <h3 className="font-body font-extrabold text-section leading-tight text-black">
             {current.title}
           </h3>
           {current.place && (
-            <p className="font-body font-medium text-[16px] lg:text-[18px] leading-[27px] text-black">
+            <p className="font-body font-medium text-body lg:text-card leading-[27px] text-black">
               {current.place}
             </p>
           )}

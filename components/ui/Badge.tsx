@@ -6,7 +6,7 @@
  * - New: #09F593 bg, rounded-full, Pretendard Bold 12px, #050505 text
  * - Hot: #E3E94D bg, 동일
  * - Number: #151515 bg, white text, 동일
- * - 공통: px-[8px] py-[2px], rounded-[99px]
+ * - 공통: px-[8px] py-[2px], rounded-full
  *
  * 하위 호환 variant:
  * - 'green' → New 스타일
@@ -28,8 +28,8 @@ export default function Badge({ children, variant = 'new', className }: BadgePro
   return (
     <span
       className={cn(
-        'inline-flex items-center justify-center px-[8px] py-[2px] rounded-[99px]',
-        'font-body font-bold text-[12px] leading-normal whitespace-nowrap',
+        'inline-flex items-center justify-center px-[8px] py-[2px] rounded-full',
+        'font-body font-bold text-caption leading-normal whitespace-nowrap',
         {
           // Figma 스펙
           'bg-nwcn-green text-nwcn-text-default': variant === 'new' || variant === 'green',

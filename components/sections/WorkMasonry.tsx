@@ -179,14 +179,14 @@ function EyeBadge({ count }: { count: number }) {
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
         <circle cx="12" cy="12" r="3" />
       </svg>
-      <span className="font-body text-[12px] leading-none text-white">{count}</span>
+      <span className="font-body text-caption leading-none text-white">{count}</span>
     </div>
   )
 }
 
 function Card({ work }: { work: WorkListItem }) {
   return (
-    <article className="relative h-full w-full overflow-hidden rounded-[10px] bg-nwcn-surface-2">
+    <article className="relative h-full w-full overflow-hidden rounded-lg bg-nwcn-surface-2">
       {work.thumbnail_url ? (
         <Image
           src={work.thumbnail_url}
@@ -197,15 +197,15 @@ function Card({ work }: { work: WorkListItem }) {
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-nwcn-neutral-200 to-nwcn-neutral-300">
-          <span className="font-brand font-black text-[48px] leading-none text-white/70">{work.title[0]}</span>
+          <span className="font-brand font-black text-hero-2 leading-none text-white/70">{work.title[0]}</span>
         </div>
       )}
 
       <EyeBadge count={work.view_count} />
 
       <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn group-hover:translate-y-0 group-hover:opacity-100">
-        <h3 className="font-body text-[15px] font-semibold leading-tight text-white">{work.title}</h3>
-        <p className="mt-0.5 font-body text-[12px] text-white/70">
+        <h3 className="font-body text-body font-semibold leading-tight text-white">{work.title}</h3>
+        <p className="mt-0.5 font-body text-caption text-white/70">
           {work.author} · {work.year}
         </p>
       </div>
@@ -255,7 +255,7 @@ export default function WorkMasonry({
   if (works.length === 0 && skeletonCount === 0) {
     return (
       <div className="flex items-center justify-center py-24">
-        <p className="font-body text-[16px] text-nwcn-gray-faint">{emptyHint ?? '표시할 작품이 없습니다'}</p>
+        <p className="font-body text-body text-nwcn-gray-faint">{emptyHint ?? '표시할 작품이 없습니다'}</p>
       </div>
     )
   }
@@ -285,7 +285,7 @@ export default function WorkMasonry({
             </Link>
           ) : (
             <div key={p.key} className="absolute" style={{ left: p.x, top: p.y, width: p.w, height: p.h }}>
-              <div className="h-full w-full rounded-[10px] bg-nwcn-surface-2 animate-pulse" />
+              <div className="h-full w-full rounded-lg bg-nwcn-surface-2 animate-pulse" />
             </div>
           )
         )}

@@ -36,7 +36,7 @@ export default async function ExhibitionPage() {
           {exhibitions.length > 0 ? (
             <ExhibitionCarousel items={exhibitions} />
           ) : (
-            <p className="py-24 text-center font-body text-[15px] text-nwcn-gray-muted">
+            <p className="py-24 text-center font-body text-body text-nwcn-gray-muted">
               등록된 졸업전시가 아직 없습니다.
             </p>
           )}

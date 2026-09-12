@@ -60,7 +60,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          <h1 className="font-body font-bold text-[32px] md:text-[44px] text-nwcn-text-default leading-tight mb-3">
+          <h1 className="font-body font-bold text-hero-2 text-nwcn-text-default leading-tight mb-3">
             {project.title}
           </h1>
 
@@ -157,15 +157,15 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             <main className="lg:col-span-2 order-1 lg:order-2">
               {project.description && (
                 <section className="mb-12">
-                  <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
+                  <h2 className="font-body font-semibold text-card text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                     {t('sectionIntro')}
                   </h2>
-                  <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed whitespace-pre-wrap">{project.description}</p>
+                  <p className="font-body text-body text-nwcn-text-muted leading-relaxed whitespace-pre-wrap">{project.description}</p>
                 </section>
               )}
               {project.outcome && (
                 <section className="mb-12">
-                  <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
+                  <h2 className="font-body font-semibold text-card text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                     {t('sectionOutcome')}
                   </h2>
                   <div className="bg-nwcn-neutral-100 rounded-xl p-5 flex items-start gap-4">
@@ -174,13 +174,13 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
-                    <p className="font-body text-[15px] text-nwcn-text-muted leading-relaxed whitespace-pre-wrap">{project.outcome}</p>
+                    <p className="font-body text-body text-nwcn-text-muted leading-relaxed whitespace-pre-wrap">{project.outcome}</p>
                   </div>
                 </section>
               )}
               {project.participants && project.participants.length > 0 && (
                 <section className="mb-12">
-                  <h2 className="font-body font-semibold text-[18px] text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
+                  <h2 className="font-body font-semibold text-card text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                     {t('sectionParticipants')}
                   </h2>
                   <div className="flex flex-wrap gap-3">

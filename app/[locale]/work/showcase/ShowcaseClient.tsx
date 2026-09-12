@@ -5,6 +5,7 @@ import WorkMasonry from '@/components/sections/WorkMasonry'
 import SearchBar from '@/components/common/SearchBar'
 import type { WorkListItem as WorkItem } from '@/lib/supabase/queries/works'
 import { loadShowcaseWorksAction } from './actions'
+import { FilterChip, FilterGroup } from '@/components/ui/FilterChip'
 
 interface Props {
   filterTags: string[]
@@ -143,22 +144,13 @@ export default function ShowcaseClient({
         />
 
         {/* 필터 태그 */}
-        <div className="flex flex-wrap justify-center gap-2.5 mb-10">
+        <FilterGroup label="작품 분야 필터" className="mb-10 justify-center">
           {filterButtons.map((f) => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={[
-                'px-3.5 py-1.5 rounded-full font-body text-[15px] transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn',
-                activeFilter === f
-                  ? 'bg-nwcn-dark text-white'
-                  : 'text-nwcn-text-muted hover:text-nwcn-text-default',
-              ].join(' ')}
-            >
+            <FilterChip key={f} active={activeFilter === f} onClick={() => setActiveFilter(f)}>
               {f}
-            </button>
+            </FilterChip>
           ))}
-        </div>
+        </FilterGroup>
 
         {/* 핀터레스트 마소너리 (무한 스크롤 + 스켈레톤) */}
         <WorkMasonry

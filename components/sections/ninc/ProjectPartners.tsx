@@ -23,7 +23,7 @@ function PartnerCard({ name, logoSrc, href }: { name: string; logoSrc: string; h
       aria-label={name}
     >
       {imgError ? (
-        <span className="font-body font-semibold text-[18px] text-nwcn-neutral-500 group-hover:text-nwcn-neutral-600">
+        <span className="font-body font-semibold text-card text-nwcn-neutral-500 group-hover:text-nwcn-neutral-600">
           {name}
         </span>
       ) : (
@@ -44,10 +44,10 @@ export default function ProjectPartners() {
     <section className="bg-white pt-16 sm:pt-20 lg:pt-[90px]" data-node-id="941:287">
       {/* 헤딩 */}
       <AnimateOnScroll variant="fade-up" className="text-center">
-        <h2 className="font-body font-bold text-[22px] sm:text-[24px] lg:text-[25px] text-nwcn-text-default">
+        <h2 className="font-body font-bold text-section text-nwcn-text-default">
           산학협력/가족회사
         </h2>
-        <p className="mt-3 lg:mt-[14px] font-body text-[15px] sm:text-[17px] lg:text-[18px] leading-[27px] text-nwcn-neutral-500">
+        <p className="mt-3 lg:mt-[14px] font-body text-body sm:text-card leading-[27px] text-nwcn-neutral-500">
           뉴미디어콘텐츠과와 인연을 맺고 있는 회사들입니다
         </p>
       </AnimateOnScroll>

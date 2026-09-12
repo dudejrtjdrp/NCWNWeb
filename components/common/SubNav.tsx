@@ -53,7 +53,7 @@ export default function SubNav({ items, className }: SubNavProps) {
             >
               <span
                 className={cn(
-                  'font-body text-[14px] sm:text-[18px] lg:text-[24px] leading-normal whitespace-nowrap transition-colors',
+                  'font-body text-body-sm sm:text-card lg:text-section leading-normal whitespace-nowrap transition-colors',
                   isActive
                     ? 'font-bold text-nwcn-dark'
                     : 'font-light text-nwcn-neutral-500 hover:text-nwcn-neutral-700'

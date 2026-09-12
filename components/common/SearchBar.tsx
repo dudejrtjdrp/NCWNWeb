@@ -6,7 +6,7 @@
  *
  * 디자인 스펙:
  * - 최대 너비: 1011px, 높이: 47px
- * - 테두리: border-black, rounded-[229px] (pill)
+ * - 테두리: border-black, rounded-full (pill)
  * - 포커스: border-nwcn-green
  * - 폰트: Pretendard 16px
  *
@@ -48,11 +48,12 @@ export default function SearchBar({
         onChange={(e) => onChange(e.target.value)}
         placeholder={resolvedPlaceholder}
         className={cn(
-          'w-full h-[47px] px-6',
-          'border border-black rounded-[229px]',
-          'bg-white font-body text-[16px] text-nwcn-text-default',
-          'placeholder:text-nwcn-text-sub',
-          'outline-none focus:border-nwcn-green transition-colors',
+          'h-[47px] w-full rounded-full px-6',
+          'border border-nwcn-text-default bg-white',
+          'font-body text-body text-nwcn-text-default placeholder:text-nwcn-text-sub',
+          'transition-[border-color,box-shadow] duration-fast ease-nwcn',
+          'hover:border-nwcn-green-darker',
+          'outline-none focus:border-nwcn-green focus-visible:ring-2 focus-visible:ring-nwcn-green/40',
           maxWidth
         )}
         aria-label={resolvedLabel}

@@ -585,7 +585,7 @@ export default function HomeHeroMobile({
           className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 z-[50] pointer-events-none"
           style={{ opacity: reducedMotion ? 0 : 1 }}
         >
-          <span className="font-body text-[10px] tracking-[0.2em] uppercase" style={{ color: 'rgba(58,58,59,0.7)' }}>
+          <span className="font-body text-caption tracking-[0.2em] uppercase" style={{ color: 'rgba(58,58,59,0.7)' }}>
             Scroll
           </span>
           <div className="w-px h-7 bg-gradient-to-b from-nwcn-neutral-700/50 to-transparent" />

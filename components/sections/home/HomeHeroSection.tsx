@@ -664,7 +664,7 @@ export default function HomeHeroSection({
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[60] pointer-events-none"
           style={{ opacity: reducedMotion ? 0 : 1 }}
         >
-          <span className="font-body text-[11px] tracking-[0.2em] text-nwcn-neutral-700/70 uppercase">Scroll</span>
+          <span className="font-body text-caption tracking-[0.2em] text-nwcn-neutral-700/70 uppercase">Scroll</span>
           <div className="w-px h-8 bg-gradient-to-b from-nwcn-neutral-700/50 to-transparent" />
         </div>
 

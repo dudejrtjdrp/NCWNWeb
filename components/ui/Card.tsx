@@ -1,7 +1,7 @@
 /**
  * UI 프리미티브: Card
  * 카드 모서리/그림자/호버를 3단계로 고정한다.
- * (기존 shadow-2xl / shadow-[0_28px_52px] / hover:shadow-sm 혼용 대체)
+ * (기존 shadow-lift-3 / shadow-[0_28px_52px] / hover:shadow-lift-1 혼용 대체)
  */
 
 import Link from 'next/link'

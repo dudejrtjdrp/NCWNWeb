@@ -42,7 +42,7 @@ function LoadingOverlay() {
             <div className="w-1.5 h-1.5 rounded-full bg-nwcn-green/60" />
           </div>
         </div>
-        <p className="font-body text-[10px] tracking-[0.25em] text-white/25 uppercase select-none">
+        <p className="font-body text-caption tracking-[0.25em] text-white/25 uppercase select-none">
           Loading
         </p>
       </div>

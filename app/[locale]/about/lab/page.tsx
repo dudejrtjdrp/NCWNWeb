@@ -14,7 +14,7 @@ export default function LabPage() {
       <AboutHero />
       <SubNav items={ABOUT_NAV_ITEMS} />
       <section className="bg-white min-h-[400px] flex items-center justify-center">
-        <p className="font-body text-[20px] text-nwcn-neutral-500">준비 중입니다</p>
+        <p className="font-body text-section text-nwcn-neutral-500">준비 중입니다</p>
       </section>
     </SubPageLayout>
   )

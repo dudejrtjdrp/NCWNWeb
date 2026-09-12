@@ -71,10 +71,10 @@ export default async function ContactPage({ params }: PageProps) {
             {/* 연락처 카드 */}
             <div className="border border-nwcn-neutral-200 rounded-3xl p-10 space-y-8">
               <div>
-                <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-2">
+                <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   CONTACT INFO
                 </p>
-                <h2 className="font-brand font-bold text-[24px] text-nwcn-text-default">{t('heading')}</h2>
+                <h2 className="font-brand font-bold text-section text-nwcn-text-default">{t('heading')}</h2>
               </div>
 
               <div className="space-y-6">
@@ -86,13 +86,13 @@ export default async function ContactPage({ params }: PageProps) {
                     </div>
                     {/* 텍스트 */}
                     <div>
-                      <p className="font-body text-[11px] font-semibold tracking-widest text-nwcn-neutral-400 mb-1">
+                      <p className="font-body text-caption font-semibold tracking-widest text-nwcn-neutral-400 mb-1">
                         {item.label}
                       </p>
-                      <p className="font-body text-[15px] font-medium text-nwcn-text-default mb-0.5">
+                      <p className="font-body text-body font-medium text-nwcn-text-default mb-0.5">
                         {item.value}
                       </p>
-                      <p className="font-body text-[13px] text-nwcn-neutral-400">{item.sub}</p>
+                      <p className="font-body text-caption text-nwcn-neutral-400">{item.sub}</p>
                     </div>
                   </div>
                 ))}
@@ -102,10 +102,10 @@ export default async function ContactPage({ params }: PageProps) {
             {/* 오시는 길 카드 */}
             <div className="border border-nwcn-neutral-200 rounded-3xl p-10 flex flex-col gap-6">
               <div>
-                <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-2">
+                <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   DIRECTIONS
                 </p>
-                <h2 className="font-brand font-bold text-[24px] text-nwcn-text-default">{t('directionsHeading')}</h2>
+                <h2 className="font-brand font-bold text-section text-nwcn-text-default">{t('directionsHeading')}</h2>
               </div>
 
               {/* 지도 */}
@@ -117,9 +117,9 @@ export default async function ContactPage({ params }: PageProps) {
               <div className="space-y-3 pt-2">
                 {directions.map((d) => (
                   <div key={d.label} className="flex items-center gap-3">
-                    <span className="text-[16px]">{d.icon}</span>
-                    <span className="font-body font-semibold text-[12px] text-nwcn-neutral-400 w-12">{d.label}</span>
-                    <span className="font-body text-[13px] text-nwcn-neutral-500">{d.value}</span>
+                    <span className="text-body">{d.icon}</span>
+                    <span className="font-body font-semibold text-caption text-nwcn-neutral-400 w-12">{d.label}</span>
+                    <span className="font-body text-caption text-nwcn-neutral-500">{d.value}</span>
                   </div>
                 ))}
               </div>

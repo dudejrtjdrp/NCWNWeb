@@ -37,12 +37,12 @@ export default async function PrivacyPage({ params }: PageProps) {
           {/* 상단 안내 */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12 pb-8 border-b border-nwcn-neutral-200">
             <div>
-              <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-2">LEGAL</p>
-              <h1 className="font-brand font-bold text-[28px] text-nwcn-text-default">{t('heading')}</h1>
+              <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">LEGAL</p>
+              <h1 className="font-brand font-bold text-page-1 text-nwcn-text-default">{t('heading')}</h1>
             </div>
             <div className="text-right">
-              <p className="font-body text-[12px] text-nwcn-neutral-400">{t('lastModifiedLabel')}</p>
-              <p className="font-body text-[14px] font-medium text-nwcn-neutral-500">{t('lastModified')}</p>
+              <p className="font-body text-caption text-nwcn-neutral-400">{t('lastModifiedLabel')}</p>
+              <p className="font-body text-body-sm font-medium text-nwcn-neutral-500">{t('lastModified')}</p>
             </div>
           </div>
 
@@ -56,18 +56,18 @@ export default async function PrivacyPage({ params }: PageProps) {
                 {/* 조항 헤더 */}
                 <div className="flex items-center gap-5 px-8 py-5 border-b border-nwcn-neutral-200 bg-nwcn-neutral-50">
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-nwcn-green/10 flex items-center justify-center">
-                    <span className="font-brand font-bold text-[13px] text-nwcn-green">
+                    <span className="font-brand font-bold text-caption text-nwcn-green">
                       {String(idx + 1).padStart(2, '0')}
                     </span>
                   </span>
-                  <h2 className="font-body font-semibold text-[15px] text-nwcn-text-default">
+                  <h2 className="font-body font-semibold text-body text-nwcn-text-default">
                     {section.title}
                   </h2>
                 </div>
 
                 {/* 내용 */}
                 <div className="px-8 py-6">
-                  <p className="font-body text-[14px] text-nwcn-neutral-600 leading-relaxed whitespace-pre-line">
+                  <p className="font-body text-body-sm text-nwcn-neutral-600 leading-relaxed whitespace-pre-line">
                     {section.content}
                   </p>
                 </div>
@@ -77,7 +77,7 @@ export default async function PrivacyPage({ params }: PageProps) {
 
           {/* 하단 안내 */}
           <div className="max-w-3xl mt-10 p-6 rounded-2xl bg-nwcn-neutral-50 border border-nwcn-neutral-200">
-            <p className="font-body text-[13px] text-nwcn-neutral-500 leading-relaxed">
+            <p className="font-body text-caption text-nwcn-neutral-500 leading-relaxed">
               {t('footerNote')}{' '}
               <a href="mailto:nwcn@dba.ac.kr" className="text-nwcn-green underline underline-offset-2">
                 nwcn@dba.ac.kr

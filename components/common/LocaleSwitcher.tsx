@@ -30,7 +30,7 @@ export default function LocaleSwitcher({ isLight = true, className }: LocaleSwit
   const divider = isLight ? 'bg-nwcn-text-muted/30' : 'bg-white/20'
 
   return (
-    <div className={cn('flex items-center gap-1 font-body text-[13px]', className)}>
+    <div className={cn('flex items-center gap-1 font-body text-caption', className)}>
       <button
         onClick={() => handleSwitch('ko')}
         className={cn(

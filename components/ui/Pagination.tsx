@@ -44,7 +44,7 @@ export default function Pagination({
         type="button"
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1}
-        className="w-9 h-9 flex items-center justify-center border border-nwcn-text-default rounded-full font-body text-[14px] text-nwcn-text-default transition-colors hover:bg-nwcn-text-default hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+        className="focus-ring flex h-9 w-9 items-center justify-center rounded-full border border-nwcn-text-default font-body text-body-sm text-nwcn-text-default transition-colors duration-fast ease-nwcn hover:bg-nwcn-text-default hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="이전 페이지"
       >
         ←
@@ -57,7 +57,7 @@ export default function Pagination({
           type="button"
           onClick={() => onPageChange(n)}
           className={cn(
-            'w-9 h-9 flex items-center justify-center border rounded-full font-body text-[14px] transition-colors',
+            'focus-ring flex h-9 w-9 items-center justify-center rounded-full border font-body text-body-sm transition-colors duration-fast ease-nwcn',
             n === page
               ? 'bg-nwcn-text-default text-white border-nwcn-text-default'
               : 'border-nwcn-text-default text-nwcn-text-default hover:bg-nwcn-text-default hover:text-white'
@@ -74,7 +74,7 @@ export default function Pagination({
         type="button"
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages}
-        className="w-9 h-9 flex items-center justify-center border border-nwcn-text-default rounded-full font-body text-[14px] text-nwcn-text-default transition-colors hover:bg-nwcn-text-default hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+        className="focus-ring flex h-9 w-9 items-center justify-center rounded-full border border-nwcn-text-default font-body text-body-sm text-nwcn-text-default transition-colors duration-fast ease-nwcn hover:bg-nwcn-text-default hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
         aria-label="다음 페이지"
       >
         →

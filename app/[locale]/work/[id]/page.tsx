@@ -152,7 +152,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
       <div className="bg-white">
         <div className="page-container pt-10 pb-16">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-[13px] font-body text-nwcn-gray-muted mb-7">
+          <nav className="flex items-center gap-2 text-caption font-body text-nwcn-gray-muted mb-7">
             <Link href="/work/showcase" className="hover:text-nwcn-text-default transition-colors">
               SHOWCASE
             </Link>
@@ -165,7 +165,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
 
           {/* 제목 + 조회수 */}
           <div className="mt-4 flex items-start justify-between gap-6">
-            <h1 className="font-body font-bold text-[28px] md:text-[40px] text-nwcn-text-default leading-tight">
+            <h1 className="font-body font-bold text-hero-2 text-nwcn-text-default leading-tight">
               {work.title}
             </h1>
             <div className="flex items-center gap-1.5 text-nwcn-gray-muted shrink-0 pt-2">
@@ -173,7 +173,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
-              <span className="font-body text-[14px]">{work.view_count.toLocaleString()} {t('views')}</span>
+              <span className="font-body text-body-sm">{work.view_count.toLocaleString()} {t('views')}</span>
             </div>
           </div>
 
@@ -202,19 +202,19 @@ export default async function WorkDetailPage({ params }: PageProps) {
               <div className="space-y-7 lg:sticky lg:top-24">
                 {/* 제작자 */}
                 <div>
-                  <p className="font-body text-[13px] text-nwcn-gray-muted mb-1.5">{t('sectionAuthor')}</p>
-                  <p className="font-body text-[16px] font-medium text-nwcn-text-default">{work.author}</p>
+                  <p className="font-body text-caption text-nwcn-gray-muted mb-1.5">{t('sectionAuthor')}</p>
+                  <p className="font-body text-body font-medium text-nwcn-text-default">{work.author}</p>
                 </div>
 
                 {/* 제작 기간 */}
                 <div>
-                  <p className="font-body text-[13px] text-nwcn-gray-muted mb-1.5">{t('sectionPeriod')}</p>
-                  <p className="font-body text-[16px] font-medium text-nwcn-text-default">{work.year}</p>
+                  <p className="font-body text-caption text-nwcn-gray-muted mb-1.5">{t('sectionPeriod')}</p>
+                  <p className="font-body text-body font-medium text-nwcn-text-default">{work.year}</p>
                 </div>
 
                 {/* 사용 도구 / 기술 */}
                 <div>
-                  <p className="font-body text-[13px] text-nwcn-gray-muted mb-2">{t('sectionTools')}</p>
+                  <p className="font-body text-caption text-nwcn-gray-muted mb-2">{t('sectionTools')}</p>
                   <div className="flex flex-wrap gap-2">
                     {work.tech_stack.map((tag) => (
                       <Badge key={tag} variant="number">{tag}</Badge>
@@ -225,8 +225,8 @@ export default async function WorkDetailPage({ params }: PageProps) {
                 {/* 작품 소개 */}
                 {work.description && (
                   <div>
-                    <p className="font-body text-[13px] text-nwcn-gray-muted mb-2">{t('sectionIntro')}</p>
-                    <p className="font-body text-[14px] text-nwcn-gray-text leading-relaxed whitespace-pre-line">
+                    <p className="font-body text-caption text-nwcn-gray-muted mb-2">{t('sectionIntro')}</p>
+                    <p className="font-body text-body-sm text-nwcn-gray-text leading-relaxed whitespace-pre-line">
                       {work.description}
                     </p>
                   </div>
@@ -235,7 +235,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                 {/* 관련 링크 */}
                 {work.related_links && work.related_links.length > 0 && (
                   <div>
-                    <p className="font-body text-[13px] text-nwcn-gray-muted mb-2">{t('sectionLinks')}</p>
+                    <p className="font-body text-caption text-nwcn-gray-muted mb-2">{t('sectionLinks')}</p>
                     <div className="flex flex-col gap-2">
                       {work.related_links.map((link, i) => (
                         <a
@@ -262,7 +262,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
           {/* ── 관련 게시물 (핀터레스트 마소너리) ── */}
           {related.length > 0 && (
             <section className="mt-20 pt-12 border-t border-nwcn-border-light">
-              <h2 className="font-body font-bold text-[20px] text-nwcn-text-default mb-7">
+              <h2 className="font-body font-bold text-section text-nwcn-text-default mb-7">
                 {t('relatedTitle')}
               </h2>
               <WorkMasonry works={related} />

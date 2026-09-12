@@ -390,12 +390,12 @@ function CourseItem({ course }: { course: Course }) {
   return (
     <div className="flex flex-col gap-3 sm:gap-4 lg:gap-[35px]">
       {/* 과목명 + 학점 */}
-      <p className="m-0 font-body font-medium text-[14px] sm:text-[16px] lg:text-[18px] leading-[1.5] lg:leading-[27px] text-nwcn-text-default">
+      <p className="m-0 font-body font-medium text-body-sm sm:text-body lg:text-card leading-[1.5] lg:leading-[27px] text-nwcn-text-default">
         {course.name}
       </p>
       {/* 과목 설명 */}
       {course.description && (
-        <p className="m-0 font-body font-medium text-[13px] sm:text-[15px] lg:text-[18px] leading-[1.6] lg:leading-[27px] text-nwcn-neutral-500 whitespace-pre-wrap">
+        <p className="m-0 font-body font-medium text-caption sm:text-body lg:text-card leading-[1.6] lg:leading-[27px] text-nwcn-neutral-500 whitespace-pre-wrap">
           {course.description}
         </p>
       )}
@@ -408,7 +408,7 @@ function SemesterBlock({ semester }: { semester: Semester }) {
   return (
     <div className="flex flex-col gap-2">
       {/* 학기 헤더 */}
-      <p className="m-0 font-body font-bold text-[15px] sm:text-[16px] lg:text-[18px] leading-[27px] text-nwcn-text-default">
+      <p className="m-0 font-body font-bold text-body lg:text-card leading-[27px] text-nwcn-text-default">
         {semester.label}
       </p>
       {/* 과목 목록 */}
@@ -540,23 +540,14 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
               aria-selected={isActive}
               aria-controls={`curriculum-panel-${grade}`}
               onClick={() => setActiveGrade(grade)}
-              style={{
-                padding: '12px 24px',
-                border: 'none',
-                cursor: 'pointer',
-                overflow: 'hidden',
-                background: isActive ? 'var(--color-green)' : 'var(--color-text-sub)',
-                boxShadow: isActive
-                  ? '0px 4px 10px 0px rgba(0,0,0,0.15)'
-                  : 'none',
-                transition: 'all 0.2s ease',
-                fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-                fontWeight: 700,
-                fontSize: 16,
-                lineHeight: 'normal',
-                color: 'var(--color-dark)',
-                whiteSpace: 'nowrap',
-              }}
+              className={[
+                'focus-ring cursor-pointer overflow-hidden whitespace-nowrap px-6 py-3',
+                'font-body text-body font-bold text-nwcn-dark',
+                'transition-[background-color,box-shadow,transform] duration-fast ease-nwcn',
+                isActive
+                  ? 'bg-nwcn-green shadow-lift-1'
+                  : 'bg-nwcn-text-sub hover:-translate-y-0.5 hover:bg-nwcn-green/60',
+              ].join(' ')}
             >
               {t('grade', { grade })}
             </button>
@@ -588,7 +579,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
             >
               {/* 카테고리 헤더 */}
               <p
-                className="m-0 font-body font-bold text-[15px] sm:text-[16px] lg:text-[18px] leading-[27px]"
+                className="m-0 font-body font-bold text-body lg:text-card leading-[27px]"
                 style={{ color: category.color }}
               >
                 {categoryLabelMap[category.title] ?? category.title}

@@ -128,7 +128,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                     aria-expanded={item.children ? activeDropdown === item.label : undefined}
                     className={cn(
                       'flex items-center px-3 py-2',
-                      'font-body font-normal text-[16px] leading-normal whitespace-nowrap',
+                      'font-body font-normal text-body leading-normal whitespace-nowrap',
                       'transition-colors duration-fast ease-nwcn',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2 rounded',
                       active
@@ -162,7 +162,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                             key={child.label}
                             href={child.href}
                             className={cn(
-                              'block px-4 py-2.5 font-body text-[13px] whitespace-nowrap',
+                              'block px-4 py-2.5 font-body text-caption whitespace-nowrap',
                               'transition-colors duration-100',
                               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-nwcn-green',
                               pathname === child.href

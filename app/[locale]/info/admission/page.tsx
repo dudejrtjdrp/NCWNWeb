@@ -35,11 +35,11 @@ export default async function AdmissionPage({ params }: PageProps) {
           {/* 입학처 링크 카드 */}
           <div className="border border-nwcn-green/20 rounded-3xl p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 bg-gradient-to-br from-[#f8fffe] to-[#f0fff8]">
             <div>
-              <p className="font-body text-[12px] font-semibold tracking-[0.2em] text-nwcn-green mb-3">OFFICIAL LINK</p>
-              <h2 className="font-body text-[22px] font-bold text-nwcn-text-default mb-2">
+              <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-3">OFFICIAL LINK</p>
+              <h2 className="font-body text-section font-bold text-nwcn-text-default mb-2">
                 {locale === 'en' ? 'Official Admissions Website' : '입학처 공식 홈페이지'}
               </h2>
-              <p className="font-body text-[14px] text-nwcn-neutral-500 leading-relaxed">
+              <p className="font-body text-body-sm text-nwcn-neutral-500 leading-relaxed">
                 {locale === 'en'
                   ? 'Check the latest admission guidelines and schedules on the official admissions website.'
                   : '최신 모집요강 및 전형 일정은 학교 공식 입학처에서 확인하세요.'}
@@ -55,10 +55,10 @@ export default async function AdmissionPage({ params }: PageProps) {
 
           {/* 입학 절차 */}
           <div>
-            <h2 className="font-brand font-bold text-[28px] text-nwcn-text-default mb-8">{t('stepsTitle')}</h2>
+            <h2 className="font-brand font-bold text-page-1 text-nwcn-text-default mb-8">{t('stepsTitle')}</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {steps.map((s, idx) => (
-                <div key={s.step} className="relative border border-nwcn-neutral-200 rounded-2xl p-6 hover:border-nwcn-green/30 hover:shadow-sm transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
+                <div key={s.step} className="relative border border-nwcn-neutral-200 rounded-2xl p-6 hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                   {/* 연결 화살표 (마지막 제외) */}
                   {idx < steps.length - 1 && (
                     <div className="hidden lg:block absolute right-[-14px] top-1/2 -translate-y-1/2 z-10">
@@ -67,11 +67,11 @@ export default async function AdmissionPage({ params }: PageProps) {
                       </svg>
                     </div>
                   )}
-                  <span className="font-brand font-black text-[36px] text-nwcn-green/20 leading-none block mb-3">
+                  <span className="font-brand font-black text-page-1 text-nwcn-green/20 leading-none block mb-3">
                     {s.step}
                   </span>
-                  <h3 className="font-body font-bold text-[16px] text-nwcn-text-default mb-2">{s.label}</h3>
-                  <p className="font-body text-[13px] text-nwcn-neutral-500 leading-relaxed">{s.desc}</p>
+                  <h3 className="font-body font-bold text-body text-nwcn-text-default mb-2">{s.label}</h3>
+                  <p className="font-body text-caption text-nwcn-neutral-500 leading-relaxed">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -79,23 +79,23 @@ export default async function AdmissionPage({ params }: PageProps) {
 
           {/* FAQ */}
           <div>
-            <h2 className="font-brand font-bold text-[28px] text-nwcn-text-default mb-8">{t('faqTitle')}</h2>
+            <h2 className="font-brand font-bold text-page-1 text-nwcn-text-default mb-8">{t('faqTitle')}</h2>
             <div className="space-y-4">
               {faqs.map((faq, idx) => (
-                <div key={idx} className="border border-nwcn-neutral-200 rounded-2xl p-7 hover:border-nwcn-green/20 hover:shadow-sm transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
+                <div key={idx} className="border border-nwcn-neutral-200 rounded-2xl p-7 hover:border-nwcn-green/20 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                   <div className="flex items-start gap-4 mb-3">
                     <span className="flex-shrink-0 w-7 h-7 rounded-full bg-nwcn-green flex items-center justify-center">
-                      <span className="font-body font-bold text-[11px] text-nwcn-text-default">Q</span>
+                      <span className="font-body font-bold text-caption text-nwcn-text-default">Q</span>
                     </span>
-                    <p className="font-body text-[16px] font-semibold text-nwcn-text-default leading-snug pt-0.5">
+                    <p className="font-body text-body font-semibold text-nwcn-text-default leading-snug pt-0.5">
                       {faq.q}
                     </p>
                   </div>
                   <div className="flex items-start gap-4">
                     <span className="flex-shrink-0 w-7 h-7 rounded-full bg-nwcn-neutral-100 flex items-center justify-center">
-                      <span className="font-body font-bold text-[11px] text-nwcn-neutral-500">A</span>
+                      <span className="font-body font-bold text-caption text-nwcn-neutral-500">A</span>
                     </span>
-                    <p className="font-body text-[14px] text-nwcn-neutral-600 leading-relaxed pt-0.5">
+                    <p className="font-body text-body-sm text-nwcn-neutral-600 leading-relaxed pt-0.5">
                       {faq.a}
                     </p>
                   </div>

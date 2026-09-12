@@ -31,17 +31,17 @@ const TAG_STYLES: Record<TagType, string> = {
   secondary: 'bg-nwcn-yellow px-[10px] py-[4px]',
   neutral: 'bg-nwcn-neutral-200 px-[10px] py-[4px]',
   dark: 'bg-nwcn-dark px-[10px] py-[4px]',
-  talks: 'bg-nwcn-green px-[4.051px] py-[2.026px] drop-shadow-[0px_2.701px_3.275px_rgba(0,0,0,0.16)]',
-  contents: 'bg-nwcn-yellow px-[4.051px] py-[2.026px] drop-shadow-[0px_2.701px_3.275px_rgba(0,0,0,0.16)]',
+  talks: 'bg-nwcn-green px-[4.051px] py-[2.026px] drop-shadow-lift-1',
+  contents: 'bg-nwcn-yellow px-[4.051px] py-[2.026px] drop-shadow-lift-1',
 }
 
 const TAG_TEXT_STYLES: Record<TagType, string> = {
-  primary: 'font-body font-bold text-[12px] text-nwcn-text-default',
-  secondary: 'font-body font-bold text-[12px] text-nwcn-text-default',
-  neutral: 'font-body font-bold text-[12px] text-nwcn-text-default',
-  dark: 'font-body font-bold text-[12px] text-white',
-  talks: 'font-body font-medium text-[16.88px] text-nwcn-text-default',
-  contents: 'font-body font-medium text-[16.88px] text-nwcn-text-default',
+  primary: 'font-body font-bold text-caption text-nwcn-text-default',
+  secondary: 'font-body font-bold text-caption text-nwcn-text-default',
+  neutral: 'font-body font-bold text-caption text-nwcn-text-default',
+  dark: 'font-body font-bold text-caption text-white',
+  talks: 'font-body font-medium text-card text-nwcn-text-default',
+  contents: 'font-body font-medium text-card text-nwcn-text-default',
 }
 
 export default function Tag({ children, type = 'primary', className }: TagProps) {

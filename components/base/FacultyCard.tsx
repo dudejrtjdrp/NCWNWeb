@@ -115,9 +115,9 @@ export default function FacultyCard({
     <Link
       href={`/about/faculty/${id}`}
       className={cn(
-        'group relative block w-[200px] h-[261px] sm:w-[245px] sm:h-[320px] lg:w-[290px] lg:h-[379px] rounded-[5.21px] overflow-hidden',
-        'shadow-[0px_4px_5.5px_rgba(0,0,0,0.25)]',
-        'transition-transform duration-base ease-nwcn hover:scale-[1.04] hover:shadow-[0px_8px_20px_rgba(0,0,0,0.30)]',
+        'group relative block w-[200px] h-[261px] sm:w-[245px] sm:h-[320px] lg:w-[290px] lg:h-[379px] rounded-lg overflow-hidden',
+        'shadow-lift-1',
+        'transition-transform duration-base ease-nwcn hover:scale-[1.04] hover:shadow-lift-2',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2',
         className,
       )}
@@ -125,7 +125,7 @@ export default function FacultyCard({
       data-node-id="427:1075"
     >
       {/* ── 배경 레이어 ─────────────────────────────── */}
-      <div className={cn('absolute inset-0 rounded-[5.21px]', bg)} aria-hidden="true" />
+      <div className={cn('absolute inset-0 rounded-lg', bg)} aria-hidden="true" />
 
       {/* ── 교수 사진 ─────────────────────────────── */}
       <div className="absolute inset-0 top-[9px]" aria-hidden="true">
@@ -134,7 +134,7 @@ export default function FacultyCard({
             src={photoUrl}
             alt={`${nameKo} ${role} 프로필 사진`}
             fill
-            className="object-cover object-top rounded-[5px]"
+            className="object-cover object-top rounded-lg"
             unoptimized
             onError={() => setImgError(true)}
           />
@@ -142,7 +142,7 @@ export default function FacultyCard({
           /* 사진 없거나 로드 실패 시 이니셜 플레이스홀더 */
           <div className="absolute inset-0 flex items-end justify-center pb-8">
             <span
-              className="font-body font-extrabold text-[72px] leading-none"
+              className="font-body font-extrabold text-hero-1 leading-none"
               style={{
                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(0,0,0,0.05))',
                 WebkitBackgroundClip: 'text',
@@ -166,7 +166,7 @@ export default function FacultyCard({
         <div className="flex-none rotate-90">
           <span
             className={cn(
-              'block font-body font-extrabold text-[36.5px] leading-[60px]',
+              'block font-body font-extrabold text-page-1 leading-[60px]',
               'bg-gradient-to-r bg-clip-text text-transparent whitespace-nowrap select-none',
               nameGradient,
             )}
@@ -208,14 +208,14 @@ export default function FacultyCard({
         )}
         aria-hidden="true"
       >
-        <span className="font-body font-bold text-[22px] text-white leading-tight drop-shadow">
+        <span className="font-body font-bold text-section text-white leading-tight drop-shadow">
           {nameKo}
         </span>
-        <span className="font-body text-[13px] text-white/70 tracking-wider">
+        <span className="font-body text-caption text-white/70 tracking-wider">
           {role}
         </span>
         <span
-          className="mt-2 px-4 py-1.5 rounded-full border border-white/60 text-white/90 text-[12px] font-body font-medium"
+          className="mt-2 px-4 py-1.5 rounded-full border border-white/60 text-white/90 text-caption font-body font-medium"
         >
           자세히 보기
         </span>

@@ -57,7 +57,7 @@ export default async function HomePage({ params }: PageProps) {
       {/* 검은색 분리 바: HeroSection 바로 아래 붙음 */}
       <div
         aria-hidden="true"
-        style={{ height: '70px', background: 'var(--Color-Background-Dark, #151515)' }}
+        style={{ height: '70px', background: 'var(--color-background-dark)' }}
       />
 
       {/* What is NewCon? */}

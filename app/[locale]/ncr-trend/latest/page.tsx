@@ -70,13 +70,13 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-2">
-                      <span className="font-brand font-black text-[72px] text-nwcn-green/[0.12] leading-none">NCR</span>
+                      <span className="font-brand font-black text-hero-1 text-nwcn-green/[0.12] leading-none">NCR</span>
                       <div className="w-8 h-[2px] bg-nwcn-green/30" />
                     </div>
                   )}
                   {/* FEATURED 라벨 */}
                   <div className="absolute top-4 left-4 bg-nwcn-green px-3 py-1 rounded-full">
-                    <span className="font-body font-bold text-[11px] text-nwcn-text-default tracking-widest">FEATURED</span>
+                    <span className="font-body font-bold text-caption text-nwcn-text-default tracking-widest">FEATURED</span>
                   </div>
                 </div>
 
@@ -85,19 +85,19 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                   <div className="flex items-center gap-3 mb-5">
                     <Badge variant={TYPE_BADGE[featured.type] ?? 'new'}>{TYPE_LABELS[featured.type] ?? featured.type}</Badge>
                     {featured.season && (
-                      <span className="font-body text-[12px] text-nwcn-neutral-400">{featured.season}</span>
+                      <span className="font-body text-caption text-nwcn-neutral-400">{featured.season}</span>
                     )}
                     {featured.read_time && (
-                      <span className="font-body text-[12px] text-nwcn-neutral-300">· {featured.read_time} 읽기</span>
+                      <span className="font-body text-caption text-nwcn-neutral-300">· {featured.read_time} 읽기</span>
                     )}
                   </div>
-                  <h2 className="font-body font-bold text-[24px] text-nwcn-text-default leading-snug mb-4 group-hover:text-nwcn-green transition-colors">
+                  <h2 className="font-body font-bold text-section text-nwcn-text-default leading-snug mb-4 group-hover:text-nwcn-green transition-colors">
                     {featured.title}
                   </h2>
-                  <p className="font-body text-[14px] text-nwcn-neutral-600 leading-relaxed mb-6">
+                  <p className="font-body text-body-sm text-nwcn-neutral-600 leading-relaxed mb-6">
                     {featured.excerpt}
                   </p>
-                  <p className="font-body text-[12px] text-nwcn-neutral-400">
+                  <p className="font-body text-caption text-nwcn-neutral-400">
                     {new Date(featured.published_at).toLocaleDateString('ko-KR')}
                   </p>
                 </div>
@@ -105,7 +105,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
             </Link>
           ) : (
             <div className="flex items-center justify-center py-24">
-              <p className="font-body text-[16px] text-nwcn-neutral-400">등록된 리포트가 없습니다</p>
+              <p className="font-body text-body text-nwcn-neutral-400">등록된 리포트가 없습니다</p>
             </div>
           )}
 
@@ -128,7 +128,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                         className="object-cover group-hover:scale-105 transition-transform duration-slow ease-nwcn"
                       />
                     ) : (
-                      <span className="font-brand font-black text-[40px] text-nwcn-green/[0.1] leading-none">NCR</span>
+                      <span className="font-brand font-black text-hero-2 text-nwcn-green/[0.1] leading-none">NCR</span>
                     )}
                   </div>
 
@@ -137,21 +137,21 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant={TYPE_BADGE[report.type] ?? 'new'}>{TYPE_LABELS[report.type] ?? report.type}</Badge>
                       {report.season && (
-                        <span className="font-body text-[11px] text-nwcn-neutral-400">{report.season}</span>
+                        <span className="font-body text-caption text-nwcn-neutral-400">{report.season}</span>
                       )}
                     </div>
-                    <h3 className="font-body font-semibold text-[16px] text-nwcn-text-default leading-snug mb-3 group-hover:text-nwcn-green transition-colors">
+                    <h3 className="font-body font-semibold text-body text-nwcn-text-default leading-snug mb-3 group-hover:text-nwcn-green transition-colors">
                       {report.title}
                     </h3>
-                    <p className="font-body text-[13px] text-nwcn-neutral-500 leading-relaxed mb-4 line-clamp-2">
+                    <p className="font-body text-caption text-nwcn-neutral-500 leading-relaxed mb-4 line-clamp-2">
                       {report.excerpt}
                     </p>
                     <div className="flex items-center justify-between">
-                      <p className="font-body text-[12px] text-nwcn-neutral-300">
+                      <p className="font-body text-caption text-nwcn-neutral-300">
                         {new Date(report.published_at).toLocaleDateString('ko-KR')}
                       </p>
                       {report.read_time && (
-                        <span className="font-body text-[12px] text-nwcn-neutral-400">{report.read_time} 읽기</span>
+                        <span className="font-body text-caption text-nwcn-neutral-400">{report.read_time} 읽기</span>
                       )}
                     </div>
                   </div>

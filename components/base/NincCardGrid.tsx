@@ -84,7 +84,7 @@ export default function NincCardGrid({
         {/* ── 빈 상태 ── */}
         {items.length === 0 ? (
           <AnimateOnScroll variant="fade" className="flex items-center justify-center py-24">
-            <p className="font-body text-[16px] text-nwcn-text-sub">{emptyMessage}</p>
+            <p className="font-body text-body text-nwcn-text-sub">{emptyMessage}</p>
           </AnimateOnScroll>
         ) : (
           /* ── 카드 그리드: 1열→2열→3열 ── */

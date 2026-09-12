@@ -114,11 +114,11 @@ export default function NincCardItem({
         style={{ minHeight: '48px', marginTop: 'clamp(10px, 1.25vw, 18px)' }}
         data-node-id="280:428"
       >
-        <p className={`font-body font-medium text-[14px] text-nwcn-text-muted leading-normal flex-1 truncate transition-colors duration-base ease-nwcn${href ? ' group-hover:text-nwcn-text-default' : ''}`}>
+        <p className={`font-body font-medium text-body-sm text-nwcn-text-muted leading-normal flex-1 truncate transition-colors duration-base ease-nwcn${href ? ' group-hover:text-nwcn-text-default' : ''}`}>
           {caption}
         </p>
         {subCaption && (
-          <p className="font-body font-normal text-[12px] text-nwcn-text-sub whitespace-nowrap shrink-0">
+          <p className="font-body font-normal text-caption text-nwcn-text-sub whitespace-nowrap shrink-0">
             {subCaption}
           </p>
         )}

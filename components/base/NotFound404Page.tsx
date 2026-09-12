@@ -72,7 +72,11 @@ export default function NotFound404Page({
           실제 PNG: 129×114px (정방형에 가까운 비율)
           → 높이 고정 48px, 너비 auto로 비율 유지               ── */}
       <div style={{ paddingTop: 98 }} data-node-id="376:1208">
-        <Link href={homeHref} aria-label="NWCN 홈으로">
+        <Link
+          href={homeHref}
+          aria-label="NWCN 홈으로"
+          className="focus-ring inline-block rounded-md transition-opacity duration-fast ease-nwcn hover:opacity-70"
+        >
           <Image
             src={NWCN_LOGO_URL}
             alt="NWCN"

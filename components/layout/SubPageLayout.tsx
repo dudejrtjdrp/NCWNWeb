@@ -12,6 +12,7 @@
 
 import Header, { type HeaderVariant } from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import RevealOnScroll from '@/components/common/RevealOnScroll'
 
 interface SubPageLayoutProps {
   children: React.ReactNode
@@ -32,7 +33,7 @@ export default function SubPageLayout({
         style={{ paddingTop: overlapHeader ? '0' : '64px' }}
         className="min-h-screen bg-white"
       >
-        {children}
+        <RevealOnScroll>{children}</RevealOnScroll>
       </main>
       <Footer />
     </>
