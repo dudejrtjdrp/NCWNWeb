@@ -4,7 +4,6 @@ import NincCardGrid from '@/components/base/NincCardGrid'
 import Badge from '@/components/ui/Badge'
 import { useFilter } from '@/hooks/useFilter'
 import { usePagination } from '@/hooks/usePagination'
-import { resolveThumbnail } from '@/lib/mock-thumbnail'
 import type { AwardItem } from '@/lib/supabase/queries/awards'
 
 const AWARD_BADGE_VARIANT: Record<string, 'new' | 'hot' | 'number'> = {
@@ -40,7 +39,7 @@ export default function AwardsClient({ initialAwards }: Props) {
 
   const pagedItems = paged.map((a) => ({
     id: a.id,
-    thumbnail: resolveThumbnail(a.thumbnail_url, a.id),
+    thumbnail: a.thumbnail_url,
     caption: a.competition,
     subCaption: `${a.year}`,
     badge: (

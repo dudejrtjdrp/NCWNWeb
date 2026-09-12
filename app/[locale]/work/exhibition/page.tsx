@@ -19,18 +19,8 @@ export const metadata: Metadata = {
   },
 }
 
-// mock 데이터 (서버 데이터 없을 때 fallback)
-const FALLBACK_DATA = [
-  { id: 'mock-2025', year: 2025, title: 'FLUX — 흐름과 변화', description: '2025 졸업전시', theme: '변화와 흐름의 미학', poster_url: null, link: null, created_at: '' },
-  { id: 'mock-2024', year: 2024, title: 'SIGNAL — 신호와 연결', description: '2024 졸업전시', theme: '연결과 소통의 시대', poster_url: null, link: null, created_at: '' },
-  { id: 'mock-2023', year: 2023, title: 'BOUNDARY — 경계를 넘어', description: '2023 졸업전시', theme: '경계 해체와 융합', poster_url: null, link: null, created_at: '' },
-  { id: 'mock-2022', year: 2022, title: 'NODE — 연결의 시작', description: '2022 졸업전시', theme: '네트워크와 관계망', poster_url: null, link: null, created_at: '' },
-  { id: 'mock-2021', year: 2021, title: 'PIXEL — 디지털의 근원', description: '2021 졸업전시', theme: '디지털 본질 탐구', poster_url: null, link: null, created_at: '' },
-]
-
 export default async function ExhibitionPage() {
-  const serverData = await getExhibitions()
-  const EXHIBITION_DATA = serverData.length > 0 ? serverData : FALLBACK_DATA
+  const exhibitions = await getExhibitions()
 
   return (
     <SubPageLayout>
@@ -43,7 +33,13 @@ export default async function ExhibitionPage() {
       {/* 졸업전시 커버플로우 캐러셀 (가로 무한 슬라이드) */}
       <div className="bg-white pt-12 sm:pt-16 lg:pt-[72px] pb-20 sm:pb-24 lg:pb-28">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-[79px]">
-          <ExhibitionCarousel items={EXHIBITION_DATA} />
+          {exhibitions.length > 0 ? (
+            <ExhibitionCarousel items={exhibitions} />
+          ) : (
+            <p className="py-24 text-center font-body text-[15px] text-nwcn-gray-muted">
+              등록된 졸업전시가 아직 없습니다.
+            </p>
+          )}
         </div>
       </div>
     </SubPageLayout>

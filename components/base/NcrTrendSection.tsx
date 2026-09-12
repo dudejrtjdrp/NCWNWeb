@@ -5,7 +5,7 @@
  * 데이터 전략:
  * - ncr_reports에서 published_at DESC 기준 최신 2개 fetch
  * - reports[0] → 메인 카드 (좌), reports[1] → 서브 카드 (우)
- * - 각각 없으면 MOCK_MAIN / MOCK_SUB fallback
+ * - 데이터가 하나도 없으면 섹션 자체를 렌더하지 않는다 (목데이터 없음)
  *
  * 디자인 스펙:
  * - 헤더: "NCR Trend" A2Z체 23.077px, black
@@ -20,27 +20,6 @@ import Tag from '@/components/base/Tag'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
 import DecorLetter from '@/components/sections/home/DecorLetter'
 import { getHomeNcrReports, type HomeNcrReport } from '@/lib/supabase/queries/home'
-
-// ── 목데이터 (Supabase에 데이터 없을 때 fallback) ─────────────
-const MOCK_MAIN: HomeNcrReport = {
-  id: 'mock-main',
-  title: 'AI 시대, 학과의 강점과 비전을 묻다',
-  type: 'editorial',
-  thumbnail_url: '/images/ncr/main.svg',
-  published_at: '2025-08-25T00:00:00Z',
-  season: null,
-  excerpt: null,
-}
-
-const MOCK_SUB: HomeNcrReport = {
-  id: 'mock-sub',
-  title: '보성 미디어파사드 워크숍',
-  type: 'trend',
-  thumbnail_url: '/images/ncr/sub.png',
-  published_at: '2026-05-05T00:00:00Z',
-  season: null,
-  excerpt: null,
-}
 
 // ── 타입별 태그 매핑 ──────────────────────────────────────────
 const TYPE_TAG_TYPE: Record<HomeNcrReport['type'], 'talks' | 'contents'> = {
@@ -58,9 +37,8 @@ function formatDate(dateStr: string): string {
   })
 }
 
-// mock ID인지 확인 (링크 분기용)
 function getArticleHref(id: string): string {
-  return id.startsWith('mock') ? '/ncr-trend/latest' : `/ncr-trend/${id}`
+  return `/ncr-trend/${id}`
 }
 
 export interface NcrTrendSectionProps {
@@ -71,11 +49,14 @@ export interface NcrTrendSectionProps {
 export default async function NcrTrendSection({ className = '', locale = 'ko' }: NcrTrendSectionProps) {
   const { items: reports, featuredCount } = await getHomeNcrReports(locale)
 
-  // 홈 고정이 정확히 1개면 왼쪽만, 그 외(0개 fallback or 2개)는 양쪽 모두 표시
+  // 실제 등록된 리포트가 없으면 섹션을 숨긴다 (플레이스홀더 노출 금지)
+  if (reports.length === 0) return null
+
+  // 홈 고정이 정확히 1개면 왼쪽만, 그 외에는 두 번째 카드가 있을 때만 표시
   const singleFeatured = featuredCount === 1
 
-  const mainCard = reports[0] ?? MOCK_MAIN
-  const subCard  = singleFeatured ? null : (reports[1] ?? MOCK_SUB)
+  const mainCard = reports[0]
+  const subCard  = singleFeatured ? null : (reports[1] ?? null)
 
   const mainHref = getArticleHref(mainCard.id)
   const subHref  = subCard ? getArticleHref(subCard.id) : ''
