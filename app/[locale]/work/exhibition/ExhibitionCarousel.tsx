@@ -10,6 +10,7 @@
  * 브랜드 타이포 플레이스홀더로 표시된다.
  */
 
+import { useMemo } from 'react'
 import SmoothScrollSlider, { type SlideItem } from '@/components/interactive/SmoothScrollSlider'
 import type { ExhibitionItem } from '@/lib/supabase/queries/exhibitions'
 
@@ -18,16 +19,21 @@ interface Props {
 }
 
 export default function ExhibitionCarousel({ items }: Props) {
-  if (items.length === 0) return null
+  // 렌더마다 새 배열이 생기면 레일이 재계산돼 스케일 전환이 끊긴다
+  const slides = useMemo<SlideItem[]>(
+    () =>
+      items.map((it) => ({
+        id: it.id,
+        src: it.poster_url,
+        alt: `${it.year} 졸업전시 ${it.title} 포스터`,
+        caption: `${it.year} · ${it.title}`,
+        subCaption: it.theme ?? undefined,
+        href: it.link ?? undefined,
+      })),
+    [items]
+  )
 
-  const slides: SlideItem[] = items.map((it) => ({
-    id: it.id,
-    src: it.poster_url,
-    alt: `${it.year} 졸업전시 ${it.title} 포스터`,
-    caption: `${it.year} · ${it.title}`,
-    subCaption: it.theme ?? undefined,
-    href: it.link ?? undefined,
-  }))
+  if (items.length === 0) return null
 
   return (
     <div>

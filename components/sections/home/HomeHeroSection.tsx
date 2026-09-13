@@ -516,11 +516,25 @@ export default function HomeHeroSection({
             {posts.slice(0, 4).map((post) => {
               const cardStyle: CSSProperties = {
                 position: 'relative', display: 'block', width: CARD_W, height: CARD_H, flex: 'none',
-                borderRadius: 20, background: 'var(--color-neutral-300)', overflow: 'hidden', textDecoration: 'none',
+                borderRadius: 20, background: 'linear-gradient(145deg, var(--color-neutral-100) 0%, var(--color-neutral-200) 100%)', overflow: 'hidden', textDecoration: 'none',
                 scrollSnapAlign: 'center',
               }
               const inner = (
                 <>
+                  {/* 썸네일 미등록 — 회색 빈 카드 대신 브랜드 워드마크로 채운다 */}
+                  {!post.image && (
+                    <span
+                      aria-hidden
+                      className="font-brand"
+                      style={{
+                        position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+                        fontSize: 96, fontWeight: 900, lineHeight: 1,
+                        color: 'var(--color-neutral-300)', letterSpacing: '0.04em',
+                      }}
+                    >
+                      NWCN
+                    </span>
+                  )}
                   {post.image && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

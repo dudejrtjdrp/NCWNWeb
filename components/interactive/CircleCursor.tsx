@@ -1,45 +1,44 @@
 'use client'
 
 /**
- * CircleCursor — 포인터를 뒤따르는 블롭 커서
+ * CircleCursor — 포인터를 뒤따르는 커서 링
  * ────────────────────────────────────────────────────────────
- * originkit.dev 의 "Circle Cursor" 를 의존성 없이 구현.
- * 여러 개의 블롭이 서로 다른 속도로 포인터를 쫓고, SVG goo 필터로 하나처럼 뭉친다.
- * 단일 rAF 루프만 사용하며, 터치 기기·모션 최소화 환경에서는 렌더하지 않는다.
+ * originkit.dev "Circle Cursor" 를 참고하되, 원본의 goo 필터 + difference 블렌드는
+ * 쓰지 않는다. 뷰포트 전체를 덮는 fixed 레이어에 filter/mix-blend-mode 를 걸면
+ * 브라우저가 매 프레임 화면 전체를 다시 합성해야 해서, 특히 Windows(DPR 1) +
+ * Lenis 스무스 스크롤 + 홈 히어로 rAF 조합에서 화면이 미세하게 떨린다.
  *
- * NWCN 은 뉴미디어콘텐츠과라는 정체성상 커서 자체가 하나의 인터랙션이지만,
- * 가독성을 해치지 않도록 mix-blend-mode: difference 로 절제해 표현한다.
+ * 그래서 여기서는
+ *  - 덮개 레이어 없이 작은 요소 2개만 fixed 로 띄우고
+ *  - transform 만 갱신한다 (레이아웃/페인트 없음, 합성만)
+ *  - 포인터가 없는 기기·모션 최소화 설정에서는 아예 렌더하지 않는다
  */
 
 import { useEffect, useRef, useState } from 'react'
 
 export interface CircleCursorProps {
-  /** 블롭 개수 */
-  count?: number
-  /** 선두 블롭 지름(px) */
+  /** 링 지름(px) */
   size?: number
-  /** 꼬리 블롭 지름(px) */
-  tailSize?: number
-  /** 선두가 포인터를 따라잡는 속도(클수록 빠름) */
-  leadSpeed?: number
-  /** 꼬리가 뒤처지는 정도(클수록 느림) */
-  trailLag?: number
+  /** 중심 점 지름(px) */
+  dotSize?: number
+  /** 링이 포인터를 따라잡는 속도 (0~1, 클수록 빠름) */
+  ease?: number
   color?: string
 }
 
 export default function CircleCursor({
-  count = 3,
-  size = 28,
-  tailSize = 12,
-  leadSpeed = 10,
-  trailLag = 10,
-  color = 'var(--color-green)',
+  size = 34,
+  dotSize = 6,
+  ease = 0.18,
+  color = 'var(--color-green-darker)',
 }: CircleCursorProps) {
   const [enabled, setEnabled] = useState(false)
-  const blobs = useRef<(HTMLDivElement | null)[]>([])
-  const pos = useRef<{ x: number; y: number }[]>([])
+  const ringRef = useRef<HTMLDivElement>(null)
+  const dotRef = useRef<HTMLDivElement>(null)
   const pointer = useRef({ x: -999, y: -999 })
+  const ring = useRef({ x: -999, y: -999 })
   const raf = useRef<number>()
+  const active = useRef(false)
 
   useEffect(() => {
     const fine = window.matchMedia('(pointer: fine)').matches
@@ -49,72 +48,71 @@ export default function CircleCursor({
 
   useEffect(() => {
     if (!enabled) return
-    pos.current = Array.from({ length: count }, () => ({ x: -999, y: -999 }))
 
     const onMove = (e: PointerEvent) => {
-      pointer.current = { x: e.clientX, y: e.clientY }
+      pointer.current.x = e.clientX
+      pointer.current.y = e.clientY
+      if (!active.current) {
+        active.current = true
+        ring.current.x = e.clientX
+        ring.current.y = e.clientY
+      }
     }
+    const onLeave = () => { active.current = false }
+
     window.addEventListener('pointermove', onMove, { passive: true })
+    window.addEventListener('pointerleave', onLeave, { passive: true })
 
     let last = 0
     const frame = (ts: number) => {
+      raf.current = requestAnimationFrame(frame)
+      // 포인터가 아직 화면에 들어오지 않았으면 아무 것도 그리지 않는다
+      if (!active.current) return
       const dt = last ? Math.min((ts - last) / 1000, 0.1) : 1 / 60
       last = ts
 
-      for (let i = 0; i < count; i++) {
-        // 선두는 포인터를, 뒤 블롭은 앞 블롭을 쫓는다 (단계적 지연)
-        const goal = i === 0 ? pointer.current : pos.current[i - 1]
-        const speed = i === 0 ? leadSpeed : leadSpeed * (1 - Math.min(0.85, trailLag / 20))
-        const k = 1 - Math.pow(0.001, speed * dt * 0.1)
-        const p = pos.current[i]
-        p.x += (goal.x - p.x) * k
-        p.y += (goal.y - p.y) * k
+      // 프레임레이트 독립 보간
+      const k = 1 - Math.pow(1 - ease, dt * 60)
+      ring.current.x += (pointer.current.x - ring.current.x) * k
+      ring.current.y += (pointer.current.y - ring.current.y) * k
 
-        const el = blobs.current[i]
-        if (!el) continue
-        const d = size + ((tailSize - size) * i) / Math.max(1, count - 1)
-        el.style.width = `${d}px`
-        el.style.height = `${d}px`
-        el.style.transform = `translate3d(${p.x - d / 2}px, ${p.y - d / 2}px, 0)`
-      }
-      raf.current = requestAnimationFrame(frame)
+      // 정수 px 로 스냅 — DPR 1 환경에서 서브픽셀 진동이 보이지 않게 한다
+      const rx = Math.round(ring.current.x - size / 2)
+      const ry = Math.round(ring.current.y - size / 2)
+      const dx = Math.round(pointer.current.x - dotSize / 2)
+      const dy = Math.round(pointer.current.y - dotSize / 2)
+
+      if (ringRef.current) ringRef.current.style.transform = `translate3d(${rx}px, ${ry}px, 0)`
+      if (dotRef.current) dotRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`
     }
     raf.current = requestAnimationFrame(frame)
 
     return () => {
       window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerleave', onLeave)
       if (raf.current) cancelAnimationFrame(raf.current)
     }
-  }, [enabled, count, size, tailSize, leadSpeed, trailLag])
+  }, [enabled, ease, size, dotSize])
 
   if (!enabled) return null
 
+  const base: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    borderRadius: '9999px',
+    pointerEvents: 'none',
+    zIndex: 60,
+    transform: 'translate3d(-999px, -999px, 0)',
+  }
+
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-[60] hidden lg:block"
-      style={{ filter: 'url(#nwcn-goo)', mixBlendMode: 'difference' }}
-    >
-      <svg width="0" height="0" className="absolute">
-        <defs>
-          <filter id="nwcn-goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
-            <feColorMatrix
-              in="blur"
-              mode="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"
-            />
-          </filter>
-        </defs>
-      </svg>
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          ref={(el) => { blobs.current[i] = el }}
-          className="absolute left-0 top-0 rounded-full will-change-transform"
-          style={{ background: color }}
-        />
-      ))}
+    <div aria-hidden className="hidden lg:block">
+      <div
+        ref={ringRef}
+        style={{ ...base, width: size, height: size, border: `1.5px solid ${color}`, opacity: 0.55 }}
+      />
+      <div ref={dotRef} style={{ ...base, width: dotSize, height: dotSize, background: color }} />
     </div>
   )
 }

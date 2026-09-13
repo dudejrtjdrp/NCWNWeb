@@ -449,14 +449,27 @@ export default function HomeHeroMobile({
               aspectRatio: '325 / 183',
               flex: 'none',
               borderRadius: 14,
-              background: 'var(--color-neutral-300)',
+              background: 'linear-gradient(145deg, var(--color-neutral-100) 0%, var(--color-neutral-200) 100%)',
               overflow: 'hidden',
               textDecoration: 'none',
               scrollSnapAlign: 'center',
             }
             const inner = (
               <>
-                {post.image && (
+                {!post.image && (
+                    <span
+                      aria-hidden
+                      className="font-brand"
+                      style={{
+                        position: 'absolute', inset: 0, display: 'grid', placeItems: 'center',
+                        fontSize: 44, fontWeight: 900, lineHeight: 1,
+                        color: 'var(--color-neutral-300)', letterSpacing: '0.04em',
+                      }}
+                    >
+                      NWCN
+                    </span>
+                  )}
+                  {post.image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     alt={post.title}

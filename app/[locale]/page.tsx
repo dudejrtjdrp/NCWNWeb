@@ -11,6 +11,7 @@ import WhatIsSection from '@/components/base/WhatIsSection'
 import NincSection from '@/components/base/NincSection'
 import NcrTrendSection from '@/components/base/NcrTrendSection'
 import { getShowcaseWorks } from '@/lib/supabase/queries/works'
+import { getHomeNincActivities } from '@/lib/supabase/queries/home'
 import JsonLd from '@/components/seo/JsonLd'
 import { educationalOrganizationLd, webSiteLd } from '@/lib/seo/structured-data'
 import { localizedAlternates } from '@/lib/seo/metadata'
@@ -32,16 +33,35 @@ const WORK_TYPE_LABEL: Record<string, string> = { video: 'VIDEO', design: 'DESIG
 export default async function HomePage({ params }: PageProps) {
   const { locale } = await params
 
-  // 히어로 게시물: 최신 쇼케이스 작품 4개 (캐시 5분, 비면 placeholder fallback)
-  const works = await getShowcaseWorks(locale)
-  const heroPosts = works.slice(0, 4).map((w) => ({
-    id: w.id,
-    title: w.title,
-    subtitle: w.author,
-    tag: WORK_TYPE_LABEL[w.type] ?? w.type,
-    image: w.thumbnail_url,
-    href: `/work/${w.id}`,
+  /* 히어로 게시물 4장 — 썸네일이 실제로 있는 항목만 쓴다.
+     쇼케이스 작품을 우선 채우고, 모자라면 NINC 활동(프로젝트·수상·전시)으로 보충해
+     빈 회색 카드가 노출되지 않게 한다. */
+  const [works, activities] = await Promise.all([
+    getShowcaseWorks(locale),
+    getHomeNincActivities(locale),
+  ])
+
+  const workPosts = works
+    .filter((w) => w.thumbnail_url)
+    .slice(0, 4)
+    .map((w) => ({
+      id: w.id,
+      title: w.title,
+      subtitle: w.author,
+      tag: WORK_TYPE_LABEL[w.type] ?? w.type,
+      image: w.thumbnail_url,
+      href: `/work/${w.id}`,
+    }))
+
+  const activityPosts = activities.map((a) => ({
+    id: a.id,
+    title: a.alt_text ?? 'NEWCON',
+    tag: 'NINC',
+    image: a.image_url,
+    href: a.link_href ?? undefined,
   }))
+
+  const heroPosts = [...workPosts, ...activityPosts].slice(0, 4)
 
   return (
     <>

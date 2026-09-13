@@ -130,9 +130,16 @@ export default function SmoothScrollSlider({
 
   const rail = useMemo(
     () => Array.from({ length: copies * n }, (_, i) => ({ ...items[i % n], key: `${i}` })),
-    [copies, n, items]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [copies, n, items.map((i) => i.id).join('|')]
   )
+  const railDataRef = useRef(rail)
+  railDataRef.current = rail
+  const railLength = rail.length
   const loopLength = copies * n * step
+
+  /** 슬라이드별 마지막 적용값 — 불필요한 DOM 쓰기를 막는다 */
+  const applied = useRef<{ x: number; s: number; o: number; z: number }[]>([])
 
   /* ── 뷰포트 폭 추적 ── */
   useEffect(() => {
@@ -179,8 +186,9 @@ export default function SmoothScrollSlider({
 
       let bestDist = Infinity
       let bestId = activeIdRef.current
+      const railNow = railDataRef.current
 
-      for (let i = 0; i < rail.length; i++) {
+      for (let i = 0; i < railNow.length; i++) {
         const el = slideRefs.current[i]
         if (!el) continue
 
@@ -195,20 +203,35 @@ export default function SmoothScrollSlider({
 
         // 커진 만큼의 75% 를 진행 방향으로 더 밀어 이웃을 덮지 않게 한다
         const push = Math.sign(u) * (scale - 1) * slideWidth * 0.75
+        const tx = x + push
 
-        const brightness = 1 - dim * (1 - nearness)
-        const visible = x > -slideWidth * maxScale * 1.2 && x < width + slideWidth * maxScale * 1.2
+        // 감광은 filter 대신 opacity 로 — filter 는 매 프레임 재페인트를 유발해
+        // 저사양·DPR1 환경에서 스케일 변화가 뚝뚝 끊겨 보인다
+        const opacity = (1 - dim) + dim * Math.pow(nearness, 0.6)
+        const z = Math.round(nearness * 100)
 
-        el.style.transform = `translate3d(${x + push}px, -50%, 0) scale(${scale})`
-        el.style.opacity = visible ? String(0.25 + 0.75 * Math.pow(nearness, 0.6)) : '0'
-        el.style.filter = `brightness(${brightness})`
-        el.style.zIndex = String(Math.round(nearness * 100))
-        el.style.pointerEvents = visible ? 'auto' : 'none'
+        const prev = applied.current[i]
+        if (
+          !prev ||
+          Math.abs(prev.x - tx) > 0.05 ||
+          Math.abs(prev.s - scale) > 0.0008 ||
+          Math.abs(prev.o - opacity) > 0.004
+        ) {
+          el.style.transform = `translate3d(${tx.toFixed(2)}px, -50%, 0) scale(${scale.toFixed(4)})`
+          el.style.opacity = opacity.toFixed(3)
+          applied.current[i] = { x: tx, s: scale, o: opacity, z: prev ? prev.z : -1 }
+        }
+        // z-index 는 정수가 바뀔 때만 (매 프레임 쓰면 스태킹 재계산 비용이 크다)
+        const cur = applied.current[i]
+        if (cur.z !== z) {
+          el.style.zIndex = String(z)
+          cur.z = z
+        }
 
         const d = Math.abs(center - cx)
         if (d < bestDist) {
           bestDist = d
-          bestId = rail[i].id
+          bestId = railNow[i].id
         }
       }
 
@@ -222,7 +245,7 @@ export default function SmoothScrollSlider({
       lastTs.current = 0
     }
   }, [
-    reduced, width, n, rail, loopLength, step, slideWidth, maxScale, minScale,
+    reduced, width, n, railLength, loopLength, step, slideWidth, maxScale, minScale,
     dim, smoothness, autoplay,
   ])
 
