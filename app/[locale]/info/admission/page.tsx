@@ -29,11 +29,11 @@ export default async function AdmissionPage({ params }: PageProps) {
         <p className="section-label">ADMISSION</p>
       </div>
 
-      <div className="bg-white pb-24">
+      <div className="bg-white pb-section-lg">
         <div className="page-container space-y-16">
 
           {/* 입학처 링크 카드 */}
-          <div className="border border-nwcn-green/20 rounded-3xl p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 bg-gradient-to-br from-[#f8fffe] to-[#f0fff8]">
+          <div className="border border-nwcn-green/20 rounded-panel p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 bg-gradient-to-br from-[#f8fffe] to-[#f0fff8]">
             <div>
               <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-3">OFFICIAL LINK</p>
               <h2 className="font-body text-section font-bold text-nwcn-text-default mb-2">
@@ -58,7 +58,7 @@ export default async function AdmissionPage({ params }: PageProps) {
             <h2 className="font-brand font-bold text-page-1 text-nwcn-text-default mb-8">{t('stepsTitle')}</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {steps.map((s, idx) => (
-                <div key={s.step} className="relative border border-nwcn-neutral-200 rounded-2xl p-6 hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
+                <div key={s.step} className="relative border border-nwcn-neutral-200 rounded-panel p-6 hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                   {/* 연결 화살표 (마지막 제외) */}
                   {idx < steps.length - 1 && (
                     <div className="hidden lg:block absolute right-[-14px] top-1/2 -translate-y-1/2 z-10">
@@ -82,7 +82,7 @@ export default async function AdmissionPage({ params }: PageProps) {
             <h2 className="font-brand font-bold text-page-1 text-nwcn-text-default mb-8">{t('faqTitle')}</h2>
             <div className="space-y-4">
               {faqs.map((faq, idx) => (
-                <div key={idx} className="border border-nwcn-neutral-200 rounded-2xl p-7 hover:border-nwcn-green/20 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
+                <div key={idx} className="border border-nwcn-neutral-200 rounded-panel p-7 hover:border-nwcn-green/20 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                   <div className="flex items-start gap-4 mb-3">
                     <span className="flex-shrink-0 w-7 h-7 rounded-full bg-nwcn-green flex items-center justify-center">
                       <span className="font-body font-bold text-caption text-nwcn-text-default">Q</span>

@@ -41,7 +41,7 @@ function PartnerCard({ name, logoSrc, href }: { name: string; logoSrc: string; h
 
 export default function ProjectPartners() {
   return (
-    <section className="bg-white pt-16 sm:pt-20 lg:pt-[90px]" data-node-id="941:287">
+    <section className="bg-white pt-16 sm:pt-20 lg:pt-section-md" data-node-id="941:287">
       {/* 헤딩 */}
       <AnimateOnScroll variant="fade-up" className="text-center">
         <h2 className="font-body font-bold text-section text-nwcn-text-default">

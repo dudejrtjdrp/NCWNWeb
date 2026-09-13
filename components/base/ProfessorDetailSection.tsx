@@ -231,7 +231,7 @@ export default function ProfessorDetailSection({
                   />
                 ) : (
                   <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
-                    <span className="font-body font-extrabold text-hero-1 text-black/10 leading-none">
+                    <span className="font-body font-extrabold text-hero-1 text-nwcn-text-default/10 leading-none">
                       {faculty.nameKo[0]}
                     </span>
                   </div>
@@ -244,18 +244,18 @@ export default function ProfessorDetailSection({
               Figma: left=195(13.54%), top=520
               ─────────────────────────────────────────────── */}
           <div
-            className="absolute flex flex-col gap-[10px]"
+            className="absolute flex flex-col gap-2.5"
             style={{ left: '13.54%', top: 'clamp(320px, 36vw, 519px)', zIndex: 10 }}
           >
             <h1
-              className="font-body font-bold text-section text-black leading-normal"
+              className="font-body font-bold text-section text-nwcn-text-default leading-normal"
             >
               {displayName}
             </h1>
             {faculty.email && (
               <a
                 href={`mailto:${faculty.email}`}
-                className="font-body font-normal text-section text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-section text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors duration-fast ease-nwcn"
               >
                 {faculty.email}
               </a>
@@ -309,7 +309,7 @@ export default function ProfessorDetailSection({
                 />
               ) : (
                 <div className="absolute inset-0 bg-nwcn-green flex items-end justify-center pb-8">
-                  <span className="font-body font-extrabold text-hero-1 text-black/10 leading-none">
+                  <span className="font-body font-extrabold text-hero-1 text-nwcn-text-default/10 leading-none">
                     {faculty.nameKo[0]}
                   </span>
                 </div>
@@ -318,13 +318,13 @@ export default function ProfessorDetailSection({
           )}
           {/* 이름 + 이메일 */}
           <div className="flex flex-col gap-2">
-            <h1 className="font-body font-bold text-section text-black leading-normal">
+            <h1 className="font-body font-bold text-section text-nwcn-text-default leading-normal">
               {displayName}
             </h1>
             {faculty.email && (
               <a
                 href={`mailto:${faculty.email}`}
-                className="font-body font-normal text-body text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-body text-nwcn-neutral-500 leading-normal hover:text-nwcn-green transition-colors duration-fast ease-nwcn"
               >
                 {faculty.email}
               </a>
@@ -400,11 +400,11 @@ export default function ProfessorDetailSection({
                     {faculty.interview.qa.map((item, idx) => (
                       <div key={idx} className="w-full flex flex-col gap-[clamp(20px,3.4vw,49px)]">
                         {/* 질문 */}
-                        <p className="font-body font-bold text-[clamp(16px,1.67vw,24px)] text-black leading-normal">
+                        <p className="font-body font-bold text-[clamp(16px,1.67vw,24px)] text-nwcn-text-default leading-normal">
                           {item.question}
                         </p>
                         {/* 답변 */}
-                        <div className="flex flex-col gap-0 max-w-[1061px]">
+                        <div className="flex flex-col gap-0 max-w-wide">
                           {parseAnswer(item.answer)}
                         </div>
                       </div>
@@ -415,14 +415,14 @@ export default function ProfessorDetailSection({
                 {/* ── 마무리 (ClosingGroup) ── */}
                 <div className="w-full flex flex-col items-center gap-[clamp(32px,4.31vw,62px)]">
                   {/* 마지막 질문 */}
-                  <p className="font-body font-bold text-[clamp(16px,1.67vw,24px)] text-black text-center leading-normal max-w-[544px]">
+                  <p className="font-body font-bold text-[clamp(16px,1.67vw,24px)] text-nwcn-text-default text-center leading-normal max-w-[544px]">
                     {faculty.interview.closingQuestion}
                   </p>
 
                   {/* 인용 문구 — 강조 단어를 감싸는 인라인 동그라미(자동 정렬) */}
                   <div className="w-full flex justify-center">
-                    <div className="relative max-w-[916px] w-full">
-                      <p className="font-body font-bold text-[clamp(20px,2.5vw,36px)] text-black text-center leading-[1.7]">
+                    <div className="relative max-w-wide w-full">
+                      <p className="font-body font-bold text-[clamp(20px,2.5vw,36px)] text-nwcn-text-default text-center leading-[1.7]">
                         {renderClosingQuote(
                           faculty.interview.closingQuote,
                           faculty.interview.closingHighlight,
@@ -437,7 +437,7 @@ export default function ProfessorDetailSection({
               {/* FACULTY 복귀 링크 */}
               <Link
                 href="/about/faculty"
-                className="font-body font-normal text-[clamp(14px,1.39vw,20px)] text-nwcn-neutral-500 text-center leading-[26px] hover:text-nwcn-green transition-colors"
+                className="font-body font-normal text-[clamp(14px,1.39vw,20px)] text-nwcn-neutral-500 text-center leading-[26px] hover:text-nwcn-green transition-colors duration-fast ease-nwcn"
                 aria-label="교수진 목록으로 돌아가기"
               >
                 FACULTY
@@ -449,11 +449,11 @@ export default function ProfessorDetailSection({
         <div className="relative flex justify-center py-16" style={{ zIndex: 10 }}>
           <Link
             href="/about/faculty"
-            className="inline-flex items-center gap-2 font-body text-body-sm text-nwcn-neutral-500 hover:text-nwcn-green transition-colors group"
+            className="inline-flex items-center gap-2 font-body text-body-sm text-nwcn-neutral-500 hover:text-nwcn-green transition-colors duration-fast ease-nwcn group"
             aria-label="교수진 목록으로 돌아가기"
           >
             <svg
-              className="w-4 h-4 transition-transform group-hover:-translate-x-1"
+              className="w-4 h-4 transition-transform duration-base ease-nwcn group-hover:-translate-x-1"
               fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"
               aria-hidden="true"
             >

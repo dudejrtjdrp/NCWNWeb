@@ -132,14 +132,14 @@ export default function ShowcaseClient({
   }, [loadMore])
 
   return (
-    <div className="bg-white pb-20">
+    <div className="bg-white pb-section-lg">
       <div className="page-container">
         {/* 검색바 */}
         <SearchBar
           value={query}
           onChange={setQuery}
           placeholder="작품 제목, 분야, 제작자 검색"
-          maxWidth="max-w-[771px]"
+          maxWidth="max-w-prose"
           className="mb-7"
         />
 

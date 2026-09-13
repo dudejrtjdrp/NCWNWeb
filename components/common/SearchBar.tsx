@@ -24,7 +24,7 @@ export interface SearchBarProps {
   placeholder?: string
   /** 접근성: aria-label (기본 "검색") */
   label?: string
-  /** 최대 너비 (기본 max-w-[1011px]) */
+  /** 최대 너비 (기본 max-w-wide) */
   maxWidth?: string
   className?: string
 }
@@ -34,7 +34,7 @@ export default function SearchBar({
   onChange,
   placeholder,
   label,
-  maxWidth = 'max-w-[1011px]',
+  maxWidth = 'max-w-wide',
   className,
 }: SearchBarProps) {
   const t = useTranslations('common')

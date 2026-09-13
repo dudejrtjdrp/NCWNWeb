@@ -63,7 +63,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
 
   return (
     <section
-      className={`relative isolate bg-white py-[clamp(48px,7vw,72px)] ${className}`}
+      className={`relative isolate bg-white py-section-sm ${className}`}
       style={{ overflowX: 'clip' }}
       data-node-id="376:1609"
       aria-label="NCR Trend"
@@ -86,7 +86,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
         }}
       />
 
-      <div className="relative z-10 max-w-[1266px] mx-auto px-4">
+      <div className="relative z-10 max-w-page mx-auto px-4">
         {/* 섹션 헤더 */}
         <AnimateOnScroll variant="fade-up" className="mb-[29px]">
           <p

@@ -70,7 +70,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
           </Link>
           <button
             onClick={onClose}
-            className="p-2 text-white/60 hover:text-white transition-colors"
+            className="p-2 text-white/60 hover:text-white transition-colors duration-fast ease-nwcn"
             aria-label="메뉴 닫기"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -82,7 +82,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
         <nav className="p-6 space-y-6 overflow-y-auto h-[calc(100%-80px)]">
           {navItems.map((item) => (
             <div key={item.label}>
-              <p className="font-body text-xs font-semibold tracking-widest text-nwcn-green mb-3">
+              <p className="font-body text-caption font-semibold tracking-widest text-nwcn-green mb-3">
                 {item.label}
               </p>
               <div className="space-y-1">
@@ -92,7 +92,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
                     href={child.href}
                     onClick={onClose}
                     className={cn(
-                      'block px-3 py-2 font-body text-sm rounded-lg transition-colors duration-fast ease-nwcn',
+                      'block px-3 py-2 font-body text-body-sm rounded-lg transition-colors duration-fast ease-nwcn',
                       pathname === child.href
                         ? 'text-nwcn-green bg-nwcn-green/10'
                         : 'text-white/60 hover:text-white hover:bg-white/5'

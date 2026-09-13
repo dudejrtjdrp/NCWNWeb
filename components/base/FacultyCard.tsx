@@ -191,8 +191,8 @@ export default function FacultyCard({
         <CardArrowIcon
           className={cn(
             '-scale-x-100 w-full h-full',
-            colorVariant === 'green-gradient' ? 'text-white/80' : 'text-black/50',
-            'transition-colors duration-base ease-nwcn group-hover:text-black/80',
+            colorVariant === 'green-gradient' ? 'text-white/80' : 'text-nwcn-text-default/50',
+            'transition-colors duration-base ease-nwcn group-hover:text-nwcn-text-default/80',
           )}
         />
       </div>

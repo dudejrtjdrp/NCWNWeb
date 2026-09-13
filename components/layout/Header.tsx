@@ -154,7 +154,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                       <div className={cn(
                         'border rounded-lg overflow-hidden min-w-max',
                         isLight
-                          ? 'bg-white border-gray-100 shadow-md'
+                          ? 'bg-white border-nwcn-neutral-200 shadow-lift-1'
                           : 'bg-nwcn-dark-2 border-white/10 shadow-xl shadow-black/50'
                       )}>
                         {item.children.map((child) => (
@@ -163,12 +163,12 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                             href={child.href}
                             className={cn(
                               'block px-4 py-2.5 font-body text-caption whitespace-nowrap',
-                              'transition-colors duration-100',
+                              'transition-colors duration-fast',
                               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-nwcn-green',
                               pathname === child.href
                                 ? 'text-nwcn-green bg-nwcn-green/5'
                                 : isLight
-                                  ? 'text-nwcn-text-muted hover:text-nwcn-green hover:bg-gray-50'
+                                  ? 'text-nwcn-text-muted hover:text-nwcn-green hover:bg-nwcn-neutral-50'
                                   : 'text-white/60 hover:text-white hover:bg-white/5'
                             )}
                           >
@@ -190,7 +190,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
 
           {/* 모바일 햄버거 */}
           <button
-            className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 p-2 flex flex-col gap-[5px]"
+            className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 p-2 flex flex-col gap-1.5"
             onClick={() => setMobileOpen(true)}
             aria-label={t('openMenu')}
           >

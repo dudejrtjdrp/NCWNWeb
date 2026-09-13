@@ -3,11 +3,11 @@
  * Figma node-id: 91:79 (Tag)
  *
  * 디자인 스펙:
- * - Primary: #09F593 bg, Pretendard Bold 12px, #050505 text, px-[10px] py-[4px]
+ * - Primary: #09F593 bg, Pretendard Bold 12px, #050505 text, px-[10px] py-1
  * - Secondary: #E3E94D bg, 동일
  * - Neutral: #e0e0e0 bg, 동일
  * - Dark: #151515 bg, white text, 동일
- * - TALKS: #09F593 bg, Pretendard Medium 16.88px, drop-shadow, px-[4.051px] py-[2.026px]
+ * - TALKS: #09F593 bg, Pretendard Medium 16.88px, drop-shadow, px-1 py-0.5
  * - Contents: #E3E94D bg, 동일 스펙
  *
  * 사용처:
@@ -27,12 +27,12 @@ export interface TagProps {
 }
 
 const TAG_STYLES: Record<TagType, string> = {
-  primary: 'bg-nwcn-green px-[10px] py-[4px]',
-  secondary: 'bg-nwcn-yellow px-[10px] py-[4px]',
-  neutral: 'bg-nwcn-neutral-200 px-[10px] py-[4px]',
-  dark: 'bg-nwcn-dark px-[10px] py-[4px]',
-  talks: 'bg-nwcn-green px-[4.051px] py-[2.026px] drop-shadow-lift-1',
-  contents: 'bg-nwcn-yellow px-[4.051px] py-[2.026px] drop-shadow-lift-1',
+  primary: 'bg-nwcn-green px-[10px] py-1',
+  secondary: 'bg-nwcn-yellow px-[10px] py-1',
+  neutral: 'bg-nwcn-neutral-200 px-[10px] py-1',
+  dark: 'bg-nwcn-dark px-[10px] py-1',
+  talks: 'bg-nwcn-green px-1 py-0.5 drop-shadow-sm',
+  contents: 'bg-nwcn-yellow px-1 py-0.5 drop-shadow-sm',
 }
 
 const TAG_TEXT_STYLES: Record<TagType, string> = {

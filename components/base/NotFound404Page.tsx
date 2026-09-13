@@ -75,7 +75,7 @@ export default function NotFound404Page({
         <Link
           href={homeHref}
           aria-label="NWCN 홈으로"
-          className="focus-ring inline-block rounded-md transition-opacity duration-fast ease-nwcn hover:opacity-70"
+          className="focus-ring inline-block rounded-lg transition-opacity duration-fast ease-nwcn hover:opacity-70"
         >
           <Image
             src={NWCN_LOGO_URL}

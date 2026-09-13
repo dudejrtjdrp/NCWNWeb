@@ -61,7 +61,7 @@ function VideoViewer({ embed, title, placeholder }: { embed?: string | null; tit
   return (
     <div className="w-full">
       {embed ? (
-        <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black">
+        <div className="aspect-video w-full rounded-panel overflow-hidden bg-black">
           <iframe
             src={embed}
             title={title}
@@ -71,14 +71,14 @@ function VideoViewer({ embed, title, placeholder }: { embed?: string | null; tit
           />
         </div>
       ) : (
-        <div className="aspect-video w-full rounded-2xl bg-nwcn-dark flex items-center justify-center">
+        <div className="aspect-video w-full rounded-panel bg-nwcn-dark flex items-center justify-center">
           <div className="flex flex-col items-center gap-4 opacity-40">
             <div className="w-16 h-16 rounded-full border-2 border-white/30 flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                 <polygon points="5,3 19,12 5,21" />
               </svg>
             </div>
-            <span className="font-body text-sm text-white/50">{placeholder}</span>
+            <span className="font-body text-body-sm text-white/50">{placeholder}</span>
           </div>
         </div>
       )}
@@ -90,7 +90,7 @@ function ThreeDViewer({ embed, title, placeholder, hint }: { embed?: string | nu
   return (
     <div className="w-full">
       {embed ? (
-        <div className="aspect-video w-full rounded-2xl overflow-hidden bg-nwcn-dark">
+        <div className="aspect-video w-full rounded-panel overflow-hidden bg-nwcn-dark">
           <iframe
             title={title}
             src={embed}
@@ -100,18 +100,18 @@ function ThreeDViewer({ embed, title, placeholder, hint }: { embed?: string | nu
           />
         </div>
       ) : (
-        <div className="aspect-video w-full rounded-2xl bg-nwcn-dark flex items-center justify-center">
+        <div className="aspect-video w-full rounded-panel bg-nwcn-dark flex items-center justify-center">
           <div className="flex flex-col items-center gap-4 opacity-40">
             <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.2">
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
               <path d="M2 17l10 5 10-5" />
               <path d="M2 12l10 5 10-5" />
             </svg>
-            <span className="font-body text-sm text-white/50">{placeholder}</span>
+            <span className="font-body text-body-sm text-white/50">{placeholder}</span>
           </div>
         </div>
       )}
-      <p className="font-body text-xs text-nwcn-text-sub mt-3 text-center">
+      <p className="font-body text-caption text-nwcn-text-sub mt-3 text-center">
         {hint}
       </p>
     </div>
@@ -150,10 +150,10 @@ export default async function WorkDetailPage({ params }: PageProps) {
       <ViewCountTracker workId={work.id} />
 
       <div className="bg-white">
-        <div className="page-container pt-10 pb-16">
+        <div className="page-container pt-section-md pb-section-lg">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-caption font-body text-nwcn-gray-muted mb-7">
-            <Link href="/work/showcase" className="hover:text-nwcn-text-default transition-colors">
+            <Link href="/work/showcase" className="hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn">
               SHOWCASE
             </Link>
             <span>/</span>
@@ -165,7 +165,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
 
           {/* 제목 + 조회수 */}
           <div className="mt-4 flex items-start justify-between gap-6">
-            <h1 className="font-body font-bold text-hero-2 text-nwcn-text-default leading-tight">
+            <h1 className="font-body font-bold text-page-1 text-nwcn-text-default leading-tight">
               {work.title}
             </h1>
             <div className="flex items-center gap-1.5 text-nwcn-gray-muted shrink-0 pt-2">
@@ -243,7 +243,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group flex items-center gap-2 font-body text-sm text-nwcn-gray-text hover:text-nwcn-green-dark transition-colors"
+                          className="group flex items-center gap-2 font-body text-body-sm text-nwcn-gray-text hover:text-nwcn-green-dark transition-colors duration-fast ease-nwcn"
                         >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -273,9 +273,9 @@ export default async function WorkDetailPage({ params }: PageProps) {
           <div className="mt-16">
             <Link
               href="/work/showcase"
-              className="inline-flex items-center gap-2 font-body text-sm text-nwcn-gray-muted hover:text-nwcn-text-default transition-colors group"
+              className="inline-flex items-center gap-2 font-body text-body-sm text-nwcn-gray-muted hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn group"
             >
-              <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg className="w-4 h-4 transition-transform duration-base ease-nwcn group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
               SHOWCASE

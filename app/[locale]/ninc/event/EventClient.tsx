@@ -227,7 +227,7 @@ export default function EventClient({ initialEvents }: Props) {
       </div>
 
       {/* ── 콘텐츠 ──────────────────────────────────────────── */}
-      <div className="bg-white pb-24">
+      <div className="bg-white pb-section-lg">
         <div className="page-container">
           {filtered.length === 0 ? (
             <div className="flex items-center justify-center py-24">
@@ -261,17 +261,17 @@ export default function EventClient({ initialEvents }: Props) {
                         const weekday = d.toLocaleDateString(dateLocale, { weekday: 'short' })
                         return (
                           <div key={event.id}
-                            className="border border-nwcn-neutral-200 rounded-2xl p-7 flex gap-8 items-start hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn group bg-white">
+                            className="border border-nwcn-neutral-200 rounded-panel p-7 flex gap-8 items-start hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn group bg-white">
                             <div className="flex-shrink-0 w-[72px] flex flex-col items-center gap-1 pt-1">
                               <span className="font-body text-caption font-semibold tracking-widest text-nwcn-neutral-400 uppercase">{month}</span>
-                              <span className="font-brand font-bold text-hero-2 text-nwcn-text-default leading-none group-hover:text-nwcn-green transition-colors">{day}</span>
+                              <span className="font-brand font-bold text-hero-2 text-nwcn-text-default leading-none group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn">{day}</span>
                               <span className="font-body text-caption text-nwcn-neutral-400">{weekday}</span>
                             </div>
-                            <div className="flex-shrink-0 w-px bg-nwcn-neutral-200 self-stretch group-hover:bg-nwcn-green/30 transition-colors" />
+                            <div className="flex-shrink-0 w-px bg-nwcn-neutral-200 self-stretch group-hover:bg-nwcn-green/30 transition-colors duration-fast ease-nwcn" />
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-3 flex-wrap">
                                 <span className="text-card">{TYPE_ICON[event.type] ?? '📌'}</span>
-                                <h3 className="font-body text-card font-semibold text-nwcn-text-default group-hover:text-nwcn-green transition-colors">{event.title}</h3>
+                                <h3 className="font-body text-card font-semibold text-nwcn-text-default group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn">{event.title}</h3>
                                 <Badge variant={TYPE_COLORS[event.type] ?? 'gray'}>{typeLabels[event.type] ?? event.type}</Badge>
                               </div>
                               {event.description && (
@@ -301,7 +301,7 @@ export default function EventClient({ initialEvents }: Props) {
               {/* 월 네비게이션 */}
               <div className="flex items-center justify-between mb-6">
                 <button onClick={() => setCalendarDate(new Date(calYear, calMonth - 1, 1))}
-                  className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-nwcn-neutral-100 transition-colors text-nwcn-neutral-600">
+                  className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-nwcn-neutral-100 transition-colors duration-fast ease-nwcn text-nwcn-neutral-600">
                   <ChevL />
                 </button>
                 <div className="flex items-center gap-3">
@@ -309,12 +309,12 @@ export default function EventClient({ initialEvents }: Props) {
                     {locale === 'en' ? `${MONTH_EN[calMonth]} ${calYear}` : `${calYear}년 ${calMonth + 1}월`}
                   </h2>
                   <button onClick={() => { setCalendarDate(new Date()); setSelectedDay(null) }}
-                    className="px-3 py-1 rounded-full border border-nwcn-neutral-300 font-body text-caption text-nwcn-neutral-500 hover:border-nwcn-green hover:text-nwcn-green transition-colors">
+                    className="px-3 py-1 rounded-full border border-nwcn-neutral-300 font-body text-caption text-nwcn-neutral-500 hover:border-nwcn-green hover:text-nwcn-green transition-colors duration-fast ease-nwcn">
                     {locale === 'en' ? 'Today' : '오늘'}
                   </button>
                 </div>
                 <button onClick={() => setCalendarDate(new Date(calYear, calMonth + 1, 1))}
-                  className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-nwcn-neutral-100 transition-colors text-nwcn-neutral-600">
+                  className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-nwcn-neutral-100 transition-colors duration-fast ease-nwcn text-nwcn-neutral-600">
                   <ChevR />
                 </button>
               </div>
@@ -347,13 +347,13 @@ export default function EventClient({ initialEvents }: Props) {
                       key={idx}
                       onClick={() => isValid && setSelectedDay(prev => prev === day ? null : day)}
                       className={[
-                        'border border-nwcn-neutral-200 min-h-[110px] lg:min-h-[140px] p-2.5 transition-colors',
+                        'border border-nwcn-neutral-200 min-h-[110px] lg:min-h-[140px] p-2.5 transition-colors duration-fast ease-nwcn',
                         isValid  ? 'cursor-pointer' : '',
                         isSelected ? 'bg-emerald-50/60 border-nwcn-green/40' :
                         !isValid   ? 'bg-nwcn-neutral-50' :
                         dow === 0  ? 'bg-rose-50/30 hover:bg-rose-50/60' :
                         dow === 6  ? 'bg-blue-50/30 hover:bg-blue-50/60' :
-                                     'bg-white hover:bg-[#f9fffe]',
+                                     'bg-white hover:bg-nwcn-green/5',
                       ].join(' ')}
                     >
                       {isValid && (
@@ -382,7 +382,7 @@ export default function EventClient({ initialEvents }: Props) {
                               <div key={ev.id}
                                 title={ev.title}
                                 className={[
-                                  'text-caption font-body px-1.5 py-0.5 rounded-md truncate leading-snug',
+                                  'text-caption font-body px-1.5 py-0.5 rounded-lg truncate leading-snug',
                                   TYPE_CHIP[ev.type] ?? TYPE_CHIP['기타'],
                                 ].join(' ')}>
                                 {ev.title}
@@ -404,7 +404,7 @@ export default function EventClient({ initialEvents }: Props) {
               {/* 선택한 날짜 패널 */}
               {selectedDay !== null && (
                 <div className={[
-                  'mt-5 rounded-2xl border p-5 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn',
+                  'mt-5 rounded-panel border p-5 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn',
                   selectedDayEvts.length > 0
                     ? 'border-nwcn-green/30 bg-emerald-50/30'
                     : 'border-nwcn-neutral-200 bg-nwcn-neutral-50',
@@ -416,7 +416,7 @@ export default function EventClient({ initialEvents }: Props) {
                         : `${calMonth + 1}월 ${selectedDay}일`}
                     </h3>
                     <button onClick={() => setSelectedDay(null)}
-                      className="font-body text-caption text-nwcn-neutral-400 hover:text-nwcn-neutral-600 transition-colors px-2 py-1">
+                      className="font-body text-caption text-nwcn-neutral-400 hover:text-nwcn-neutral-600 transition-colors duration-fast ease-nwcn px-2 py-1">
                       닫기 ✕
                     </button>
                   </div>
@@ -429,7 +429,7 @@ export default function EventClient({ initialEvents }: Props) {
                     <div className="space-y-3">
                       {selectedDayEvts.map(ev => (
                         <div key={ev.id}
-                          className="bg-white rounded-xl border border-nwcn-neutral-200 px-5 py-4 flex items-start gap-4">
+                          className="bg-white rounded-card border border-nwcn-neutral-200 px-5 py-4 flex items-start gap-4">
                           <span className="text-section mt-0.5 flex-shrink-0">{TYPE_ICON[ev.type] ?? '📌'}</span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -466,7 +466,7 @@ export default function EventClient({ initialEvents }: Props) {
                       : `${calMonth + 1}월 이벤트 ${thisMonthEvents.length}개`}
                   </h3>
                   {thisMonthEvents.length === 0 ? (
-                    <div className="flex items-center justify-center py-12 border border-dashed border-nwcn-neutral-200 rounded-2xl">
+                    <div className="flex items-center justify-center py-12 border border-dashed border-nwcn-neutral-200 rounded-panel">
                       <p className="font-body text-body-sm text-nwcn-neutral-300">
                         {locale === 'en' ? 'No events this month' : '이번 달 이벤트가 없습니다'}
                       </p>
@@ -480,15 +480,15 @@ export default function EventClient({ initialEvents }: Props) {
                         return (
                           <div key={ev.id}
                             onClick={() => setSelectedDay(dy)}
-                            className="border border-nwcn-neutral-200 rounded-xl px-5 py-4 flex items-center gap-5 hover:border-nwcn-green/30 hover:bg-emerald-50/20 cursor-pointer transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn group">
+                            className="border border-nwcn-neutral-200 rounded-card px-5 py-4 flex items-center gap-5 hover:border-nwcn-green/30 hover:bg-emerald-50/20 cursor-pointer transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn group">
                             <div className="flex-shrink-0 flex items-baseline gap-1 min-w-[44px]">
-                              <span className="font-brand font-bold text-section text-nwcn-text-default group-hover:text-nwcn-green transition-colors leading-none">{dy}</span>
+                              <span className="font-brand font-bold text-section text-nwcn-text-default group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn leading-none">{dy}</span>
                               <span className="font-body text-caption text-nwcn-neutral-400">{wd}</span>
                             </div>
                             <div className="flex-shrink-0 w-px h-6 bg-nwcn-neutral-200" />
                             <div className="flex-1 flex items-center gap-2.5 flex-wrap min-w-0">
                               <span className="text-body-sm">{TYPE_ICON[ev.type] ?? '📌'}</span>
-                              <span className="font-body text-body-sm font-semibold text-nwcn-text-default group-hover:text-nwcn-green transition-colors truncate">{ev.title}</span>
+                              <span className="font-body text-body-sm font-semibold text-nwcn-text-default group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn truncate">{ev.title}</span>
                               <Badge variant={TYPE_COLORS[ev.type] ?? 'gray'}>{typeLabels[ev.type] ?? ev.type}</Badge>
                             </div>
                             {ev.description && (

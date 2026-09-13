@@ -71,7 +71,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
       </div>
 
       {/* 리포트 목록 */}
-      <div className="bg-white pb-24">
+      <div className="bg-white pb-section-lg">
         <div className="page-container space-y-14">
           {sortedSeasons.length === 0 ? (
             <div className="flex items-center justify-center py-24">
@@ -101,7 +101,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                     <Link
                       key={report.id}
                       href={`/ncr-trend/${report.id}`}
-                      className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 sm:gap-6 p-4 sm:p-5 border border-nwcn-neutral-200 rounded-2xl hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn group bg-white"
+                      className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 sm:gap-6 p-4 sm:p-5 border border-nwcn-neutral-200 rounded-panel hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn group bg-white"
                     >
                       {/* 순번 */}
                       <span className="font-brand font-bold text-caption sm:text-body-sm text-nwcn-neutral-300 w-6 flex-shrink-0 text-center">
@@ -119,7 +119,7 @@ export default function ArchiveClient({ reports, seasons }: Props) {
                       </Badge>
 
                       {/* 제목 — 모바일에선 줄바꿈되어 한 줄 전체 차지, 데스크탑에선 인라인 */}
-                      <p className="order-last sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 font-body text-body-sm sm:text-body text-nwcn-text-default font-medium group-hover:text-nwcn-green transition-colors">
+                      <p className="order-last sm:order-none basis-full sm:basis-auto sm:flex-1 min-w-0 font-body text-body-sm sm:text-body text-nwcn-text-default font-medium group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn">
                         {report.title}
                       </p>
 

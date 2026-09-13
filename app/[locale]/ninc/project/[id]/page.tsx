@@ -36,10 +36,10 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   return (
     <SubPageLayout>
       {/* ── 상단 배너 ── */}
-      <div className="bg-white pt-[80px] pb-0">
+      <div className="bg-white pt-section-md pb-0">
         <div className="page-container">
-          <nav className="flex items-center gap-2 text-xs font-body text-nwcn-text-sub mb-8">
-            <Link href="/ninc/project" className="hover:text-nwcn-text-muted transition-colors">
+          <nav className="flex items-center gap-2 text-caption font-body text-nwcn-text-sub mb-8">
+            <Link href="/ninc/project" className="hover:text-nwcn-text-muted transition-colors duration-fast ease-nwcn">
               PROJECT
             </Link>
             <span>/</span>
@@ -47,24 +47,24 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           </nav>
 
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <span className={`font-body text-sm font-semibold px-4 py-1.5 rounded-full ${TYPE_STYLE[project.type]}`}>
+            <span className={`font-body text-body-sm font-semibold px-4 py-1.5 rounded-full ${TYPE_STYLE[project.type]}`}>
               {TYPE_LABEL[project.type]}
             </span>
             {project.category && (
-              <span className="font-body text-sm text-nwcn-text-muted border border-black/10 px-3 py-1.5 rounded-full">
+              <span className="font-body text-body-sm text-nwcn-text-muted border border-black/10 px-3 py-1.5 rounded-full">
                 {project.category}
               </span>
             )}
             {project.partner && (
-              <span className="font-body text-sm text-nwcn-text-sub">{project.partner}</span>
+              <span className="font-body text-body-sm text-nwcn-text-sub">{project.partner}</span>
             )}
           </div>
 
-          <h1 className="font-body font-bold text-hero-2 text-nwcn-text-default leading-tight mb-3">
+          <h1 className="font-body font-bold text-page-1 text-nwcn-text-default leading-tight mb-3">
             {project.title}
           </h1>
 
-          <p className="font-body text-sm text-nwcn-text-sub mb-10">
+          <p className="font-body text-body-sm text-nwcn-text-sub mb-10">
             {yearLabel}{project.duration ? ` · ${project.duration}` : ''}
           </p>
         </div>
@@ -78,7 +78,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
 
             {/* 사이드바 */}
             <aside className="lg:col-span-1 order-2 lg:order-1">
-              <div className="border border-black/10 rounded-2xl overflow-hidden sticky top-24">
+              <div className="border border-black/10 rounded-panel overflow-hidden sticky top-24">
                 <div className="relative aspect-[4/3] bg-nwcn-neutral-100 flex items-center justify-center">
                   {project.thumbnail_url ? (
                     <Image
@@ -95,41 +95,41 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                         <rect x="2" y="3" width="20" height="14" rx="2" />
                         <path d="M8 21h8M12 17v4" />
                       </svg>
-                      <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
+                      <span className="font-body text-caption text-nwcn-text-sub">{t('noImage')}</span>
                     </div>
                   )}
                 </div>
                 <div className="p-6 space-y-4">
                   {project.partner && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('partner')}</p>
-                      <p className="font-body text-sm font-semibold text-nwcn-text-default">{project.partner}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('partner')}</p>
+                      <p className="font-body text-body-sm font-semibold text-nwcn-text-default">{project.partner}</p>
                     </div>
                   )}
                   {project.category && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('category')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{project.category}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('category')}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">{project.category}</p>
                     </div>
                   )}
                   {project.duration && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('duration')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{project.duration}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('duration')}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">{project.duration}</p>
                     </div>
                   )}
                   {project.participants && project.participants.length > 0 && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('participants')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{project.participants.join(', ')}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('participants')}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">{project.participants.join(', ')}</p>
                     </div>
                   )}
                   {project.skills && project.skills.length > 0 && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('skills')}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('skills')}</p>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {project.skills.map((skill) => (
-                          <span key={skill} className="font-body text-xs px-2.5 py-1 bg-nwcn-neutral-100 text-nwcn-text-muted rounded-full">
+                          <span key={skill} className="font-body text-caption px-2.5 py-1 bg-nwcn-neutral-100 text-nwcn-text-muted rounded-full">
                             {skill}
                           </span>
                         ))}
@@ -141,7 +141,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                       href={project.project_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full mt-2 py-2.5 rounded-xl bg-nwcn-green text-nwcn-text-default font-body text-sm font-semibold hover:brightness-105 transition-[color,background-color,border-color,transform,box-shadow,opacity]"
+                      className="flex items-center justify-center gap-2 w-full mt-2 py-2.5 rounded-card bg-nwcn-green text-nwcn-text-default font-body text-body-sm font-semibold hover:brightness-105 transition-[color,background-color,border-color,transform,box-shadow,opacity]"
                     >
                       {t('viewProject')}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -168,7 +168,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   <h2 className="font-body font-semibold text-card text-nwcn-text-default mb-4 pb-2 border-b border-black/10">
                     {t('sectionOutcome')}
                   </h2>
-                  <div className="bg-nwcn-neutral-100 rounded-xl p-5 flex items-start gap-4">
+                  <div className="bg-nwcn-neutral-100 rounded-card p-5 flex items-start gap-4">
                     <div className="w-8 h-8 bg-nwcn-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-green)" strokeWidth="2">
                         <polyline points="20 6 9 17 4 12" />
@@ -185,11 +185,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                   </h2>
                   <div className="flex flex-wrap gap-3">
                     {project.participants.map((member) => (
-                      <div key={member} className="flex items-center gap-3 bg-nwcn-neutral-100 px-4 py-3 rounded-xl">
+                      <div key={member} className="flex items-center gap-3 bg-nwcn-neutral-100 px-4 py-3 rounded-card">
                         <div className="w-9 h-9 rounded-full bg-nwcn-text-sub/20 flex items-center justify-center flex-shrink-0">
-                          <span className="font-body text-sm font-semibold text-nwcn-text-muted">{member.charAt(0)}</span>
+                          <span className="font-body text-body-sm font-semibold text-nwcn-text-muted">{member.charAt(0)}</span>
                         </div>
-                        <p className="font-body text-sm font-medium text-nwcn-text-default">{member}</p>
+                        <p className="font-body text-body-sm font-medium text-nwcn-text-default">{member}</p>
                       </div>
                     ))}
                   </div>
@@ -203,8 +203,8 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       {/* 하단 네비게이션 */}
       <div className="bg-white border-t border-black/10 py-8">
         <div className="page-container">
-          <Link href="/ninc/project" className="flex items-center gap-2 font-body text-sm text-nwcn-text-sub hover:text-nwcn-text-default transition-colors group">
-            <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <Link href="/ninc/project" className="flex items-center gap-2 font-body text-body-sm text-nwcn-text-sub hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn group">
+            <svg className="w-4 h-4 transition-transform duration-base ease-nwcn group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             {t('backToList')}

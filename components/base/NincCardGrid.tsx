@@ -47,7 +47,7 @@ export default function NincCardGrid({
   return (
     <div className="bg-white">
       {/* ── 섹션 타이틀 ── */}
-      <AnimateOnScroll variant="fade-up" className="text-center pt-12 sm:pt-16 lg:pt-[86px] pb-4 sm:pb-6 lg:pb-[28px]">
+      <AnimateOnScroll variant="fade-up" className="text-center pt-12 sm:pt-16 lg:pt-section-md pb-4 sm:pb-6 lg:pb-[28px]">
         <p className="section-label">
           {sectionTitle}
         </p>
@@ -88,7 +88,7 @@ export default function NincCardGrid({
           </AnimateOnScroll>
         ) : (
           /* ── 카드 그리드: 1열→2열→3열 ── */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-[35px] gap-y-16 sm:gap-y-24 lg:gap-y-[145px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-16 sm:gap-y-24 lg:gap-y-24">
             {items.map((item, i) => (
               <AnimateOnScroll
                 key={item.id}

@@ -52,7 +52,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
       />
 
       {/* What is NewCon? 헤더 */}
-      <div className="relative z-10 flex flex-col items-center pt-[clamp(72px,10vw,128px)] pb-[clamp(8px,1.5vw,20px)]">
+      <div className="relative z-10 flex flex-col items-center pt-section-lg pb-[clamp(8px,1.5vw,20px)]">
         {['What', 'is', 'NewCon?'].map((word, i) => (
           <AnimateOnScroll
             key={word}
@@ -68,7 +68,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
       </div>
 
       {/* 슬로건 */}
-      <div className="relative z-10 flex flex-col items-center text-center px-4 pt-[clamp(56px,8vw,104px)] pb-[clamp(180px,26vw,360px)]">
+      <div className="relative z-10 flex flex-col items-center text-center px-4 pt-section-md pb-[clamp(180px,26vw,360px)]">
         <AnimateOnScroll variant="fade-up" delay={0}>
           <p
             className="font-body font-bold text-nwcn-text-muted mb-[clamp(8px,1.2vw,16px)]"

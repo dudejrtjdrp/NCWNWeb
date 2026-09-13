@@ -111,7 +111,7 @@ export default function CareerColumn({
               type="button"
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
-              className={`self-start inline-flex items-center gap-1.5 font-body font-semibold text-nwcn-green hover:opacity-70 transition-opacity ${s.button}`}
+              className={`self-start inline-flex items-center gap-1.5 font-body font-semibold text-nwcn-green hover:opacity-70 transition-opacity duration-fast ease-nwcn ${s.button}`}
             >
               {expanded ? '접기' : `더보기 +${hiddenCount}`}
               <Chevron open={expanded} />

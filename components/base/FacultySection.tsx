@@ -39,7 +39,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
 
       {/* ── 교수진 섹션 ── */}
       <section
-        className="flex flex-col items-center py-12 sm:py-16 lg:py-[80px]"
+        className="flex flex-col items-center py-12 sm:py-16 lg:py-section-md"
         aria-labelledby="faculty-heading"
       >
         <AnimateOnScroll variant="fade-up" delay={0}>
@@ -54,7 +54,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
         </AnimateOnScroll>
 
         <div className="page-container w-full">
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-[41px]">
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-10">
             {professors.map((faculty, i) => (
               <AnimateOnScroll
                 key={faculty.id}
@@ -77,7 +77,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
 
       {/* ── 조교 섹션 ── */}
       <section
-        className="flex flex-col items-center pb-16 sm:pb-20 lg:pb-[120px]"
+        className="flex flex-col items-center pb-16 sm:pb-20 lg:pb-section-lg"
         aria-labelledby="assistant-heading"
       >
         <AnimateOnScroll variant="fade-up" delay={0}>
@@ -91,7 +91,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
           </h2>
         </AnimateOnScroll>
 
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-[41px] page-container">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-10 page-container">
           {assistants.map((ta, i) => (
             <AnimateOnScroll key={ta.id} variant="fade-up" delay={i * 80}>
               <FacultyCard

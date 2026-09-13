@@ -24,6 +24,8 @@ const config: Config = {
           'green-darker': '#058F56',
           'green-deep': '#133728',
           yellow: '#E3E94D',
+          'yellow-deep': '#1D1E00',
+          danger: '#E5484D',
 
           /* ── 중립 스케일 (기존 25종 회색 → 10단계로 압축) ── */
           'neutral-0': '#ffffff',

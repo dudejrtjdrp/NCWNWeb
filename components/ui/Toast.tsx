@@ -40,7 +40,7 @@ export function useToast(): ToastApi {
 const tones: Record<ToastTone, string> = {
   default: 'bg-nwcn-dark text-white',
   success: 'bg-nwcn-green text-nwcn-dark',
-  error: 'bg-[#E5484D] text-white',
+  error: 'bg-nwcn-danger text-white',
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {

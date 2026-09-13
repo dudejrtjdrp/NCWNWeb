@@ -17,7 +17,7 @@
  * ────────────────────────────────────────────────────
  *
  * Figma 디자인 스펙:
- *  - 전체 패딩: px-[188px] py-[81px]
+ *  - 전체 패딩: px-[188px] py-section-md
  *  - 카테고리 헤더: Pretendard Bold 18px, line-height 27px
  *  - 학기 헤더: Pretendard Bold 18px, #050505
  *  - 과목명: Pretendard Medium 18px, #050505
@@ -412,7 +412,7 @@ function SemesterBlock({ semester }: { semester: Semester }) {
         {semester.label}
       </p>
       {/* 과목 목록 */}
-      <div className="flex flex-col gap-8 sm:gap-10 lg:gap-[52px] mt-2">
+      <div className="flex flex-col gap-8 sm:gap-10 lg:gap-12 mt-2">
         {semester.courses.map((course, idx) => (
           <CourseItem key={idx} course={course} />
         ))}
@@ -497,14 +497,14 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
 
   return (
     <div
-      className={`relative w-full max-w-[1440px] mx-auto bg-white ${className ?? ''}`}
+      className={`relative w-full max-w-page mx-auto bg-white ${className ?? ''}`}
       data-node-id="450:219"
     >
       {/* ══════════════════════════════════════════
           [1] 교육과정 아이콘 + 타이틀
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up">
-        <div className="pt-14 sm:pt-20 lg:pt-[100px] flex flex-col items-center gap-[10px]">
+        <div className="pt-14 sm:pt-20 lg:pt-section-md flex flex-col items-center gap-2.5">
           <CurriculumIcon />
           <p
             style={{
@@ -527,7 +527,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up" delay={80}>
       <div
-        className="flex justify-center gap-4 pt-8 sm:pt-10 lg:pt-[55px] pb-10 sm:pb-14 lg:pb-[81px]"
+        className="flex justify-center gap-4 pt-8 sm:pt-10 lg:pt-section-sm pb-10 sm:pb-14 lg:pb-section-md"
         role="tablist"
         aria-label="학년 선택"
       >
@@ -575,7 +575,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
               />
             )}
             <div
-              className={`px-4 sm:px-8 lg:px-[188px] ${idx < currentData.categories.length - 1 ? 'pb-0' : 'pb-10 sm:pb-12 lg:pb-[81px]'} flex flex-col gap-6 sm:gap-8 lg:gap-[37px]`}
+              className={`px-4 sm:px-8 lg:px-[188px] ${idx < currentData.categories.length - 1 ? 'pb-0' : 'pb-10 sm:pb-12 lg:pb-section-md'} flex flex-col gap-6 sm:gap-8 lg:gap-[37px]`}
             >
               {/* 카테고리 헤더 */}
               <p
@@ -586,7 +586,7 @@ export default function CurriculumSection({ className }: CurriculumSectionProps)
               </p>
 
               {/* 학기 목록 */}
-              <div className="flex flex-col gap-10 sm:gap-14 lg:gap-[95px]">
+              <div className="flex flex-col gap-10 sm:gap-14 lg:gap-24">
                 {category.semesters.map((semester, sIdx) => {
                   const translatedSemester = {
                     ...semester,

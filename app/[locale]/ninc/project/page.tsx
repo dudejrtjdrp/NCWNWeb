@@ -87,8 +87,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ locale
       <ProjectPartners />
 
       {/* 4. 산학협력 / 해외교류 쇼케이스 */}
-      <section className="bg-white pt-20 sm:pt-24 lg:pt-[120px]">
-        <AnimateOnScroll variant="fade-up" className="text-center pb-10 sm:pb-14 lg:pb-[70px]">
+      <section className="bg-white pt-20 sm:pt-24 lg:pt-section-lg">
+        <AnimateOnScroll variant="fade-up" className="text-center pb-10 sm:pb-14 lg:pb-section-sm">
           <h2 className="font-body font-bold text-section text-nwcn-text-default">
             산학협력/해외교류
           </h2>
@@ -97,7 +97,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ locale
           </p>
         </AnimateOnScroll>
 
-        <div className="flex flex-col gap-16 sm:gap-20 lg:gap-[80px] pb-20 sm:pb-24 lg:pb-[120px]">
+        <div className="flex flex-col gap-16 sm:gap-20 lg:gap-20 pb-20 sm:pb-24 lg:pb-section-lg">
           {showcaseBlocks.map((block, i) => (
             <ProjectShowcase key={`${block.label}-${i}`} block={block} />
           ))}

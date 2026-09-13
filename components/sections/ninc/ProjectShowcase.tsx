@@ -134,28 +134,28 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
 
   /* ── 텍스트 패널(아래→위 애니메이션, key로 재생) ── */
   const TextPane = (
-    <div className="flex h-[300px] sm:h-[420px] lg:h-[566px] flex-col justify-center gap-5 lg:gap-[34px] px-7 sm:px-12 lg:px-[79px] py-10 lg:py-[130px]">
+    <div className="flex h-[300px] sm:h-[420px] lg:h-[566px] flex-col justify-center gap-5 lg:gap-8 px-7 sm:px-12 lg:px-[79px] py-10 lg:py-section-lg">
       {/* key=index → 슬라이드 바뀔 때마다 slide-up 애니메이션 재생 */}
-      <div key={index} className="animate-slide-up flex flex-col gap-5 lg:gap-[34px]">
+      <div key={index} className="animate-slide-up flex flex-col gap-5 lg:gap-8">
         <span
           className={cn(
-            'inline-flex w-fit items-center rounded-full px-3 py-[3px] font-body text-body text-nwcn-text-default',
+            'inline-flex w-fit items-center rounded-full px-3 py-1 font-body text-body text-nwcn-text-default',
             ACCENT[accent].badge
           )}
         >
           {label}
         </span>
 
-        <p className="font-body font-medium text-body lg:text-card leading-[27px] text-black">
+        <p className="font-body font-medium text-body lg:text-card leading-[27px] text-nwcn-text-default">
           {current.date}
         </p>
 
-        <div className="flex flex-col gap-[10px]">
-          <h3 className="font-body font-extrabold text-section leading-tight text-black">
+        <div className="flex flex-col gap-2.5">
+          <h3 className="font-body font-extrabold text-section leading-tight text-nwcn-text-default">
             {current.title}
           </h3>
           {current.place && (
-            <p className="font-body font-medium text-body lg:text-card leading-[27px] text-black">
+            <p className="font-body font-medium text-body lg:text-card leading-[27px] text-nwcn-text-default">
               {current.place}
             </p>
           )}

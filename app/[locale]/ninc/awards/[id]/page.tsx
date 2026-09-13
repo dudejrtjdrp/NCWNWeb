@@ -78,11 +78,11 @@ export default async function AwardDetailPage({ params }: PageProps) {
   return (
     <SubPageLayout>
       {/* ── 상단 배너 (흰 배경) ── */}
-      <div className="bg-white pt-[80px] pb-0">
+      <div className="bg-white pt-section-md pb-0">
         <div className="page-container">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-xs font-body text-nwcn-text-sub mb-8">
-            <Link href="/ninc/awards" className="hover:text-nwcn-text-muted transition-colors">
+          <nav className="flex items-center gap-2 text-caption font-body text-nwcn-text-sub mb-8">
+            <Link href="/ninc/awards" className="hover:text-nwcn-text-muted transition-colors duration-fast ease-nwcn">
               AWARDS
             </Link>
             <span>/</span>
@@ -91,21 +91,21 @@ export default async function AwardDetailPage({ params }: PageProps) {
 
           {/* 수상명 + 배지 */}
           <div className="flex flex-wrap items-center gap-4 mb-4">
-            <span className={`font-body text-sm font-semibold px-4 py-1.5 rounded-full ${AWARD_GRADE_COLOR[award.award_name] ?? 'bg-white/10 text-white'}`}>
+            <span className={`font-body text-body-sm font-semibold px-4 py-1.5 rounded-full ${AWARD_GRADE_COLOR[award.award_name] ?? 'bg-white/10 text-white'}`}>
               {award.award_name}
             </span>
             {award.category && (
-              <span className="font-body text-sm text-nwcn-text-sub">{award.category}</span>
+              <span className="font-body text-body-sm text-nwcn-text-sub">{award.category}</span>
             )}
           </div>
 
           {/* 대회명 */}
-          <h1 className="font-body font-bold text-hero-2 text-nwcn-text-default leading-tight mb-3">
+          <h1 className="font-body font-bold text-page-1 text-nwcn-text-default leading-tight mb-3">
             {award.competition}
           </h1>
 
           {/* 연도 + 주최 */}
-          <p className="font-body text-sm text-nwcn-text-sub mb-10">
+          <p className="font-body text-body-sm text-nwcn-text-sub mb-10">
             {yearLabel}{award.hosted_by ? ` · ${award.hosted_by}` : ''}
           </p>
         </div>
@@ -121,7 +121,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
 
             {/* ── 왼쪽: 주요 정보 카드 ── */}
             <aside className="lg:col-span-1 order-2 lg:order-1">
-              <div className="border border-black/10 rounded-2xl overflow-hidden sticky top-24">
+              <div className="border border-black/10 rounded-panel overflow-hidden sticky top-24">
                 {/* 썸네일 */}
                 <div className="relative aspect-[4/3] bg-nwcn-neutral-100 flex items-center justify-center">
                   {award.thumbnail_url ? (
@@ -138,7 +138,7 @@ export default async function AwardDetailPage({ params }: PageProps) {
                       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.5">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                       </svg>
-                      <span className="font-body text-xs text-nwcn-text-sub">{t('noImage')}</span>
+                      <span className="font-body text-caption text-nwcn-text-sub">{t('noImage')}</span>
                     </div>
                   )}
                 </div>
@@ -147,32 +147,32 @@ export default async function AwardDetailPage({ params }: PageProps) {
                 <div className="p-6 space-y-4">
                   {award.winner && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('winner')}</p>
-                      <p className="font-body text-sm font-semibold text-nwcn-text-default">{award.winner}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('winner')}</p>
+                      <p className="font-body text-body-sm font-semibold text-nwcn-text-default">{award.winner}</p>
                     </div>
                   )}
                   {members.length > 1 && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('teamMembers')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('teamMembers')}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">
                         {members.join(', ')}
                       </p>
                     </div>
                   )}
                   <div>
-                    <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('awardYear')}</p>
-                    <p className="font-body text-sm text-nwcn-text-muted">{yearLabel}</p>
+                    <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('awardYear')}</p>
+                    <p className="font-body text-body-sm text-nwcn-text-muted">{yearLabel}</p>
                   </div>
                   {award.hosted_by && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('host')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{award.hosted_by}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('host')}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">{award.hosted_by}</p>
                     </div>
                   )}
                   {award.category && (
                     <div>
-                      <p className="font-body text-xs text-nwcn-text-sub mb-1">{t('category')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{award.category}</p>
+                      <p className="font-body text-caption text-nwcn-text-sub mb-1">{t('category')}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">{award.category}</p>
                     </div>
                   )}
                 </div>
@@ -200,15 +200,15 @@ export default async function AwardDetailPage({ params }: PageProps) {
                   {members.map((member) => (
                     <div
                       key={member}
-                      className="flex items-center gap-3 bg-nwcn-neutral-100 px-4 py-3 rounded-xl"
+                      className="flex items-center gap-3 bg-nwcn-neutral-100 px-4 py-3 rounded-card"
                     >
                       <div className="w-9 h-9 rounded-full bg-nwcn-text-sub/20 flex items-center justify-center flex-shrink-0">
-                        <span className="font-body text-sm font-semibold text-nwcn-text-muted">
+                        <span className="font-body text-body-sm font-semibold text-nwcn-text-muted">
                           {member.charAt(0)}
                         </span>
                       </div>
                       <div>
-                        <p className="font-body text-sm font-medium text-nwcn-text-default">{member}</p>
+                        <p className="font-body text-body-sm font-medium text-nwcn-text-default">{member}</p>
                         {member === award.winner && (
                           <p className="font-body text-caption text-nwcn-text-sub">{t('representative')}</p>
                         )}
@@ -219,17 +219,17 @@ export default async function AwardDetailPage({ params }: PageProps) {
               </section>
 
               {/* 수상 정보 카드 */}
-              <div className="bg-nwcn-neutral-50 rounded-2xl p-6 flex items-center gap-4">
+              <div className="bg-nwcn-neutral-50 rounded-panel p-6 flex items-center gap-4">
                 <div className="w-12 h-12 bg-nwcn-text-sub/10 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-sub)" strokeWidth="1.5">
                     <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="font-body text-sm font-medium text-nwcn-text-default">
+                  <p className="font-body text-body-sm font-medium text-nwcn-text-default">
                     {award.competition}
                   </p>
-                  <p className="font-body text-xs text-nwcn-text-sub">
+                  <p className="font-body text-caption text-nwcn-text-sub">
                     {yearAndAward}
                   </p>
                 </div>
@@ -244,9 +244,9 @@ export default async function AwardDetailPage({ params }: PageProps) {
         <div className="page-container flex justify-between items-center">
           <Link
             href="/ninc/awards"
-            className="flex items-center gap-2 font-body text-sm text-nwcn-text-sub hover:text-nwcn-text-default transition-colors group"
+            className="flex items-center gap-2 font-body text-body-sm text-nwcn-text-sub hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn group"
           >
-            <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-4 h-4 transition-transform duration-base ease-nwcn group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             {t('backToList')}

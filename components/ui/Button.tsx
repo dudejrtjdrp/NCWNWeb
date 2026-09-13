@@ -6,7 +6,7 @@
  * - Primary: #09F593 bg, #151515 text / Hover: #133728 bg, #09F593 text
  * - Secondary: #E3E94D bg, #050505 text / Hover: #1D1E00 bg, #E3E94D text
  * - Ghost: border #050505, #050505 text / Hover: #cacaca bg, white text
- * - 공통: Pretendard Bold 16px, px-[24px] py-[12px]
+ * - 공통: Pretendard Bold 16px, px-6 py-3
  *
  * 기존 variant 호환:
  * - 'outline' → 'secondary' 동일 처리 (하위 호환)
@@ -34,7 +34,7 @@ const variants: Record<ButtonVariant, string> = {
   // Figma Secondary: #E3E94D bg, dark text / Hover: #1D1E00 bg, yellow text
   secondary:
     'bg-nwcn-yellow text-nwcn-text-default font-semibold ' +
-    'hover:bg-[#1D1E00] hover:text-nwcn-yellow',
+    'hover:bg-nwcn-yellow-deep hover:text-nwcn-yellow',
   // Figma Ghost: border #050505, dark text / Hover: #cacaca bg, white text
   ghost:
     'border border-nwcn-text-default text-nwcn-text-default font-semibold ' +
@@ -42,13 +42,13 @@ const variants: Record<ButtonVariant, string> = {
   // 하위 호환: outline → secondary 동일 스타일
   outline:
     'bg-nwcn-yellow text-nwcn-text-default font-semibold ' +
-    'hover:bg-[#1D1E00] hover:text-nwcn-yellow',
+    'hover:bg-nwcn-yellow-deep hover:text-nwcn-yellow',
 }
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'px-[16px] py-[8px] text-caption',
-  md: 'px-[24px] py-[12px] text-body',
-  lg: 'px-[32px] py-[14px] text-body',
+  sm: 'px-4 py-2 text-caption',
+  md: 'px-6 py-3 text-body',
+  lg: 'px-8 py-3.5 text-body',
 }
 
 export default function Button({

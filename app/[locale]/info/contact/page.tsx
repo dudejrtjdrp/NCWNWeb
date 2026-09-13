@@ -64,12 +64,12 @@ export default async function ContactPage({ params }: PageProps) {
         <p className="section-label">CONTACT</p>
       </div>
 
-      <div className="bg-white pb-24">
+      <div className="bg-white pb-section-lg">
         <div className="page-container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* 연락처 카드 */}
-            <div className="border border-nwcn-neutral-200 rounded-3xl p-10 space-y-8">
+            <div className="border border-nwcn-neutral-200 rounded-panel p-10 space-y-8">
               <div>
                 <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   CONTACT INFO
@@ -81,7 +81,7 @@ export default async function ContactPage({ params }: PageProps) {
                 {items.map((item, idx) => (
                   <div key={item.label} className="flex items-start gap-5">
                     {/* 아이콘 */}
-                    <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-nwcn-neutral-50 flex items-center justify-center text-nwcn-green">
+                    <div className="flex-shrink-0 w-11 h-11 rounded-panel bg-nwcn-neutral-50 flex items-center justify-center text-nwcn-green">
                       {ICONS[idx]}
                     </div>
                     {/* 텍스트 */}
@@ -100,7 +100,7 @@ export default async function ContactPage({ params }: PageProps) {
             </div>
 
             {/* 오시는 길 카드 */}
-            <div className="border border-nwcn-neutral-200 rounded-3xl p-10 flex flex-col gap-6">
+            <div className="border border-nwcn-neutral-200 rounded-panel p-10 flex flex-col gap-6">
               <div>
                 <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">
                   DIRECTIONS
@@ -109,7 +109,7 @@ export default async function ContactPage({ params }: PageProps) {
               </div>
 
               {/* 지도 */}
-              <div className="flex-1 min-h-[260px] rounded-2xl overflow-hidden border border-nwcn-neutral-200">
+              <div className="flex-1 min-h-[260px] rounded-panel overflow-hidden border border-nwcn-neutral-200">
                 <SchoolMap />
               </div>
 

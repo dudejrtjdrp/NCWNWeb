@@ -1,7 +1,7 @@
 /**
  * UI 프리미티브: Container
  * 사이트 전역 가로 폭·좌우 거터를 한 곳에서 관리한다.
- * (기존 max-w-[1440px] + lg:px-[79px/80px/87px/98px/106px] 인라인 19곳 대체)
+ * (기존 max-w-page + lg:px-[79px/80px/87px/98px/106px] 인라인 19곳 대체)
  */
 
 import { cn } from '@/lib/utils'

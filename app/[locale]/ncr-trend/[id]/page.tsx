@@ -163,11 +163,11 @@ export default async function ArticleDetailPage({ params }: PageProps) {
       />
 
       {/* ── 아티클 히어로 ── */}
-      <div className="bg-nwcn-dark pt-[80px] pb-0">
+      <div className="bg-nwcn-dark pt-section-md pb-0">
         <div className="page-container pt-12 pb-0">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-xs font-body text-white/30 mb-8">
-            <Link href="/ncr-trend/latest" className="hover:text-white/60 transition-colors">
+          <nav className="flex items-center gap-2 text-caption font-body text-white/30 mb-8">
+            <Link href="/ncr-trend/latest" className="hover:text-white/60 transition-colors duration-fast ease-nwcn">
               NCR TREND
             </Link>
             <span>/</span>
@@ -176,19 +176,19 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
           {/* 시즌 */}
           {article.season && (
-            <p className="font-body text-xs text-nwcn-green/60 tracking-widest uppercase mb-4">
+            <p className="font-body text-caption text-nwcn-green/60 tracking-widest uppercase mb-4">
               {article.season}
             </p>
           )}
 
           {/* 제목 */}
-          <h1 className="font-body font-bold text-hero-1 text-white leading-[1.15] mb-6 max-w-3xl">
+          <h1 className="font-body font-bold text-page-1 text-white leading-[1.15] mb-6 max-w-prose">
             {article.title}
           </h1>
 
           {/* 설명 */}
           {article.description && (
-            <p className="font-body text-body text-white/50 leading-relaxed max-w-2xl mb-10">
+            <p className="font-body text-body text-white/50 leading-relaxed max-w-prose mb-10">
               {article.description}
             </p>
           )}
@@ -205,23 +205,23 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-body text-xs text-white/30">{t('labelAuthor')}</p>
-                  <p className="font-body text-sm text-white/80">{article.author}</p>
+                  <p className="font-body text-caption text-white/30">{t('labelAuthor')}</p>
+                  <p className="font-body text-body-sm text-white/80">{article.author}</p>
                 </div>
               </div>
             )}
 
             {/* 날짜 */}
             <div>
-              <p className="font-body text-xs text-white/30">{t('labelPublishedAt')}</p>
-              <p className="font-body text-sm text-white/80">{formattedDate}</p>
+              <p className="font-body text-caption text-white/30">{t('labelPublishedAt')}</p>
+              <p className="font-body text-body-sm text-white/80">{formattedDate}</p>
             </div>
 
             {/* 읽기 시간 */}
             {article.read_time && (
               <div>
-                <p className="font-body text-xs text-white/30">{t('labelReadTime')}</p>
-                <p className="font-body text-sm text-white/80">{article.read_time}</p>
+                <p className="font-body text-caption text-white/30">{t('labelReadTime')}</p>
+                <p className="font-body text-body-sm text-white/80">{article.read_time}</p>
               </div>
             )}
           </div>
@@ -236,7 +236,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             {/* ── 메인 본문 ── */}
             <article className="lg:col-span-3">
               {/* 썸네일 이미지 영역 */}
-              <div className="aspect-[16/7] bg-nwcn-neutral-100 rounded-2xl mb-12 flex items-center justify-center overflow-hidden relative">
+              <div className="aspect-[16/7] bg-nwcn-neutral-100 rounded-panel mb-12 flex items-center justify-center overflow-hidden relative">
                 {article.thumbnail_url ? (
                   <Image
                     src={article.thumbnail_url}
@@ -253,7 +253,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <polyline points="21 15 16 10 5 21" />
                     </svg>
-                    <span className="font-brand text-2xl text-nwcn-text-muted">NCR</span>
+                    <span className="font-brand text-section text-nwcn-text-muted">NCR</span>
                   </div>
                 )}
               </div>
@@ -262,14 +262,14 @@ export default async function ArticleDetailPage({ params }: PageProps) {
               {article.content ? (
                 isHtmlContent(article.content) ? (
                   <div
-                    className="article-body max-w-[680px]"
+                    className="article-body max-w-prose"
                     dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
                   />
                 ) : (
-                  <div className="max-w-[680px]">{renderContent(article.content)}</div>
+                  <div className="max-w-prose">{renderContent(article.content)}</div>
                 )
               ) : (
-                <p className="font-body text-body text-nwcn-text-muted leading-relaxed max-w-[680px]">
+                <p className="font-body text-body text-nwcn-text-muted leading-relaxed max-w-prose">
                   {article.excerpt}
                 </p>
               )}
@@ -277,12 +277,12 @@ export default async function ArticleDetailPage({ params }: PageProps) {
               {/* 태그 */}
               {article.tags.length > 0 && (
                 <div className="mt-12 pt-8 border-t border-black/10">
-                  <p className="font-body text-xs text-nwcn-text-sub mb-3">{t('sectionTags')}</p>
+                  <p className="font-body text-caption text-nwcn-text-sub mb-3">{t('sectionTags')}</p>
                   <div className="flex flex-wrap gap-2">
                     {article.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="font-body text-xs px-3 py-1.5 border border-nwcn-text-sub/30 text-nwcn-text-muted rounded-full hover:border-nwcn-text-default transition-colors cursor-pointer"
+                        className="font-body text-caption px-3 py-1.5 border border-nwcn-text-sub/30 text-nwcn-text-muted rounded-full hover:border-nwcn-text-default transition-colors duration-fast ease-nwcn cursor-pointer"
                       >
                         #{tag}
                       </span>
@@ -296,24 +296,24 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             <aside className="lg:col-span-1">
               <div className="sticky top-24 space-y-8">
                 {/* 아티클 정보 */}
-                <div className="bg-nwcn-neutral-100 rounded-xl p-5">
-                  <p className="font-body text-xs font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
+                <div className="bg-nwcn-neutral-100 rounded-card p-5">
+                  <p className="font-body text-caption font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
                     {t('sidebarInfo')}
                   </p>
                   <div className="space-y-3">
                     <div>
                       <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarType')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{TYPE_LABELS[article.type] ?? article.type}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">{TYPE_LABELS[article.type] ?? article.type}</p>
                     </div>
                     {article.season && (
                       <div>
                         <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarSeason')}</p>
-                        <p className="font-body text-sm text-nwcn-text-muted">{article.season}</p>
+                        <p className="font-body text-body-sm text-nwcn-text-muted">{article.season}</p>
                       </div>
                     )}
                     <div>
                       <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarPublishedAt')}</p>
-                      <p className="font-body text-sm text-nwcn-text-muted">{formattedDate}</p>
+                      <p className="font-body text-body-sm text-nwcn-text-muted">{formattedDate}</p>
                     </div>
                   </div>
                 </div>
@@ -321,7 +321,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                 {/* 관련 아티클 */}
                 {relatedArticles.length > 0 && (
                   <div>
-                    <p className="font-body text-xs font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
+                    <p className="font-body text-caption font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
                       {t('sidebarRelated')}
                     </p>
                     <div className="space-y-3">
@@ -329,12 +329,12 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                         <Link
                           key={rel.id}
                           href={`/ncr-trend/${rel.id}`}
-                          className="block p-3 rounded-xl border border-black/8 hover:border-nwcn-text-sub/40 transition-colors group"
+                          className="block p-3 rounded-card border border-black/8 hover:border-nwcn-text-sub/40 transition-colors duration-fast ease-nwcn group"
                         >
                           <p className="font-body text-caption text-nwcn-green mb-1">
                             {TYPE_LABELS[rel.type] ?? rel.type}
                           </p>
-                          <p className="font-body text-sm text-nwcn-text-muted group-hover:text-nwcn-text-default transition-colors leading-snug">
+                          <p className="font-body text-body-sm text-nwcn-text-muted group-hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn leading-snug">
                             {rel.title}
                           </p>
                         </Link>
@@ -353,9 +353,9 @@ export default async function ArticleDetailPage({ params }: PageProps) {
         <div className="page-container flex justify-between items-center">
           <Link
             href="/ncr-trend/latest"
-            className="flex items-center gap-2 font-body text-sm text-nwcn-text-sub hover:text-nwcn-text-default transition-colors group"
+            className="flex items-center gap-2 font-body text-body-sm text-nwcn-text-sub hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn group"
           >
-            <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-4 h-4 transition-transform duration-base ease-nwcn group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             {t('backToList')}

@@ -52,13 +52,13 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
         <p className="section-label">LATEST REPORT</p>
       </div>
 
-      <div className="bg-white pb-24">
+      <div className="bg-white pb-section-lg">
         <div className="page-container">
 
           {/* 피처드 리포트 (최신) */}
           {featured ? (
             <Link href={`/ncr-trend/${featured.id}`} className="block mb-12 group">
-              <div className="border border-nwcn-neutral-200 rounded-3xl overflow-hidden flex flex-col lg:flex-row hover:border-nwcn-green/30 hover:shadow-lg transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
+              <div className="border border-nwcn-neutral-200 rounded-panel overflow-hidden flex flex-col lg:flex-row hover:border-nwcn-green/30 hover:shadow-lift-2 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
                 {/* 썸네일 */}
                 <div className="lg:w-[480px] flex-shrink-0 aspect-video lg:aspect-auto bg-nwcn-dark relative overflow-hidden flex items-center justify-center">
                   {featured.thumbnail_url ? (
@@ -91,7 +91,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                       <span className="font-body text-caption text-nwcn-neutral-300">· {featured.read_time} 읽기</span>
                     )}
                   </div>
-                  <h2 className="font-body font-bold text-section text-nwcn-text-default leading-snug mb-4 group-hover:text-nwcn-green transition-colors">
+                  <h2 className="font-body font-bold text-section text-nwcn-text-default leading-snug mb-4 group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn">
                     {featured.title}
                   </h2>
                   <p className="font-body text-body-sm text-nwcn-neutral-600 leading-relaxed mb-6">
@@ -116,7 +116,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                 <Link
                   key={report.id}
                   href={`/ncr-trend/${report.id}`}
-                  className="block group border border-nwcn-neutral-200 rounded-2xl overflow-hidden hover:border-nwcn-green/30 hover:shadow-md transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn"
+                  className="block group border border-nwcn-neutral-200 rounded-panel overflow-hidden hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn"
                 >
                   {/* 썸네일 */}
                   <div className="aspect-[16/9] bg-nwcn-dark relative overflow-hidden flex items-center justify-center">
@@ -140,7 +140,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                         <span className="font-body text-caption text-nwcn-neutral-400">{report.season}</span>
                       )}
                     </div>
-                    <h3 className="font-body font-semibold text-body text-nwcn-text-default leading-snug mb-3 group-hover:text-nwcn-green transition-colors">
+                    <h3 className="font-body font-semibold text-body text-nwcn-text-default leading-snug mb-3 group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn">
                       {report.title}
                     </h3>
                     <p className="font-body text-caption text-nwcn-neutral-500 leading-relaxed mb-4 line-clamp-2">

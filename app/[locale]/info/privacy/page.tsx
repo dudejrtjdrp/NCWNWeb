@@ -32,7 +32,7 @@ export default async function PrivacyPage({ params }: PageProps) {
         <p className="section-label">PRIVACY</p>
       </div>
 
-      <div className="bg-white pb-24">
+      <div className="bg-white pb-section-lg">
         <div className="page-container">
           {/* 상단 안내 */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12 pb-8 border-b border-nwcn-neutral-200">
@@ -47,11 +47,11 @@ export default async function PrivacyPage({ params }: PageProps) {
           </div>
 
           {/* 조항 목록 */}
-          <div className="max-w-3xl space-y-6">
+          <div className="max-w-prose space-y-6">
             {sections.map((section, idx) => (
               <div
                 key={idx}
-                className="border border-nwcn-neutral-200 rounded-2xl overflow-hidden hover:border-nwcn-green/20 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn"
+                className="border border-nwcn-neutral-200 rounded-panel overflow-hidden hover:border-nwcn-green/20 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn"
               >
                 {/* 조항 헤더 */}
                 <div className="flex items-center gap-5 px-8 py-5 border-b border-nwcn-neutral-200 bg-nwcn-neutral-50">
@@ -76,7 +76,7 @@ export default async function PrivacyPage({ params }: PageProps) {
           </div>
 
           {/* 하단 안내 */}
-          <div className="max-w-3xl mt-10 p-6 rounded-2xl bg-nwcn-neutral-50 border border-nwcn-neutral-200">
+          <div className="max-w-prose mt-10 p-6 rounded-panel bg-nwcn-neutral-50 border border-nwcn-neutral-200">
             <p className="font-body text-caption text-nwcn-neutral-500 leading-relaxed">
               {t('footerNote')}{' '}
               <a href="mailto:nwcn@dba.ac.kr" className="text-nwcn-green underline underline-offset-2">

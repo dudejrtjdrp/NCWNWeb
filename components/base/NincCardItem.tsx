@@ -93,7 +93,7 @@ export default function NincCardItem({
         {href && (
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-base ease-nwcn flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn transform translate-y-2 group-hover:translate-y-0">
-              <span className="font-body text-xs text-white bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
+              <span className="font-body text-caption text-white bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
                 자세히 보기
               </span>
             </div>

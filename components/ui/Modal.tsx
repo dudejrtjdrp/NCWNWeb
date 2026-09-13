@@ -29,7 +29,7 @@ export interface ModalProps {
 
 const sizes = {
   sm: 'max-w-md',
-  md: 'max-w-2xl',
+  md: 'max-w-prose',
   lg: 'max-w-4xl',
   full: 'max-w-[min(96vw,1200px)]',
 }

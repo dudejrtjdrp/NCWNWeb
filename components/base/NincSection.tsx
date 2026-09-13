@@ -37,7 +37,7 @@ export default async function NincSection({ locale = 'ko', className = '' }: Nin
 
   return (
     <section
-      className={`relative isolate bg-white py-[clamp(56px,9vw,104px)] ${className}`}
+      className={`relative isolate bg-white py-section-md ${className}`}
       style={{ overflowX: 'clip' }}
       data-node-id="376:1492"
       aria-label="Now In NewCon"
@@ -68,12 +68,12 @@ export default async function NincSection({ locale = 'ko', className = '' }: Nin
       {/* 슬라이드 카드 — 가로 나열 + 세로 스태거 */}
       <div className="relative z-10 flex justify-center" data-node-id="376:1489">
         <div
-          className="flex items-start gap-8 sm:gap-[52px] lg:gap-[78px] overflow-x-auto scrollbar-hide px-4 sm:px-8 pt-[clamp(16px,3vw,40px)] pb-8 sm:pb-12"
+          className="flex items-start gap-8 sm:gap-12 lg:gap-20 overflow-x-auto scrollbar-hide px-4 sm:px-8 pt-[clamp(16px,3vw,40px)] pb-8 sm:pb-12"
           data-node-id="376:1488"
         >
           {displayCards.map((card, i) => {
             const inner = (
-              <div className="rounded-md overflow-hidden w-full h-full">
+              <div className="rounded-lg overflow-hidden w-full h-full">
                 <Image
                   src={card.image_url}
                   alt={card.alt_text ?? `NINC 활동 ${i + 1}`}

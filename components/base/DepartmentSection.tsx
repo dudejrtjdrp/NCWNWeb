@@ -32,7 +32,7 @@ const IMG = {
 /* ─── SymbolCard ─── */
 function SymbolCard({ alt }: { alt: string }) {
   return (
-    <div className="relative w-full max-w-[606px] mx-auto" style={{ aspectRatio: '606/320' }}>
+    <div className="relative w-full max-w-prose mx-auto" style={{ aspectRatio: '606/320' }}>
       <div
         className="absolute overflow-hidden"
         style={{ top: '17.19%', right: '12.71%', bottom: '3.88%', left: '25.58%' }}
@@ -87,7 +87,7 @@ export default function DepartmentSection() {
   const careers = t.raw('careers') as string[]
 
   return (
-    <div className="relative w-full max-w-[1440px] mx-auto bg-white">
+    <div className="relative w-full max-w-page mx-auto bg-white">
 
       {/* ══════════════════════════════════════════
           §A  학과소개 인트로
@@ -105,14 +105,14 @@ export default function DepartmentSection() {
           </p>
 
           {/* SymbolCard */}
-          <div className="w-full max-w-[480px] sm:max-w-[560px] lg:max-w-[606px] mb-10 sm:mb-16">
+          <div className="w-full max-w-[480px] sm:max-w-[560px] lg:max-w-prose mb-10 sm:mb-16">
             <SymbolCard alt={t('imageAlt')} />
           </div>
 
           {/* 소개 텍스트 */}
-          <div className="text-center max-w-[860px] px-4">
+          <div className="text-center max-w-wide px-4">
             <p
-              className="font-body font-normal text-[#000] mb-2 sm:mb-3"
+              className="font-body font-normal text-nwcn-text-default mb-2 sm:mb-3"
               style={{ fontSize: 'clamp(18px, 2.5vw, 32px)', lineHeight: 1.4 }}
             >
               {t('introText1')}
@@ -163,7 +163,7 @@ export default function DepartmentSection() {
             {t('goal')}
           </p>
 
-          <div className="max-w-[900px] mx-auto flex flex-col gap-10 sm:gap-14 lg:gap-16">
+          <div className="max-w-wide mx-auto flex flex-col gap-10 sm:gap-14 lg:gap-16">
             {goals.map((goalText, i) => {
               const num = String(i + 1).padStart(2, '0')
               const isRight = i % 2 === 1
@@ -177,7 +177,7 @@ export default function DepartmentSection() {
                       {num}
                     </span>
                     <p
-                      className={`font-body font-bold text-[#1d1d1d] ${isRight ? 'text-right' : 'text-left'} leading-snug`}
+                      className={`font-body font-bold text-nwcn-neutral-900 ${isRight ? 'text-right' : 'text-left'} leading-snug`}
                       style={{ fontSize: 'clamp(16px, 2vw, 25px)', paddingTop: '0.3em' }}
                     >
                       {goalText}
@@ -194,14 +194,14 @@ export default function DepartmentSection() {
           §C  세부 교육 목표
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up" threshold={0.05}>
-        <section className="bg-white px-4 sm:px-8 lg:px-[106px] py-12 sm:py-16 lg:py-[81px]">
+        <section className="bg-white px-4 sm:px-8 lg:px-[106px] py-12 sm:py-16 lg:py-section-md">
           <p className="font-body font-bold text-section text-nwcn-neutral-700 text-center mb-8 sm:mb-12 lg:mb-[75px]">
             {t('detailGoal')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-[42px]">
             {[0, 1, 2].map((i) => (
               <AnimateOnScroll key={i} variant="fade-up" delay={i * 80} threshold={0.05}>
-                <div className="relative w-full overflow-hidden rounded-sm" style={{ aspectRatio: '378/283' }}>
+                <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '378/283' }}>
                   <img
                     src={IMG.goalCard}
                     alt={`${t('detailGoal')} ${i + 1}`}
@@ -218,15 +218,15 @@ export default function DepartmentSection() {
           §D  교육방침
           ══════════════════════════════════════ */}
       <AnimateOnScroll variant="fade-up" threshold={0.05}>
-        <section className="bg-white px-4 sm:px-8 lg:px-[98px] py-12 sm:py-16 lg:py-[80px]">
+        <section className="bg-white px-4 sm:px-8 lg:px-[98px] py-12 sm:py-16 lg:py-section-md">
           <p className="font-body font-bold text-section text-nwcn-neutral-700 text-center mb-8 sm:mb-12 lg:mb-[111px]">
             {t('policy')}
           </p>
 
-          <div className="flex flex-col gap-6 sm:gap-8 lg:gap-[41px]">
+          <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
             {/* 이미지 1 — 사진: 왼쪽→오른쪽 / 글씨: 아래→위 */}
             <AnimateOnScroll variant="fade-right" duration={800} threshold={0.2}>
-              <div className="relative w-full overflow-hidden rounded-sm" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
+              <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
                 <img src={IMG.policyImg1} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
                 <div
                   className="absolute inset-0 flex items-end justify-end p-4 sm:p-6 lg:p-8"
@@ -249,7 +249,7 @@ export default function DepartmentSection() {
 
             {/* 이미지 2 — 사진: 오른쪽→왼쪽 / 글씨: 아래→위 */}
             <AnimateOnScroll variant="fade-left" duration={800} threshold={0.2}>
-              <div className="relative w-full overflow-hidden rounded-sm" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
+              <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
                 <img src={IMG.policyImg2} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
                 <div
                   className="absolute inset-0 flex items-end justify-start p-4 sm:p-6 lg:p-8"
@@ -302,7 +302,7 @@ export default function DepartmentSection() {
             </div>
 
             {/* 진로 태그 그리드 */}
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-[1000px] mx-auto">
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-wide mx-auto">
               {careers.map((career, i) => (
                 <AnimateOnScroll key={i} variant="fade-up" delay={Math.min(i * 40, 320)} threshold={0.05}>
                   <GlassTag label={career} />

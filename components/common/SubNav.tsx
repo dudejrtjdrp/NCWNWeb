@@ -5,7 +5,7 @@
  * Figma node-id: 427:831 (AboutSubNav 기준)
  *
  * 디자인 스펙:
- * - 탭 간격: gap-[75px]
+ * - 탭 간격: gap-20
  * - 활성 탭: font-bold, text-nwcn-dark, 하단 라인 bar
  * - 비활성 탭: font-light, text-nwcn-neutral-500, hover: text-nwcn-neutral-700
  * - 하단 보더: border-b border-nwcn-neutral-200
@@ -39,7 +39,7 @@ export default function SubNav({ items, className }: SubNavProps) {
       className={cn('w-full bg-white border-b border-nwcn-neutral-200', className)}
     >
       <nav
-        className="max-w-[1440px] mx-auto flex justify-center items-start gap-4 sm:gap-8 lg:gap-[75px] px-2 sm:px-4 overflow-x-auto scrollbar-hide"
+        className="max-w-page mx-auto flex justify-center items-start gap-4 sm:gap-8 lg:gap-20 px-2 sm:px-4 overflow-x-auto scrollbar-hide"
         aria-label="서브 메뉴"
         data-node-id="427:831"
       >
@@ -49,11 +49,11 @@ export default function SubNav({ items, className }: SubNavProps) {
             <Link
               key={item.label}
               href={item.href}
-              className="flex flex-col items-center gap-[6px] p-2 sm:p-[10px] flex-shrink-0 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn"
+              className="flex flex-col items-center gap-1.5 p-2 sm:p-[10px] flex-shrink-0 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-fast ease-nwcn"
             >
               <span
                 className={cn(
-                  'font-body text-body-sm sm:text-card lg:text-section leading-normal whitespace-nowrap transition-colors',
+                  'font-body text-body-sm sm:text-card lg:text-section leading-normal whitespace-nowrap transition-colors duration-fast ease-nwcn',
                   isActive
                     ? 'font-bold text-nwcn-dark'
                     : 'font-light text-nwcn-neutral-500 hover:text-nwcn-neutral-700'

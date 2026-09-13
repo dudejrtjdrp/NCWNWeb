@@ -39,10 +39,10 @@ export default function Footer({ className = '' }: FooterProps) {
       data-node-id="376:637"
       aria-label="사이트 푸터"
     >
-      <div className="page-container py-12 lg:py-[71px] relative">
+      <div className="page-container py-12 lg:py-section-sm relative">
 
         {/* ── 상단 영역 ── */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-10 lg:pb-[60px]">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-8 pb-10 lg:pb-section-sm">
           {/* 로고 */}
           <div className="shrink-0" data-node-id="376:652">
             <Image
@@ -57,7 +57,7 @@ export default function Footer({ className = '' }: FooterProps) {
 
           {/* 연락처 정보 */}
           <div
-            className="flex flex-wrap gap-x-8 gap-y-4 sm:gap-x-[76px] sm:gap-y-[23px]"
+            className="flex flex-wrap gap-x-8 gap-y-4 sm:gap-x-20 sm:gap-y-6"
             data-node-id="376:903"
           >
             {CONTACT_INFO.map(({ labelKey, value }) => (
@@ -96,7 +96,7 @@ export default function Footer({ className = '' }: FooterProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-[9px] text-white hover:opacity-70 transition-opacity"
+                className="flex items-center gap-2 text-white hover:opacity-70 transition-opacity duration-fast ease-nwcn"
               >
                 <Image src={icon} alt="" width={19} height={19} unoptimized aria-hidden="true" />
                 <span className="font-body font-medium whitespace-nowrap text-caption ">
@@ -116,7 +116,7 @@ export default function Footer({ className = '' }: FooterProps) {
         <div className="pb-2">
           <Link
             href="/info/privacy"
-            className="font-body text-caption text-white/30 hover:text-white/60 transition-colors"
+            className="font-body text-caption text-white/30 hover:text-white/60 transition-colors duration-fast ease-nwcn"
           >
             {t('privacy')}
           </Link>

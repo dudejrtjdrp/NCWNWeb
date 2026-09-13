@@ -508,7 +508,9 @@ export default function HomeHeroSection({
               scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain',
               transform: `translateX(${(1 - f0.stripIn) * 240}px)`,
               opacity: f0.stripIn, zIndex: 20, cursor: 'grab', touchAction: 'pan-x',
-              willChange: 'transform, opacity',
+              /* will-change 로 레이어 승격하지 않는다 — 소수 배율 scale() 조상 안의
+                 합성 레이어는 DPR1(윈도우 데스크탑)에서 매 프레임 정수 픽셀로
+                 반올림돼 ±1px 로 떨린다. rAF 가 메인스레드에서 그리게 둔다. */
             }}
           >
             {/* 첫/마지막 카드 가운데 정렬용 여백 */}
@@ -619,7 +621,7 @@ export default function HomeHeroSection({
               transformOrigin: 'left center',
               transform: `scale(${0.7 + f0.headingIn * 0.3})`,
               opacity: f0.headingIn,
-              zIndex: 30, pointerEvents: 'none', willChange: 'transform, opacity',
+              zIndex: 30, pointerEvents: 'none',
             }}
           >
             <p style={{ margin: 0, fontWeight: 700, fontSize: 32, lineHeight: 1.2, color: 'var(--color-neutral-700)' }}>NWCN,</p>
@@ -638,7 +640,9 @@ export default function HomeHeroSection({
               opacity: 1 - f0.introExit,
               display: 'flex', flexDirection: 'column', justifyContent: 'center',
               textAlign: 'center', color: 'var(--color-neutral-700)', zIndex: 40, pointerEvents: 'none',
-              willChange: 'transform, opacity',
+              /* will-change 로 레이어 승격하지 않는다 — 소수 배율 scale() 조상 안의
+                 합성 레이어는 DPR1(윈도우 데스크탑)에서 매 프레임 정수 픽셀로
+                 반올림돼 ±1px 로 떨린다. rAF 가 메인스레드에서 그리게 둔다. */
             }}
           >
             <p style={{ margin: 0, fontWeight: 200, fontSize: 77, lineHeight: '90px' }}>WHEN THE SENSIBILITY OF ART</p>
@@ -684,7 +688,7 @@ export default function HomeHeroSection({
 
         {/* ── 진행률 디버그 (dev only) ── */}
         {process.env.NODE_ENV === 'development' && (
-          <div ref={debugRef} className="absolute top-20 right-4 z-[60] bg-black/50 text-white text-xs px-2 py-1 rounded font-mono">
+          <div ref={debugRef} className="absolute top-20 right-4 z-[60] bg-black/50 text-white text-caption px-2 py-1 rounded font-mono">
             0%
           </div>
         )}
