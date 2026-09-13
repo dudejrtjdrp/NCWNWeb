@@ -48,7 +48,6 @@ const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : use
  * ────────────────────────────────────────────────────────── */
 const ASSET = {
   /** 알약 버튼 안 nwcn 워드마크 (데스크탑 HomeHeroSection 과 동일 URL) */
-  wordmark: 'https://www.figma.com/api/mcp/asset/80ba2d54-e549-4cbc-9849-f41a331ec2ae',
   /** WORK 3D 텍스트 */
   work: '/images/home/work.png',
 } as const
@@ -588,8 +587,16 @@ export default function HomeHeroMobile({
             justifyContent: 'center',
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="nwcn" src={ASSET.wordmark} style={{ width: 103, height: 26, objectFit: 'contain' }} />
+          {/* 워드마크는 이미지 대신 브랜드 폰트(A2z) 텍스트로 — 헤더 로고와 동일 소스 */}
+          <span
+            className="font-brand"
+            style={{
+              fontSize: 24, fontWeight: 900, lineHeight: 1,
+              letterSpacing: '-0.02em', color: 'var(--color-green-darker)',
+            }}
+          >
+            NWCN
+          </span>
         </button>
 
         {/* ── 초기 스크롤 힌트 ── */}

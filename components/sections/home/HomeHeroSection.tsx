@@ -57,10 +57,8 @@ const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : use
  * 에셋 (TODO: 로컬 /public/images/home/* 로 교체)
  * ────────────────────────────────────────────────────────── */
 const ASSET = {
-  /** MEETS 를 감싸는 손그림 원형 마커 */
-  ellipse: 'https://www.figma.com/api/mcp/asset/6ef5aa0c-a953-4a25-83d0-c6811819fc07',
-  /** 알약 버튼 안 nwcn 워드마크 */
-  wordmark: 'https://www.figma.com/api/mcp/asset/80ba2d54-e549-4cbc-9849-f41a331ec2ae',
+  /** MEETS 를 감싸는 손그림 원형 마커 (로컬 SVG — 이전 Figma MCP 임시 URL 은 7일 만료됨) */
+  ellipse: '/images/home/meets-marker.svg',
   /** WORK 3D 텍스트 (로컬 에셋) */
   work: '/images/home/work.png',
 } as const
@@ -671,15 +669,24 @@ export default function HomeHeroSection({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="nwcn" src={ASSET.wordmark} style={{ width: 175, height: 44, objectFit: 'contain' }} />
+            {/* 워드마크는 이미지 대신 브랜드 폰트(A2z) 텍스트로 — 헤더 로고와 동일 소스 */}
+            <span
+              className="font-brand"
+              style={{
+                fontSize: 40, fontWeight: 900, lineHeight: 1,
+                letterSpacing: '-0.02em', color: 'var(--color-green-darker)',
+              }}
+            >
+              NWCN
+            </span>
           </button>
         </div>
 
         {/* ── 초기 스크롤 힌트 ── */}
         <div
           ref={hintRef}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-[60] pointer-events-none"
+          /* 가운데에는 nwcn 알약 버튼이 있어 겹친다 — 힌트는 우측 하단으로 */
+          className="absolute bottom-8 right-6 sm:right-10 flex flex-col items-center gap-2 z-[60] pointer-events-none"
           style={{ opacity: reducedMotion ? 0 : 1 }}
         >
           <span className="font-body text-caption tracking-[0.2em] text-nwcn-neutral-700/70 uppercase">Scroll</span>

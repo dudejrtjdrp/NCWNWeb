@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="291" height="88" viewBox="0 0 291 88" fill="none" role="presentation">
+  <!-- MEETS 를 감싸는 손그림 느낌의 원형 마커 (Figma MCP 임시 에셋 대체용 로컬 자산) -->
+  <g stroke="#3a3a3b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.85">
+    <path d="M251 17C224 6 181 1 139 5 86 10 26 27 12 50 3 67 35 79 79 84c51 6 125 2 166-12 29-10 42-24 32-39-6-9-20-17-37-22" />
+    <path d="M238 8c-24-6-58-8-92-5" opacity="0.5" />
+  </g>
+</svg>

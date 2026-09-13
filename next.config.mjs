@@ -40,12 +40,6 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.supabase.co',
       },
-      {
-        // Figma MCP 에셋 (임시 — 7일 만료, /public/images 교체 권장)
-        protocol: 'https',
-        hostname: 'www.figma.com',
-        pathname: '/api/mcp/asset/**',
-      },
     ],
   },
 }

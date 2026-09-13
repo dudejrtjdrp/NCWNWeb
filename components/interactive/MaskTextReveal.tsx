@@ -14,14 +14,14 @@ import { cn } from '@/lib/utils'
 type Direction = 'up' | 'down' | 'left' | 'right' | 'center-horizontal' | 'center-vertical'
 
 const HIDDEN: Record<Direction, string> = {
-  up: 'inset(100% 0 0 0)',
-  down: 'inset(0 0 100% 0)',
-  left: 'inset(0 0 0 100%)',
-  right: 'inset(0 100% 0 0)',
-  'center-horizontal': 'inset(0 50% 0 50%)',
-  'center-vertical': 'inset(50% 0 50% 0)',
+  up: 'inset(100% 0% 0% 0%)',
+  down: 'inset(0% 0% 100% 0%)',
+  left: 'inset(0% 0% 0% 100%)',
+  right: 'inset(0% 100% 0% 0%)',
+  'center-horizontal': 'inset(0% 50% 0% 50%)',
+  'center-vertical': 'inset(50% 0% 50% 0%)',
 }
-const SHOWN = 'inset(0 0 0 0)'
+const SHOWN = 'inset(0% 0% 0% 0%)'
 
 export interface MaskTextRevealProps {
   children: React.ReactNode
@@ -51,6 +51,7 @@ export default function MaskTextReveal({
     }
     const el = ref.current
     if (!el) return
+
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -58,10 +59,18 @@ export default function MaskTextReveal({
           io.disconnect()
         }
       },
-      { threshold: 0.25, rootMargin: '0px 0px -8% 0px' }
+      { threshold: 0.15 }
     )
     io.observe(el)
-    return () => io.disconnect()
+
+    /* 안전장치 — 관찰자가 어떤 이유로든 안 잡히면 텍스트가 영구히 가려진다.
+       1.2초 뒤에는 무조건 드러낸다. */
+    const failsafe = window.setTimeout(() => setShown(true), 1200)
+
+    return () => {
+      io.disconnect()
+      window.clearTimeout(failsafe)
+    }
   }, [])
 
   return (
