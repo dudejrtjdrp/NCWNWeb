@@ -59,7 +59,7 @@ export default function AwardsClient({ initialAwards }: Props) {
       totalPages={totalPages}
       onPageChange={setPage}
       sectionTitle="AWARDS"
-      emptyMessage="검색 결과가 없습니다"
+      emptyMessage={initialAwards.length === 0 ? '아직 등록된 수상 내역이 없습니다' : '검색 결과가 없습니다'}
       getHref={(id) => `/ninc/awards/${id}`}
     />
   )

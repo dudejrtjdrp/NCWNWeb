@@ -61,7 +61,7 @@ export default function ProjectClient({ initialProjects }: Props) {
       totalPages={totalPages}
       onPageChange={setPage}
       sectionTitle="PROJECT"
-      emptyMessage="검색 결과가 없습니다"
+      emptyMessage={initialProjects.length === 0 ? '아직 등록된 프로젝트가 없습니다' : '검색 결과가 없습니다'}
       getHref={(id) => `/ninc/project/${id}`}
     />
   )

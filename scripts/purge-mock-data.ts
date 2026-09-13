@@ -17,11 +17,16 @@
  *   npx tsx scripts/purge-mock-data.ts            # 미리보기 (기본, DB 변경 없음)
  *   APPLY=1 npx tsx scripts/purge-mock-data.ts    # 실제 삭제
  *
+ * APPLY 실행 시 삭제 대상 행 전체를 지우기 전에
+ * backups/purge-mock-<타임스탬프>.json 으로 먼저 덤프한다.
+ * 잘못 지웠다면 그 파일의 rows 를 그대로 insert 하면 복구된다.
+ *
  * 필요 환경변수 (.env.local)
  *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 
 import { config } from 'dotenv'
+import { mkdirSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 
 config({ path: resolve(process.cwd(), '.env.local') })
@@ -42,6 +47,14 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSess
 
 const PLACEHOLDER = 'picsum.photos'
 const tag = APPLY ? '' : '[미리보기] '
+
+/** 삭제 직전 스냅샷 — 되돌릴 수 있게 원본 행을 통째로 보관한다 */
+const backup: Record<string, Row[]> = {}
+const BACKUP_DIR = resolve(process.cwd(), 'backups')
+const BACKUP_FILE = resolve(
+  BACKUP_DIR,
+  `purge-mock-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+)
 
 type Row = Record<string, unknown>
 
@@ -74,6 +87,8 @@ async function purge(
     console.log(`  ${tag}🗑  ${label(row, labelFields)}`)
   }
   console.log(`  → 삭제 ${targets.length}건 / 유지 ${kept}건`)
+
+  backup[table] = targets
 
   if (APPLY) {
     const ids = targets.map((r) => r.id as string)
@@ -182,6 +197,14 @@ async function main() {
   ]
 
   await cleanExhibitionPosters()
+
+  // 백업 파일 기록 (미리보기에서도 남겨 두면 검토가 쉬움)
+  const total = Object.values(backup).reduce((a, b) => a + b.length, 0)
+  if (total > 0) {
+    mkdirSync(BACKUP_DIR, { recursive: true })
+    writeFileSync(BACKUP_FILE, JSON.stringify(backup, null, 2), 'utf-8')
+    console.log(`\n💾 삭제 대상 원본을 백업했습니다 → ${BACKUP_FILE}`)
+  }
 
   const removed = results.reduce((a, b) => a + b.removed, 0)
   const kept = results.reduce((a, b) => a + b.kept, 0)
