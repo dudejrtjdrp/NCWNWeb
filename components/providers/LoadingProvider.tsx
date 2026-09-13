@@ -65,6 +65,24 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     setVisible(keysRef.current.size > 0)
   }, [])
 
+  /* 오버레이가 떠 있는 동안 스크롤 잠금 —
+     로딩 중에 스크롤되면 도착 페이지가 엉뚱한 위치에서 시작하고,
+     스켈레톤 없이 빈 화면만 훑게 된다. Lenis 도 함께 멈춘다. */
+  useEffect(() => {
+    if (!visible) return
+    const { body, documentElement: html } = document
+    const prevOverflow = body.style.overflow
+    body.style.overflow = 'hidden'
+    html.classList.add('lenis-stopped')
+    const lenis = (window as Window & { __lenis?: { stop?: () => void; start?: () => void } }).__lenis
+    lenis?.stop?.()
+    return () => {
+      body.style.overflow = prevOverflow
+      html.classList.remove('lenis-stopped')
+      lenis?.start?.()
+    }
+  }, [visible])
+
   // 안전장치: 오버레이가 떠 있는 동안 타이머를 걸고, 만료되면 모든 키를 비우고 숨긴다.
   useEffect(() => {
     if (!visible) return

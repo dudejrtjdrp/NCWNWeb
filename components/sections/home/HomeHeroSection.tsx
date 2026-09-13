@@ -160,6 +160,7 @@ export default function HomeHeroSection({
 }: HomeHeroSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [vw, setVw] = useState(DESIGN_W)
+  const [vh, setVh] = useState(DESIGN_H)
 
   /* 모바일(≤767px) / 모션 최소화 선호 — 마운트 후 결정(SSR 하이드레이션 미스매치 방지) */
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
@@ -183,9 +184,14 @@ export default function HomeHeroSection({
     }
   }, [])
 
-  /* 뷰포트 너비(stage scale 용) */
+  /* 뷰포트 크기(stage scale 용) — 폭뿐 아니라 높이도 본다.
+     폭만 기준으로 키우면 창이 낮을 때 1440×725 stage 가 화면보다 높아져
+     하단(nwcn 알약 버튼)이 잘린다. */
   useEffect(() => {
-    const onResize = () => setVw(window.innerWidth)
+    const onResize = () => {
+      setVw(window.innerWidth)
+      setVh(window.innerHeight)
+    }
     onResize()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
@@ -348,7 +354,7 @@ export default function HomeHeroSection({
   useIsoLayoutEffect(() => {
     if (isMobile !== false) return
     applyStyles(renderedRef.current, performance.now())
-  }, [vw, isMobile, applyStyles])
+  }, [vw, vh, isMobile, applyStyles])
 
   /* 게시물 가로 스냅 스트립 — 세로 스크롤과 분리.
      트랙패드 가로 스와이프/터치는 네이티브 scroll-snap 으로 한 칸씩, 마우스는 드래그로 스크롤. */
@@ -410,7 +416,12 @@ export default function HomeHeroSection({
     else window.scrollTo({ top: target, behavior: 'smooth' })
   }, [])
 
-  const scale = vw / DESIGN_W
+  /* contain 피팅 — 가로/세로 중 더 빡빡한 쪽에 맞춘다.
+     폭만 기준으로 키우면 창이 낮을 때 stage(1440×725)가 화면보다 높아져
+     하단 nwcn 알약 버튼이 잘린다. 디자인 자체의 하단 여백이 13px 뿐이라
+     FIT_H 에 여유분을 더해 버튼 아래 숨 쉴 공간을 확보한다. */
+  const FIT_H = DESIGN_H + 28
+  const scale = Math.min(vw / DESIGN_W, vh / FIT_H)
 
   /* 결정 전: 스크롤 높이만 유지하는 플레이스홀더(히어로 깜빡임/하이드레이션 미스매치 방지) */
   if (isMobile === null) {

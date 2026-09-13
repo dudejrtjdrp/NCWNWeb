@@ -30,6 +30,13 @@ export function useScrollAnimation({
       return;
     }
 
+    /* 요소가 뷰포트보다 길면 교차 비율이 threshold 에 영원히 못 미친다
+       (예: 9000px 본문 / 720px 화면 → 최대 0.08). 요소 높이에 맞춰 낮춘다. */
+    const maxRatio = el.offsetHeight > 0
+      ? Math.min(1, window.innerHeight / el.offsetHeight)
+      : 1
+    const effectiveThreshold = Math.min(threshold, maxRatio * 0.8)
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -39,7 +46,7 @@ export function useScrollAnimation({
           setIsVisible(false);
         }
       },
-      { threshold, rootMargin }
+      { threshold: effectiveThreshold, rootMargin }
     );
 
     observer.observe(el);
