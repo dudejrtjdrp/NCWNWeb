@@ -58,6 +58,80 @@
       "viewMore": "View More",
       "talks": "Talks",
       "contents": "Contents"
+    },
+    "fluid": {
+      "brand": "Dong-Ah Institute of Media and Arts · New Media Contents",
+      "headline1": "Where ideas",
+      "headline2": "become real",
+      "scroll": "Scroll",
+      "inkLabel": "Ink",
+      "ink0": "Green ink",
+      "ink1": "Yellow ink",
+      "ink2": "Deep green ink",
+      "ink3": "Black ink",
+      "graphic": "Fluid ink graphic you can stir with your cursor",
+      "sections": {
+        "about": {
+          "label": "About",
+          "caption": "Planning, design and development, together"
+        },
+        "work": {
+          "label": "Student Work",
+          "caption": "Made by our students"
+        },
+        "ninc": {
+          "label": "NINC",
+          "caption": "Industry projects · awards · events"
+        },
+        "ncr": {
+          "label": "NCR Trend",
+          "caption": "Department stories by student reporters"
+        },
+        "admission": {
+          "label": "Admission",
+          "caption": "Guidelines and contact"
+        }
+      },
+      "about": {
+        "title": "We plan, design and build.",
+        "body": "The Department of New Media Contents at Dong-Ah Institute of Media and Arts trains creators where broadcasting, art and IT meet. Students make a piece of content from start to finish.",
+        "plan": "Planning",
+        "planDesc": "Decide what to make, for whom and why, and shape the story.",
+        "design": "Design",
+        "designDesc": "Shape how it looks and works through graphics, video, motion and UX.",
+        "dev": "Development",
+        "devDesc": "Make it actually run on the web, apps, interactive media and XR.",
+        "dept": "Department",
+        "faculty": "Faculty",
+        "curriculum": "Curriculum",
+        "lab": "Labs"
+      },
+      "work": {
+        "title": "What students made",
+        "all": "View all work",
+        "exhibition": "Graduation shows",
+        "archive": "Archive",
+        "empty": "No work has been posted yet."
+      },
+      "ninc": {
+        "title": "Made beyond campus",
+        "project": "Projects",
+        "awards": "Awards",
+        "event": "Events",
+        "empty": "No activities have been posted yet."
+      },
+      "ncr": {
+        "title": "Stories by students",
+        "all": "View all NCR Trend",
+        "empty": "No articles have been posted yet."
+      },
+      "admission": {
+        "title": "The next seat is yours",
+        "guide": "Admission guide",
+        "guideDesc": "Guidelines and schedule",
+        "contact": "Location · Contact",
+        "contactDesc": "Where we are and how to reach us"
+      }
     }
   },
   "work": {
