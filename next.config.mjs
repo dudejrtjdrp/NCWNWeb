@@ -32,7 +32,9 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       // R2 커스텀 도메인 (현재 이미지 호스트)
-      ...(r2PublicHost
+      // 운영 이미지 호스트는 고정 등록 — 빌드 환경변수가 빠져도 next/image 최적화가 깨지지 않게
+      { protocol: 'https', hostname: 'assets.dima-nwcn.com' },
+      ...(r2PublicHost && r2PublicHost !== 'assets.dima-nwcn.com'
         ? [{ protocol: 'https', hostname: r2PublicHost }]
         : []),
       {

@@ -46,7 +46,7 @@ export default function Card({
 }) {
   const classes = cn(
     'group relative block overflow-hidden bg-white',
-    'transition-[transform,box-shadow] duration-base ease-nwcn will-change-transform',
+    'transition-[transform,box-shadow] duration-base ease-nwcn',
     radii[radius],
     elevations[elevation],
     href && hovers[hover],

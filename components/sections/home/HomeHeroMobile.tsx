@@ -25,7 +25,7 @@
  *
  * 에셋: 웹(데스크탑)과 동일한 파일 그대로 재사용
  *   - /images/home/letter-1~4.png (3D 낱자)
- *   - /images/home/work.png (WORK 3D)
+ *   - /images/home/work.webp (WORK 3D)
  *   - nwcn 워드마크(알약 버튼) — 데스크탑과 동일한 Figma export URL
  */
 
@@ -49,7 +49,7 @@ const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : use
 const ASSET = {
   /** 알약 버튼 안 nwcn 워드마크 (데스크탑 HomeHeroSection 과 동일 URL) */
   /** WORK 3D 텍스트 */
-  work: '/images/home/work.png',
+  work: '/images/home/work.webp',
 } as const
 
 /* ──────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ type Letter = {
 const LETTERS: Letter[] = [
   // N — 좌상단(가장 큼, 불투명)
   {
-    src: '/images/home/letter-1.png',
+    src: '/images/home/letter-1.webp',
     anchor: { top: '-2%', left: '-5%' },
     w: 'clamp(132px, 40vw, 200px)',
     rot: -7.5, op: 1, scatter: { x: -170, y: -140 },
@@ -81,7 +81,7 @@ const LETTERS: Letter[] = [
   },
   // W — 우상단
   {
-    src: '/images/home/letter-3.png',
+    src: '/images/home/letter-3.webp',
     anchor: { top: '5%', right: '-7%' },
     w: 'clamp(112px, 34vw, 174px)',
     rot: -12, op: 0.8, scatter: { x: 170, y: -120 },
@@ -89,7 +89,7 @@ const LETTERS: Letter[] = [
   },
   // C — 좌측 중하단
   {
-    src: '/images/home/letter-2.png',
+    src: '/images/home/letter-2.webp',
     anchor: { top: '49%', left: '1%' },
     w: 'clamp(116px, 35vw, 178px)',
     rot: -21.8, op: 0.4, scatter: { x: -185, y: 70 },
@@ -97,7 +97,7 @@ const LETTERS: Letter[] = [
   },
   // N — 우측 하단
   {
-    src: '/images/home/letter-4.png',
+    src: '/images/home/letter-4.webp',
     anchor: { bottom: '3%', right: '3%' },
     w: 'clamp(100px, 30vw, 150px)',
     rot: 18.8, op: 0.2, scatter: { x: 150, y: 150 },
@@ -433,7 +433,8 @@ export default function HomeHeroMobile({
             overscrollBehaviorX: 'contain',
             WebkitOverflowScrolling: 'touch',
             zIndex: 15,
-            touchAction: 'pan-x',
+            // 세로 스와이프는 페이지 스크롤로 (pan-x 만 두면 카드 위에서 스크롤이 막힌다)
+            touchAction: 'pan-x pan-y',
             pointerEvents: f0.stripIn > 0.9 ? 'auto' : 'none',
             willChange: 'transform, opacity',
           }}

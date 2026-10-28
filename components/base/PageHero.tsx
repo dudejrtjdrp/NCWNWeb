@@ -17,7 +17,6 @@
 
 import Image from 'next/image'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
-import MaskTextReveal from '@/components/interactive/MaskTextReveal'
 import { cn } from '@/lib/utils'
 
 type Theme = 'light' | 'dark' | 'image'
@@ -91,7 +90,7 @@ export default function PageHero({
       {/* 배경 사진 */}
       {theme === 'image' && backgroundImage && (
         <>
-          <Image src={backgroundImage} alt="" fill priority unoptimized className="-z-10 object-cover" />
+          <Image src={backgroundImage} alt="" fill priority sizes="100vw" className="-z-10 object-cover" />
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10"
@@ -126,30 +125,30 @@ export default function PageHero({
         style={{ minHeight: heights[size] }}
       >
         {label && (
-          <AnimateOnScroll variant="fade-up" delay={0}>
+          <div className="enter-fade-up">
             <p className="font-body text-label font-semibold uppercase text-nwcn-green">{label}</p>
-          </AnimateOnScroll>
+          </div>
         )}
 
-        <MaskTextReveal
-          as="h1"
-          direction="up"
-          delay={80}
-          className={cn('font-brand text-hero-1 font-bold', dark ? 'text-white' : 'text-nwcn-text-default')}
+        {/* 히어로는 항상 첫 화면이라 JS(IntersectionObserver) 대신 CSS 애니메이션으로 등장시킨다.
+            하이드레이션을 기다리지 않아 제목(LCP)이 바로 그려진다. */}
+        <h1
+          className={cn('enter-mask-up inline-block font-brand text-hero-1 font-bold', dark ? 'text-white' : 'text-nwcn-text-default')}
+          style={{ animationDelay: '80ms' }}
         >
           {multiline(title)}
-        </MaskTextReveal>
+        </h1>
 
         {description && (
-          <AnimateOnScroll variant="fade-up" delay={160}>
+          <div className="enter-fade-up" style={{ animationDelay: '160ms' }}>
             <p className={cn('max-w-prose font-body text-body', dark ? 'text-white/55' : 'text-nwcn-neutral-500')}>
               {multiline(description)}
             </p>
-          </AnimateOnScroll>
+          </div>
         )}
 
         {(decoration === 'bar' || footer) && (
-          <AnimateOnScroll variant="fade-up" delay={240}>
+          <div className="enter-fade-up" style={{ animationDelay: '240ms' }}>
             <div className="mt-2 flex items-center gap-3">
               {decoration === 'bar' && (
                 <>
@@ -160,13 +159,13 @@ export default function PageHero({
               )}
               {footer}
             </div>
-          </AnimateOnScroll>
+          </div>
         )}
 
         {media && (
-          <AnimateOnScroll variant="fade" delay={240} duration={900} className="mt-6 w-full">
+          <div className="enter-fade mt-6 w-full" style={{ animationDelay: '240ms' }}>
             {media}
-          </AnimateOnScroll>
+          </div>
         )}
       </div>
 

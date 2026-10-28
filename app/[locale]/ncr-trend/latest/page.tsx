@@ -66,6 +66,8 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                       src={featured.thumbnail_url}
                       alt={featured.title}
                       fill
+                      priority
+                      sizes="(min-width: 1024px) 60vw, 100vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-slow ease-nwcn"
                     />
                   ) : (
@@ -125,6 +127,7 @@ export default async function LatestReportPage({ params }: { params: Promise<{ l
                         src={report.thumbnail_url}
                         alt={report.title}
                         fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-slow ease-nwcn"
                       />
                     ) : (

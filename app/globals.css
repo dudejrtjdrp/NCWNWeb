@@ -1,73 +1,140 @@
-/* @import는 최상단 */
-@import url('https://fonts.googleapis.com/css2?family=Nova+Slim&display=swap');
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+/* 웹폰트 로딩
+   - Pretendard: app/layout.tsx 의 <link> 로 로드 (CSS @import 는 HTML→CSS→CSS→폰트 직렬 체인이라 렌더를 막았다)
+   - Nova Slim: 쓰는 컴포넌트(DepartmentSection)에서 next/font 로 자체 호스팅 */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── A2z 브랜드 폰트 (원격 로드, 여러 weight) ────────────────────────────── */
+/* ── A2z 브랜드 폰트 (SIL OFL 1.1) ─────────────────────────────────────────
+   글자 범위를 둘로 나눠, 영문 제목만 있는 페이지는 자체 호스팅한 라틴 서브셋(약 10KB)만 받는다.
+   한글이 나오면 그때 jsDelivr 의 전체 파일(약 160KB)을 받는다.
+   같은 굵기 안에서 unicode-range 가 겹치면 나중에 선언한 쪽을 먼저 확인하므로 라틴 서브셋을 뒤에 둔다. */
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-1Thin.woff2') format('woff2');
   font-weight: 100;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-100-latin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-2ExtraLight.woff2') format('woff2');
   font-weight: 200;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-200-latin.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-3Light.woff2') format('woff2');
   font-weight: 300;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-300-latin.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-4Regular.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-400-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-5Medium.woff2') format('woff2');
   font-weight: 500;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-500-latin.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-6SemiBold.woff2') format('woff2');
   font-weight: 600;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-600-latin.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-7Bold.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-700-latin.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-8ExtraBold.woff2') format('woff2');
   font-weight: 800;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
 }
-
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-800-latin.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
+}
 @font-face {
   font-family: 'A2z';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-9Black.woff2') format('woff2');
   font-weight: 900;
   font-display: swap;
+  unicode-range: U+0250-1DFF, U+1F00-1FFF, U+2800-FAFF, U+FB07-10FFFF;
+}
+@font-face {
+  font-family: 'A2z';
+  src: url('/fonts/a2z/a2z-900-latin.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-27FF, U+FB00-FB06;
 }
 
 /* ── CSS 변수 (tailwind.config.ts 토큰 미러) ────── */
@@ -200,8 +267,45 @@ html.lenis body { height: auto; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    /* 무한 반복 애니메이션이 0.01ms 주기로 깜빡이지 않게 한 번만 */
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* ── 첫 화면 등장 모션 (CSS 전용) ─────────────────────────────
+   히어로처럼 항상 첫 화면에 있는 요소용. JS 없이 첫 페인트부터 재생되므로
+   하이드레이션 지연이 LCP 로 번지지 않는다. 지연은 style 의 animationDelay 로. */
+@keyframes nwcn-enter-mask-up {
+  from { clip-path: inset(100% 0% 0% 0%); }
+  to { clip-path: inset(0% 0% 0% 0%); }
+}
+@keyframes nwcn-enter-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes nwcn-enter-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.enter-mask-up { animation: nwcn-enter-mask-up 700ms var(--ease-nwcn) both; }
+.enter-fade-up { animation: nwcn-enter-fade-up 700ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.enter-fade { animation: nwcn-enter-fade 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ── 스크롤 등장 (AnimateOnScroll) 숨김 상태 ────────────────────
+   data-aos-state="out" 인 동안만 숨긴다. data-aos-early 는 하이드레이션 전
+   인라인 스크립트가 첫 화면·교차한 요소에 붙이는 표시로, 붙으면 바로 보인다.
+   모션 최소화 설정이면 처음부터 숨기지 않는다. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-aos-state='out']:not([data-aos='none']):not([data-aos-early]) { opacity: 0; }
+  [data-aos='fade-up'][data-aos-state='out']:not([data-aos-early]) { transform: translateY(24px); }
+  [data-aos='fade-down'][data-aos-state='out']:not([data-aos-early]) { transform: translateY(-24px); }
+  [data-aos='fade-left'][data-aos-state='out']:not([data-aos-early]) { transform: translateX(24px); }
+  [data-aos='fade-right'][data-aos-state='out']:not([data-aos-early]) { transform: translateX(-24px); }
+  [data-aos='zoom-in'][data-aos-state='out']:not([data-aos-early]) { transform: scale(0.95); }
 }
 
 /* ── 공통 컴포넌트 ──────────────────────────────── */

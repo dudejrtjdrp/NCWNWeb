@@ -39,6 +39,8 @@ export interface FacultyCardProps {
   photoUrl?: string
   /** 카드 배경 색상 variant */
   colorVariant?: FacultyCardVariant
+  /** 첫 화면에 보이는 카드면 true — 사진을 미리 불러온다 (모바일 LCP) */
+  priority?: boolean
   className?: string
 }
 
@@ -106,6 +108,7 @@ export default function FacultyCard({
   role,
   photoUrl,
   colorVariant = 'green-solid',
+  priority = false,
   className,
 }: FacultyCardProps) {
   const { bg, nameGradient } = VARIANT_STYLES[colorVariant]
@@ -135,7 +138,8 @@ export default function FacultyCard({
             alt={`${nameKo} ${role} 프로필 사진`}
             fill
             className="object-cover object-top rounded-lg"
-            unoptimized
+            sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 90vw"
+            priority={priority}
             onError={() => setImgError(true)}
           />
         ) : (
@@ -202,7 +206,7 @@ export default function FacultyCard({
         className={cn(
           'absolute inset-0 z-20',
           'bg-gradient-to-t from-black/70 via-black/20 to-transparent',
-          'opacity-0 group-hover:opacity-100',
+          'opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100',
           'transition-opacity duration-base ease-nwcn',
           'flex flex-col items-center justify-end pb-7 gap-1',
         )}

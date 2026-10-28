@@ -13,7 +13,7 @@
 import React, { useEffect, useRef } from 'react'
 
 export interface DecorLetterProps {
-  /** 레터 PNG 경로 (예: /images/home/letter-1.png) */
+  /** 레터 PNG 경로 (예: /images/home/letter-1.webp) */
   src: string
   /** 위치/크기 등 배치용 클래스 (top/left/right + width 등) */
   className?: string
@@ -89,7 +89,7 @@ export default function DecorLetter({
         loading="lazy"
         decoding="async"
         draggable={false}
-        className={`block w-full h-auto ${float ? 'animate-floaty' : ''}`}
+        className={`block w-full h-auto ${float ? 'motion-safe:animate-floaty' : ''}`}
         style={{ animationDelay: `${delay}ms` }}
       />
     </div>

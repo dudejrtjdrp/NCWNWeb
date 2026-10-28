@@ -16,17 +16,21 @@
 import { useTranslations } from 'next-intl'
 import CertCarousel from '@/components/base/CertCarousel'
 import AnimateOnScroll from '@/components/common/AnimateOnScroll'
+import { Nova_Slim } from 'next/font/google'
+
+/* 교육 방침 번호에만 쓰는 장식 서체 — 전 페이지 @import 대신 여기서만 자체 호스팅 */
+const novaSlim = Nova_Slim({ weight: '400', subsets: ['latin'], display: 'swap' })
 
 /* ─── 에셋 경로 ─── */
 const IMG = {
   arrowVec:        '/images/department/arrow-vec.png',
-  symbolCardBg:    '/images/department/symbol-card-bg.png',
-  symbolCardInner: '/images/department/symbol-card-inner.png',
-  vecGoal:         '/images/department/vec-goal.png',
-  goalCard:        '/images/department/goal-card.png',
-  policyImg1:      '/images/department/policy-img1.png',
-  policyImg2:      '/images/department/policy-img2.png',
-  vecCareer:       '/images/department/vec-career.png',
+  symbolCardBg:    '/images/department/symbol-card-bg.webp',
+  symbolCardInner: '/images/department/symbol-card-inner.webp',
+  vecGoal:         '/images/department/vec-goal.webp',
+  goalCard:        '/images/department/goal-card.webp',
+  policyImg1:      '/images/department/policy-img1.webp',
+  policyImg2:      '/images/department/policy-img2.webp',
+  vecCareer:       '/images/department/vec-career.webp',
 }
 
 /* ─── SymbolCard ─── */
@@ -87,7 +91,8 @@ export default function DepartmentSection() {
   const careers = t.raw('careers') as string[]
 
   return (
-    <div className="relative w-full max-w-page mx-auto bg-white">
+    <div className="relative w-full max-w-page mx-auto bg-white overflow-x-clip">
+      {/* overflow-x-clip: 좌우 등장 모션(fade-left/right 24px)이 모바일에서 가로 스크롤을 만들지 않게 */}
 
       {/* ══════════════════════════════════════════
           §A  학과소개 인트로
@@ -149,14 +154,14 @@ export default function DepartmentSection() {
             style={{ left: '-5%', top: '10%', width: 500, height: 476, opacity: 0.4, transform: 'rotate(48.7deg)' }}
             aria-hidden
           >
-            <img src={IMG.vecGoal} alt="" className="w-full h-full" />
+            <img loading="lazy" decoding="async" src={IMG.vecGoal} alt="" className="w-full h-full" />
           </div>
           <div
             className="absolute hidden lg:block pointer-events-none select-none"
             style={{ right: '-5%', top: '20%', width: 500, height: 476, opacity: 0.4, transform: 'rotate(48.7deg)' }}
             aria-hidden
           >
-            <img src={IMG.vecGoal} alt="" className="w-full h-full" />
+            <img loading="lazy" decoding="async" src={IMG.vecGoal} alt="" className="w-full h-full" />
           </div>
 
           <p className="font-body font-bold text-section text-nwcn-neutral-700 text-center mb-10 sm:mb-16">
@@ -171,7 +176,7 @@ export default function DepartmentSection() {
                 <AnimateOnScroll key={num} variant="fade-up" delay={i * 80} threshold={0.05}>
                   <div className={`flex ${isRight ? 'flex-row-reverse' : 'flex-row'} items-start gap-4 sm:gap-6`}>
                     <span
-                      className="shrink-0 font-[Nova_Slim,serif] text-nwcn-green leading-none"
+                      className={`shrink-0 ${novaSlim.className} text-nwcn-green leading-none`}
                       style={{ fontSize: 'clamp(40px, 6vw, 76px)' }}
                     >
                       {num}
@@ -226,10 +231,10 @@ export default function DepartmentSection() {
           <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10">
             {/* 이미지 1 — 사진: 왼쪽→오른쪽 / 글씨: 아래→위 */}
             <AnimateOnScroll variant="fade-right" duration={800} threshold={0.2}>
-              <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
-                <img src={IMG.policyImg1} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+              <div className="relative w-full overflow-hidden rounded-lg sm:aspect-[1244/323] sm:min-h-[180px]">
+                <img loading="lazy" decoding="async" src={IMG.policyImg1} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
                 <div
-                  className="absolute inset-0 flex items-end justify-end p-4 sm:p-6 lg:p-8"
+                  className="relative flex min-h-[180px] items-end justify-end p-4 pt-10 sm:absolute sm:inset-0 sm:min-h-0 sm:p-6 lg:p-8"
                   style={{
                     border: '1px solid rgba(9,245,147,0.06)',
                     background: 'linear-gradient(to right, rgba(0,172,101,0) 30%, #000 100%)',
@@ -237,8 +242,8 @@ export default function DepartmentSection() {
                 >
                   <AnimateOnScroll variant="fade-up" delay={300} duration={700} threshold={0.2}>
                     <p
-                      className="font-body font-medium text-white text-right"
-                      style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line', maxWidth: '60%' }}
+                      className="font-body font-medium text-white text-right max-w-[88%] sm:max-w-[60%]"
+                      style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line' }}
                     >
                       {t('policyText1')}
                     </p>
@@ -249,10 +254,10 @@ export default function DepartmentSection() {
 
             {/* 이미지 2 — 사진: 오른쪽→왼쪽 / 글씨: 아래→위 */}
             <AnimateOnScroll variant="fade-left" duration={800} threshold={0.2}>
-              <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '1244/323', minHeight: '180px' }}>
-                <img src={IMG.policyImg2} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
+              <div className="relative w-full overflow-hidden rounded-lg sm:aspect-[1244/323] sm:min-h-[180px]">
+                <img loading="lazy" decoding="async" src={IMG.policyImg2} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover" />
                 <div
-                  className="absolute inset-0 flex items-end justify-start p-4 sm:p-6 lg:p-8"
+                  className="relative flex min-h-[180px] items-end justify-start p-4 pt-10 sm:absolute sm:inset-0 sm:min-h-0 sm:p-6 lg:p-8"
                   style={{
                     border: '1px solid rgba(9,245,147,0.06)',
                     background: 'linear-gradient(to right, #000 0%, rgba(2,66,40,0.75) 60%, rgba(9,245,147,0.06) 100%)',
@@ -260,8 +265,8 @@ export default function DepartmentSection() {
                 >
                   <AnimateOnScroll variant="fade-up" delay={300} duration={700} threshold={0.2}>
                     <p
-                      className="font-body font-medium text-white"
-                      style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line', maxWidth: '60%' }}
+                      className="font-body font-medium text-white max-w-[88%] sm:max-w-[60%]"
+                      style={{ fontSize: 'clamp(13px, 1.4vw, 18px)', lineHeight: 1.6, whiteSpace: 'pre-line' }}
                     >
                       {t('policyText2')}
                     </p>
@@ -283,7 +288,7 @@ export default function DepartmentSection() {
             className="absolute inset-0 hidden lg:block pointer-events-none select-none opacity-30"
             aria-hidden
           >
-            <img src={IMG.vecCareer} alt="" className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={IMG.vecCareer} alt="" className="w-full h-full object-cover" />
           </div>
 
           <div className="relative z-10">

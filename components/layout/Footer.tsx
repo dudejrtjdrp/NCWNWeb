@@ -62,7 +62,7 @@ export default function Footer({ className = '' }: FooterProps) {
           >
             {CONTACT_INFO.map(({ labelKey, value }) => (
               <div key={labelKey} className="flex flex-col gap-1">
-                <p className="font-body font-medium text-nwcn-text-muted text-caption sm:text-body-sm">
+                <p className="font-body font-medium text-white/55 text-caption sm:text-body-sm">
                   {t(labelKey as Parameters<typeof t>[0])}
                 </p>
                 <p className="font-body font-normal text-white text-caption leading-tight">
@@ -108,7 +108,7 @@ export default function Footer({ className = '' }: FooterProps) {
         </div>
 
         {/* 검색 노출용 별칭·약칭 (fine print) — 동방예대/뉴콘/DIMA 등 변형 키워드 매칭용 */}
-        <p className="pb-3 font-body text-caption leading-relaxed text-white/30">
+        <p className="pb-3 font-body text-caption leading-relaxed text-white/50">
           {t('alias')}
         </p>
 
@@ -116,7 +116,7 @@ export default function Footer({ className = '' }: FooterProps) {
         <div className="pb-2">
           <Link
             href="/info/privacy"
-            className="font-body text-caption text-white/30 hover:text-white/60 transition-colors duration-fast ease-nwcn"
+            className="font-body text-caption text-white/60 hover:text-white/90 transition-colors duration-fast ease-nwcn"
           >
             {t('privacy')}
           </Link>

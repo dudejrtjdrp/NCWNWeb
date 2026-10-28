@@ -31,7 +31,9 @@ function PartnerCard({ name, logoSrc, href }: { name: string; logoSrc: string; h
         <img
           src={logoSrc}
           alt={name}
-          className="max-h-[150px] max-w-[220px] object-contain"
+          loading="lazy"
+          decoding="async"
+          className="max-h-[150px] w-auto max-w-full object-contain sm:max-w-[220px]"
           onError={() => setImgError(true)}
         />
       )}

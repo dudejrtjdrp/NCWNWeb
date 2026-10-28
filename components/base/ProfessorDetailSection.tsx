@@ -29,7 +29,7 @@ import Link from 'next/link'
 import type { FacultyData } from '@/lib/faculty-data'
 import CareerColumn, { type CareerSection } from '@/components/base/CareerColumn'
 
-const IMG_NWCN_BG = '/images/department/nwcn-logo.png'
+const IMG_NWCN_BG = '/images/department/nwcn-logo.webp'
 
 /* ──────────────────────────────────────────────────────
    텍스트 파싱 — **bold** 마커 → <strong>

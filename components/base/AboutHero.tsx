@@ -5,7 +5,7 @@
 
 import PageHero from '@/components/base/PageHero'
 
-const IMG_NWCN = '/images/department/nwcn-logo.png'
+const IMG_NWCN = '/images/department/nwcn-logo.webp'
 
 export default function AboutHero() {
   return (

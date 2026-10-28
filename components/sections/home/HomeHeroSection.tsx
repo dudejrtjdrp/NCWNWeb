@@ -60,7 +60,7 @@ const ASSET = {
   /** MEETS 를 감싸는 손그림 원형 마커 (로컬 SVG — 이전 Figma MCP 임시 URL 은 7일 만료됨) */
   ellipse: '/images/home/meets-marker.svg',
   /** WORK 3D 텍스트 (로컬 에셋) */
-  work: '/images/home/work.png',
+  work: '/images/home/work.webp',
 } as const
 
 /* 디자인 기준 좌표 (Figma hero-banner 프레임) */
@@ -86,10 +86,10 @@ type Letter = {
 }
 
 const LETTERS: Letter[] = [
-  { src: '/images/home/letter-1.png', cx: 295, cy: 140, w: 255, rot: -8, op: 0.95, scatter: { x: -380, y: -60 }, bobAmp: 10, bobDur: 7.0, bobPhase: 0 },    // N
-  { src: '/images/home/letter-2.png', cx: 470, cy: 470, w: 320, rot: -20, op: 0.6, scatter: { x: -460, y: 130 }, bobAmp: 12, bobDur: 7.6, bobPhase: 1.9 },  // C
-  { src: '/images/home/letter-3.png', cx: 1180, cy: 150, w: 280, rot: 6, op: 0.85, scatter: { x: 430, y: -70 }, bobAmp: 10, bobDur: 6.6, bobPhase: 1.0 },   // W
-  { src: '/images/home/letter-4.png', cx: 900, cy: 660, w: 200, rot: 16, op: 0.45, scatter: { x: 300, y: 200 }, bobAmp: 11, bobDur: 7.2, bobPhase: 2.6 },   // N
+  { src: '/images/home/letter-1.webp', cx: 295, cy: 140, w: 255, rot: -8, op: 0.95, scatter: { x: -380, y: -60 }, bobAmp: 10, bobDur: 7.0, bobPhase: 0 },    // N
+  { src: '/images/home/letter-2.webp', cx: 470, cy: 470, w: 320, rot: -20, op: 0.6, scatter: { x: -460, y: 130 }, bobAmp: 12, bobDur: 7.6, bobPhase: 1.9 },  // C
+  { src: '/images/home/letter-3.webp', cx: 1180, cy: 150, w: 280, rot: 6, op: 0.85, scatter: { x: 430, y: -70 }, bobAmp: 10, bobDur: 6.6, bobPhase: 1.0 },   // W
+  { src: '/images/home/letter-4.webp', cx: 900, cy: 660, w: 200, rot: 16, op: 0.45, scatter: { x: 300, y: 200 }, bobAmp: 11, bobDur: 7.2, bobPhase: 2.6 },   // N
 ]
 
 /* 게시물(최대 4) — page.tsx 에서 실제 쇼케이스 작품을 주입 */
@@ -243,6 +243,8 @@ export default function HomeHeroSection({
     if (stripRef.current) {
       stripRef.current.style.transform = `translateX(${(1 - f.stripIn) * 240}px)`
       stripRef.current.style.opacity = `${f.stripIn}`
+      // 보이지 않는 동안엔 클릭·터치를 가로채지 않게 (투명한 카드 링크로 이동하던 문제)
+      stripRef.current.style.pointerEvents = f.stripIn > 0.9 ? 'auto' : 'none'
     }
 
     // WORK (등장 후 살짝 부유 + 미세 회전 — 등장 진행도 workIn 만큼만)
@@ -413,7 +415,7 @@ export default function HomeHeroSection({
     const lenis = (window as Window & { __lenis?: { start?: () => void; scrollTo: (t: number, o?: object) => void } }).__lenis
     lenis?.start?.() // 캐러셀 스텝 모드로 멈춰있을 수 있으니 재개
     if (lenis?.scrollTo) lenis.scrollTo(target, { duration: 1.1, force: true })
-    else window.scrollTo({ top: target, behavior: 'smooth' })
+    else window.scrollTo({ top: target, behavior: reducedMotionRef.current ? 'auto' : 'smooth' })
   }, [])
 
   /* contain 피팅 — 가로/세로 중 더 빡빡한 쪽에 맞춘다.
@@ -516,7 +518,10 @@ export default function HomeHeroSection({
               overflowX: 'auto', overflowY: 'hidden',
               scrollSnapType: 'x mandatory', overscrollBehaviorX: 'contain',
               transform: `translateX(${(1 - f0.stripIn) * 240}px)`,
-              opacity: f0.stripIn, zIndex: 20, cursor: 'grab', touchAction: 'pan-x',
+              opacity: f0.stripIn, zIndex: 20, cursor: 'grab',
+              pointerEvents: f0.stripIn > 0.9 ? 'auto' : 'none',
+              /* pan-x 만 허용하면 스트립 위에서 세로 스크롤이 막힌다 — 세로는 페이지에 양보 */
+              touchAction: 'pan-x pan-y',
               /* will-change 로 레이어 승격하지 않는다 — 소수 배율 scale() 조상 안의
                  합성 레이어는 DPR1(윈도우 데스크탑)에서 매 프레임 정수 픽셀로
                  반올림돼 ±1px 로 떨린다. rAF 가 메인스레드에서 그리게 둔다. */

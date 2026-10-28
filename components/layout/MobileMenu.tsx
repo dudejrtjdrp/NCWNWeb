@@ -2,7 +2,7 @@
 
 import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface NavItem {
@@ -19,6 +19,16 @@ interface MobileMenuProps {
 }
 
 export default function MobileMenu({ isOpen, onClose, navItems, pathname }: MobileMenuProps) {
+  /* 닫혀 있을 땐 inert — 화면 밖 드로어의 링크로 Tab 포커스가 새지 않게.
+     React 18 은 inert 를 모르는 속성으로 다뤄 boolean 을 버리므로 DOM 에 직접 건다. */
+  const drawerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = drawerRef.current
+    if (!el) return
+    if (isOpen) el.removeAttribute('inert')
+    else el.setAttribute('inert', '')
+  }, [isOpen])
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -53,6 +63,7 @@ export default function MobileMenu({ isOpen, onClose, navItems, pathname }: Mobi
         aria-modal="true"
         aria-label="모바일 메뉴"
         aria-hidden={!isOpen}
+        ref={drawerRef}
         className={cn(
           'fixed top-0 right-0 z-50 h-full w-80 bg-nwcn-dark-2 border-l border-white/10 transition-transform duration-base ease-nwcn',
           isOpen ? 'translate-x-0' : 'translate-x-full'

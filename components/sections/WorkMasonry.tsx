@@ -174,7 +174,7 @@ function pack(
 
 function EyeBadge({ count }: { count: number }) {
   return (
-    <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/45 backdrop-blur-sm rounded-full px-2.5 py-1">
+    <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/60 rounded-full px-2.5 py-1">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
         <circle cx="12" cy="12" r="3" />
@@ -203,7 +203,7 @@ function Card({ work }: { work: WorkListItem }) {
 
       <EyeBadge count={work.view_count} />
 
-      <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn group-hover:translate-y-0 group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/70 via-black/20 to-transparent p-4 opacity-0 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-100 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn group-hover:translate-y-0 group-hover:opacity-100">
         <h3 className="font-body text-body font-semibold leading-tight text-white">{work.title}</h3>
         <p className="mt-0.5 font-body text-caption text-white/70">
           {work.author} · {work.year}

@@ -29,7 +29,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
     >
       {/* 장식 레터 N — 좌상단 (그린 틴트) */}
       <DecorLetter
-        src="/images/home/letter-1.png"
+        src="/images/home/letter-1.webp"
         delay={0}
         baseRotate={-4}
         style={{
@@ -41,7 +41,7 @@ export default function WhatIsSection({ className = '' }: WhatIsSectionProps) {
 
       {/* 장식 레터 W — 우하단 (오른쪽으로 살짝 블리드) */}
       <DecorLetter
-        src="/images/home/letter-3.png"
+        src="/images/home/letter-3.webp"
         delay={1400}
         baseRotate={5}
         style={{

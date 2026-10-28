@@ -14,18 +14,18 @@ import SmoothScrollSlider, { type SlideItem } from '@/components/interactive/Smo
 
 /* ── 실제 자격증서 목업 이미지 (public/images/department/cert) ── */
 const CERTS: { file: string; name: string }[] = [
-  { file: 'cert-01.png', name: '정보처리산업기사' },
-  { file: 'cert-02.png', name: '멀티미디어콘텐츠제작전문가' },
-  { file: 'cert-03.png', name: 'GTQ' },
-  { file: 'cert-04.png', name: '웹디자인기능사' },
-  { file: 'cert-05.png', name: '컬러리스트산업기사' },
-  { file: 'cert-06.png', name: '사무자동화산업기사' },
-  { file: 'cert-07.png', name: '인터넷정보관리사' },
-  { file: 'cert-08.png', name: '웹마스터전문가' },
-  { file: 'cert-09.png', name: '인터넷정보검색사' },
-  { file: 'cert-10.png', name: '한국영상자격원 영상전문인(편집)' },
-  { file: 'cert-11.png', name: '한국영상자격원 영상전문인(촬영)' },
-  { file: 'cert-12.png', name: '한국영상자격원 영상전문인(연출)' },
+  { file: 'cert-01.webp', name: '정보처리산업기사' },
+  { file: 'cert-02.webp', name: '멀티미디어콘텐츠제작전문가' },
+  { file: 'cert-03.webp', name: 'GTQ' },
+  { file: 'cert-04.webp', name: '웹디자인기능사' },
+  { file: 'cert-05.webp', name: '컬러리스트산업기사' },
+  { file: 'cert-06.webp', name: '사무자동화산업기사' },
+  { file: 'cert-07.webp', name: '인터넷정보관리사' },
+  { file: 'cert-08.webp', name: '웹마스터전문가' },
+  { file: 'cert-09.webp', name: '인터넷정보검색사' },
+  { file: 'cert-10.webp', name: '한국영상자격원 영상전문인(편집)' },
+  { file: 'cert-11.webp', name: '한국영상자격원 영상전문인(촬영)' },
+  { file: 'cert-12.webp', name: '한국영상자격원 영상전문인(연출)' },
 ]
 
 const ITEMS: SlideItem[] = CERTS.map((c, i) => ({

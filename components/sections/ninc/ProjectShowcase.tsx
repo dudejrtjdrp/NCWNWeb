@@ -93,11 +93,22 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
   const count = slides.length
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // 자동 슬라이드(여러 장일 때만)
+  // 자동 슬라이드(여러 장일 때만) — 모션 최소화 설정이면 끄고, 화면 밖에선 멈춘다
+  const rootRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     if (count <= 1) return
-    timer.current = setInterval(() => setIndex((i) => (i + 1) % count), 5000)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let visible = true
+    const el = rootRef.current
+    const io = el && typeof IntersectionObserver !== 'undefined'
+      ? new IntersectionObserver(([e]) => { visible = e.isIntersecting })
+      : null
+    if (io && el) io.observe(el)
+    timer.current = setInterval(() => {
+      if (visible && document.visibilityState === 'visible') setIndex((i) => (i + 1) % count)
+    }, 5000)
     return () => {
+      io?.disconnect()
       if (timer.current) clearInterval(timer.current)
     }
   }, [count])
@@ -175,7 +186,7 @@ export default function ProjectShowcase({ block }: { block: ShowcaseBlock }) {
 
   return (
     <AnimateOnScroll variant="fade" className="bg-white">
-      <div className="relative">
+      <div ref={rootRef} className="relative">
         {/* 이미지/텍스트 2분할 (데스크탑은 교차 배치) */}
         <div className="grid grid-cols-1 lg:grid-cols-[58%_42%]">
           {imageRight ? (

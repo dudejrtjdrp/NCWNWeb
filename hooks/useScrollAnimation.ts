@@ -50,7 +50,19 @@ export function useScrollAnimation({
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+
+    /* 안전장치 — 관찰자가 어떤 이유로든 안 잡히면 내용이 opacity 0 으로 영구히 가려진다.
+       2초 뒤에도 안 보이는데 이미 화면 안(또는 위)에 있는 요소라면 강제로 드러낸다.
+       아직 아래쪽에 있는 요소는 그대로 두어 스크롤 등장 연출을 유지한다. */
+    const failsafe = window.setTimeout(() => {
+      const top = el.getBoundingClientRect().top;
+      if (top < window.innerHeight) setIsVisible(true);
+    }, 2000);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(failsafe);
+    };
   }, [threshold, rootMargin, once]);
 
   return { ref, isVisible };

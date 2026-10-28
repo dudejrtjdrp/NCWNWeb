@@ -76,7 +76,7 @@ export default async function NcrTrendSection({ className = '', locale = 'ko' }:
 
       {/* 장식 레터 N — 우측 상단, 위쪽으로 블리드 */}
       <DecorLetter
-        src="/images/home/letter-4.png"
+        src="/images/home/letter-4.webp"
         delay={2000}
         baseRotate={3}
         style={{

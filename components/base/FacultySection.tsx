@@ -68,6 +68,7 @@ export default function FacultySection({ className }: FacultySectionProps) {
                   role={faculty.role}
                   photoUrl={faculty.photoUrl}
                   colorVariant={faculty.colorVariant}
+                  priority={i < 2}
                 />
               </AnimateOnScroll>
             ))}

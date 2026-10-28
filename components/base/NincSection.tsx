@@ -44,7 +44,7 @@ export default async function NincSection({ locale = 'ko', className = '' }: Nin
     >
       {/* 장식 레터 C — 좌측, 카드 뒤로 살짝 블리드 */}
       <DecorLetter
-        src="/images/home/letter-2.png"
+        src="/images/home/letter-2.webp"
         delay={700}
         baseRotate={-3}
         style={{
@@ -78,7 +78,7 @@ export default async function NincSection({ locale = 'ko', className = '' }: Nin
                   src={card.image_url}
                   alt={card.alt_text ?? `NINC 활동 ${i + 1}`}
                   fill
-                  className="object-cover grayscale transition duration-slow ease-nwcn group-hover:grayscale-0"
+                  className="object-cover grayscale [@media(hover:none)]:grayscale-0 transition duration-slow ease-nwcn group-hover:grayscale-0"
                   unoptimized
                 />
               </div>

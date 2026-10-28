@@ -110,6 +110,9 @@ export default function SmoothScrollSlider({
   const dragging = useRef(false)
   const hovering = useRef(false)
   const dragLast = useRef(0)
+  const dragStart = useRef(0)
+  /** 드래그로 움직였으면 이어지는 click 을 막아 링크가 열리지 않게 한다 */
+  const moved = useRef(false)
   const velocity = useRef(0)
 
   const [width, setWidth] = useState(0)
@@ -117,16 +120,22 @@ export default function SmoothScrollSlider({
   const activeIdRef = useRef(activeId)
   activeIdRef.current = activeId
   const [reduced, setReduced] = useState(false)
+  /** 화면 밖이면 렌더 루프를 멈춘다 (배터리·스크롤 성능) */
+  const [inView, setInView] = useState(true)
 
   const step = slideWidth + spacing
   const n = items.length
 
+  /* 중심 카드 배율 상한 — 좁은 화면에서 카드가 뷰포트보다 커지지 않게
+     (모바일 360px 에서 268px×1.8 = 482px 로 넘치던 문제) */
+  const effMax = width ? Math.max(1, Math.min(maxScale, (width * 0.82) / slideWidth)) : maxScale
+
   /* ── 원본 배열을 뷰포트보다 길어질 때까지 반복 ── */
   const copies = useMemo(() => {
     if (!n || !width) return 1
-    const need = width + slideWidth * maxScale * 4
+    const need = width + slideWidth * effMax * 4
     return Math.max(2, Math.ceil(need / (n * step)) + 1)
-  }, [n, width, step, slideWidth, maxScale])
+  }, [n, width, step, slideWidth, effMax])
 
   const rail = useMemo(
     () => Array.from({ length: copies * n }, (_, i) => ({ ...items[i % n], key: `${i}` })),
@@ -151,6 +160,15 @@ export default function SmoothScrollSlider({
     return () => ro.disconnect()
   }, [])
 
+  /* ── 화면 안에 있을 때만 움직인다 ── */
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { rootMargin: '200px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [reduced])
+
   /* ── 모션 최소화 설정 ── */
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -162,7 +180,7 @@ export default function SmoothScrollSlider({
 
   /* ── 렌더 루프 ── */
   useEffect(() => {
-    if (reduced || !width || !n) return
+    if (reduced || !width || !n || !inView) return
 
     const decayPerFrame = Math.max(0.02, 1 - 1 / Math.max(1, smoothness))
     const cx = width / 2
@@ -193,13 +211,13 @@ export default function SmoothScrollSlider({
         if (!el) continue
 
         // 양수 모듈로로 감아 이음매를 숨긴다
-        const x = mod(i * step + rendered.current, loopLength) - slideWidth * maxScale
+        const x = mod(i * step + rendered.current, loopLength) - slideWidth * effMax
         const center = x + slideWidth / 2
 
         // 중심까지의 정규화 거리 → 배율·감광
         const u = (center - cx) / cx
         const nearness = Math.max(0, 1 - Math.min(Math.abs(u), 1))
-        const scale = minScale + (maxScale - minScale) * Math.pow(nearness, 2.1)
+        const scale = minScale + (effMax - minScale) * Math.pow(nearness, 2.1)
 
         // 커진 만큼의 75% 를 진행 방향으로 더 밀어 이웃을 덮지 않게 한다
         const push = Math.sign(u) * (scale - 1) * slideWidth * 0.75
@@ -245,7 +263,7 @@ export default function SmoothScrollSlider({
       lastTs.current = 0
     }
   }, [
-    reduced, width, n, railLength, loopLength, step, slideWidth, maxScale, minScale,
+    reduced, inView, width, n, railLength, loopLength, step, slideWidth, effMax, minScale,
     dim, smoothness, autoplay,
   ])
 
@@ -265,25 +283,44 @@ export default function SmoothScrollSlider({
     return () => el.removeEventListener('wheel', onWheel)
   }, [reduced, sensitivity, captureVerticalWheel])
 
-  /* ── 포인터 드래그 ── */
+  /* ── 포인터 드래그 ──
+     setPointerCapture 는 쓰지 않는다. Chromium 에서 캡처가 걸리면 슬라이드 링크의
+     click 이 사라지는 문제가 있어(홈 히어로에서 이미 겪은 버그) window 리스너로 추적한다. */
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (reduced) return
+    if (e.pointerType === 'mouse' && e.button !== 0) return
     dragging.current = true
+    moved.current = false
     dragLast.current = e.clientX
+    dragStart.current = e.clientX
     velocity.current = 0
-    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
-  }, [reduced])
 
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging.current) return
-    const dx = e.clientX - dragLast.current
-    dragLast.current = e.clientX
-    target.current += dx * sensitivity
-    velocity.current = dx * 45
-  }, [sensitivity])
+    const onMove = (ev: PointerEvent) => {
+      if (!dragging.current) return
+      const dx = ev.clientX - dragLast.current
+      dragLast.current = ev.clientX
+      if (Math.abs(ev.clientX - dragStart.current) > 6) moved.current = true
+      target.current += dx * sensitivity
+      velocity.current = dx * 45
+    }
+    const onUp = () => {
+      dragging.current = false
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
+  }, [reduced, sensitivity])
 
-  const endDrag = useCallback(() => {
-    dragging.current = false
+  /* 드래그 직후의 click 은 링크 이동으로 이어지지 않게 막는다 */
+  const onClickCapture = useCallback((e: React.MouseEvent) => {
+    if (moved.current) {
+      e.preventDefault()
+      e.stopPropagation()
+      moved.current = false
+    }
   }, [])
 
   const nudge = useCallback((dir: number) => {
@@ -330,22 +367,23 @@ export default function SmoothScrollSlider({
           if (e.key === 'ArrowLeft') { e.preventDefault(); nudge(-1) }
         }}
         onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onPointerEnter={() => { hovering.current = true }}
-        onPointerLeave={() => { hovering.current = false; endDrag() }}
+        onClickCapture={onClickCapture}
+        onPointerEnter={(e) => { if (e.pointerType === 'mouse') hovering.current = true }}
+        onPointerLeave={() => { hovering.current = false }}
         onFocus={() => { hovering.current = true }}
         onBlur={() => { hovering.current = false }}
         className="focus-ring relative w-full cursor-grab overflow-hidden rounded-panel active:cursor-grabbing"
-        style={{ height: slideHeight * maxScale, background }}
+        // pan-y: 세로 스크롤은 페이지가, 가로 드래그는 레일이 가져간다
+        style={{ height: slideHeight * effMax, background, touchAction: 'pan-y' }}
       >
         <div ref={railRef} className="absolute inset-0">
           {rail.map((it, i) => (
             <div
               key={it.key}
               ref={(el) => { slideRefs.current[i] = el }}
-              className="absolute left-0 top-1/2 will-change-transform"
+              /* will-change 를 두지 않는다 — 고정하면 1배 래스터를 1.8배로 늘려 흐려진다.
+                 없으면 브라우저가 멈춘 시점의 배율로 다시 래스터해 선명하게 보인다. */
+              className="absolute left-0 top-1/2"
               style={{ width: slideWidth, height: slideHeight }}
             >
               <SlideCard

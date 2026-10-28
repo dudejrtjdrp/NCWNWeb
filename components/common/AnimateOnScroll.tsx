@@ -25,37 +25,10 @@ interface AnimateOnScrollProps {
   once?: boolean;
 }
 
-/* 이동 거리는 24px(translate-*-6)로 절제 — 큰 점프보다 미세한 등장이 더 자연스럽다 */
-const variantStyles: Record<AnimationVariant, { hidden: string; visible: string }> = {
-  'fade-up': {
-    hidden: 'opacity-0 translate-y-6',
-    visible: 'opacity-100 translate-y-0',
-  },
-  'fade-down': {
-    hidden: 'opacity-0 -translate-y-6',
-    visible: 'opacity-100 translate-y-0',
-  },
-  'fade-left': {
-    hidden: 'opacity-0 translate-x-6',
-    visible: 'opacity-100 translate-x-0',
-  },
-  'fade-right': {
-    hidden: 'opacity-0 -translate-x-6',
-    visible: 'opacity-100 translate-x-0',
-  },
-  'fade': {
-    hidden: 'opacity-0',
-    visible: 'opacity-100',
-  },
-  'zoom-in': {
-    hidden: 'opacity-0 scale-95',
-    visible: 'opacity-100 scale-100',
-  },
-  'none': {
-    hidden: '',
-    visible: '',
-  },
-};
+/* 숨김 상태(이동 거리 24px 등)는 globals.css 의 [data-aos] 규칙이 맡는다.
+   클래스 대신 data 속성으로 두는 이유: 하이드레이션 전에 도는 인라인 스크립트
+   (app/layout.tsx 의 AOS_EARLY_SCRIPT)가 첫 화면 요소에 data-aos-early 를 붙여
+   JS 번들을 기다리지 않고 바로 보이게 하기 위해서다 (모바일 LCP 렌더 지연 수 초 감소). */
 
 /* 부드럽게 안착하는 easeOutQuint 계열 커브 — 일반 ease-out보다 끝에서 더 우아하게 정착 */
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
@@ -72,16 +45,14 @@ export default function AnimateOnScroll({
   once = true,
 }: AnimateOnScrollProps) {
   const { ref, isVisible } = useScrollAnimation({ threshold, once });
-  const animStyles = variantStyles[variant];
 
   return (
     <Tag
       ref={ref as React.Ref<HTMLDivElement>}
-      className={cn(
-        'will-change-transform',
-        isVisible ? animStyles.visible : animStyles.hidden,
-        className
-      )}
+      className={cn(className)}
+      data-aos={variant}
+      data-aos-state={isVisible ? 'in' : 'out'}
+      data-aos-once={once ? undefined : 'false'}
       style={{
         transitionProperty: 'opacity, transform',
         transitionTimingFunction: EASE,
