@@ -7,8 +7,8 @@
  * DB·스토리지에는 아무것도 쓰지 않는다 (업로드는 별도 단계).
  *
  * 폴더 구조 (둘 다 허용)
- *   submissions/2026_홍길동.txt + submissions/2026_홍길동.pdf (+ 2026_홍길동_profile.jpg)
- *   submissions/2026_홍길동/ 안에 txt · pdf · 프로필 사진 · 1-01.jpg 같은 원본 이미지
+ *   submissions/2026_홍길동.txt + 2026_홍길동.pdf + 2026_홍길동_사진.jpg (프로필 사진 필수)
+ *   submissions/2026_홍길동/ 안에 txt · pdf · 2026_홍길동_사진.jpg · 1-01.jpg 같은 원본 이미지
  *
  * 실행
  *   node scripts/portfolio/parse-submissions.mjs [제출 폴더=submissions]
@@ -72,10 +72,11 @@ const yes = (s) => (s == null ? null : /^(예|네|yes|y|o|동의)$/i.test(s.trim
 
 function parseTxt(text) {
   const src = clean(text)
-  const START = '=== 출력 시작 ==='
-  const start = src.indexOf(START)
-  const end = src.indexOf('=== 출력 끝 ===')
-  const body = start >= 0 ? src.slice(start + START.length, end > start ? end : undefined) : src
+  // 표시줄은 그 줄에 단독으로 있을 때만 인정한다 (양식 안내문 속 따옴표 문구와 구분)
+  const startM = src.match(/^\s*=== 출력 시작 ===\s*$/m)
+  const from = startM ? startM.index + startM[0].length : 0
+  const endM = src.slice(from).match(/^\s*=== 출력 끝 ===\s*$/m)
+  const body = src.slice(from, endM ? from + endM.index : undefined)
 
   const sections = []
   let cur = null
@@ -141,13 +142,14 @@ function validate(d, files) {
   const warns = []
   const b = d.basic
   if (!b.name) errors.push('이름 없음')
-  if (!/^20\d{2}$/.test(b.year)) errors.push(`졸업 연도 형식 오류: "${b.year}"`)
+  if (!/^20\d{2}$/.test(b.year ?? '')) errors.push(`졸업 연도 형식 오류: "${b.year ?? ''}"`)
   if (!b.fields.length) errors.push('분야 없음')
   if (!b.tagline) errors.push('한 줄 소개 없음')
   if (!b.bio) warns.push('자기소개 없음')
   if (d.visibility.consent !== true) errors.push('홈페이지 게시 동의가 "예"가 아님 — 게시 불가')
   if (!d.projects.length) errors.push('프로젝트가 하나도 없음')
   if (!files.pdf) errors.push('원본 포트폴리오 PDF 없음')
+  if (!files.profile) errors.push('프로필 사진 없음 (졸업연도_이름_사진.jpg)')
 
   const bad = [...b.fields, ...b.interests, ...d.projects.flatMap((p) => p.fields)].filter((f) => !FIELDS.includes(f))
   if (bad.length) warns.push(`목록에 없는 분야: ${[...new Set(bad)].join(', ')}`)
@@ -182,7 +184,7 @@ function collect(dir) {
     if (statSync(full).isDirectory()) {
       for (const f of readdirSync(full)) if (!f.startsWith('.')) add(name, join(full, f))
     } else {
-      const id = basename(name, extname(name)).replace(/_(profile|프로필)$/i, '')
+      const id = basename(name, extname(name)).replace(/_(profile|프로필|사진)$/i, '')
       add(id, full)
     }
   }
@@ -192,7 +194,7 @@ function collect(dir) {
       id,
       txt: pick(/\.txt$/i)[0] ?? null,
       pdf: pick(/\.pdf$/i)[0] ?? null,
-      profile: pick(/(profile|프로필)\.(jpe?g|png|webp)$/i)[0] ?? null,
+      profile: pick(/(profile|프로필|사진)\.(jpe?g|png|webp)$/i)[0] ?? null,
       images: pick(/\/\d+-\d+\.(jpe?g|png|webp|gif)$/i).map((f) => basename(f)).sort(),
     }
   })
