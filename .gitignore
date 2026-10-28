@@ -34,3 +34,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 backups/
+
+# 졸업생 포트폴리오 제출물 (개인정보)
+submissions/
