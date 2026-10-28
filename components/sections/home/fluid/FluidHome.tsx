@@ -9,7 +9,8 @@
  * 3) 도착 후: 왼쪽 패널에 지금 보는 섹션 번호·이름이 뜨고, 오른쪽 열에 학과 정보가 이어진다. 패널은 푸터에 닿으면 밀려 올라간다.
  *    모바일은 패널 대신 둥근 카드로 줄어든 뒤 페이지와 함께 올라간다.
  *
- * 커서가 없어도 보이지 않는 붓 두 개가 계속 휘저어 멈추지 않는다. prefers-reduced-motion이면 자동 움직임을 끈다.
+ * 커서가 없어도 보이지 않는 붓 두 개가 계속 휘저어 멈추지 않는다.
+ * prefers-reduced-motion(동작 줄이기)이면 잉크를 더 느리고 옅게 흘리고 자동 방울·섹션 물결만 끈다. 스크롤 전환은 스크롤을 그대로 따라간다.
  * 매 프레임 setState를 하지 않고 상자·히어로·헤더 스타일을 ref로 직접 갱신한다(끊김 방지).
  */
 
@@ -85,7 +86,13 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
     const box = boxRef.current
     if (!canvas || !box) return
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    /* '동작 줄이기'(Windows 애니메이션 효과 끔, macOS 동작 줄이기) 환경에서도 멈추거나 뚝 끊기지 않게:
+       스크롤 전환은 스크롤을 그대로 따라가고(사용자가 움직이는 만큼만), 잉크는 더 느리고 옅게 계속 흐른다.
+       자동으로 터지는 방울·섹션 전환 물결만 끈다. */
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let reduce = mq.matches
+    const onMq = () => { reduce = mq.matches }
+    mq.addEventListener('change', onMq)
     let W = window.innerWidth
     let H = window.innerHeight
     canvas.width = W
@@ -128,10 +135,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
       const s = 600 + Math.random() * 900
       sim.splat(0.1 + 0.8 * Math.random(), 0.15 + 0.7 * Math.random(), Math.cos(a) * s, Math.sin(a) * s, COL[Math.floor(Math.random() * COL.length)], amount)
     }
-    if (sim) {
-      for (let k = 0; k < 6; k++) drop(0.55)
-      if (reduce) for (let k = 0; k < 140; k++) sim.step(0.016)
-    }
+    if (sim) for (let k = 0; k < 6; k++) drop(0.55)
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame)
@@ -139,8 +143,8 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
       const D = H * 1.2
       const raw = clamp(y / D, 0, 1)
       /* 진행도가 스크롤 위치를 부드럽게 따라간다 — 휠 한 번에 툭 넘어가지 않게 */
-      if (reduce) sp = raw > 0.5 ? 1 : 0
-      else { sp += (raw - sp) * 0.18; if (Math.abs(raw - sp) < 0.0004) sp = raw }
+      sp += (raw - sp) * (reduce ? 0.3 : 0.18)
+      if (Math.abs(raw - sp) < 0.0004) sp = raw
       const e = 0.5 - 0.5 * Math.cos(Math.PI * sp)
 
       const mobile = W < 768
@@ -227,25 +231,32 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         for (let k = 0; k < 4; k++) sim.splat(0.15 + 0.23 * k, 0.5, (k % 2 ? -1 : 1) * 1400, 0, COL[(act + 1 + k) % COL.length], 0.5)
       }
       prevActive = act
-      if (!reduce) {
-        /* 보이지 않는 붓 두 개 — 커서가 없어도 계속 흐르게 */
-        const t = now / 1000
-        for (let k = 0; k < 2; k++) {
-          const ax = 0.5 + 0.28 * Math.sin(t * (0.23 + k * 0.11) + k * 2.1)
-          const ay = 0.5 + 0.3 * Math.sin(t * (0.31 + k * 0.07) + k)
-          const prev = amb[k]
-          if (prev) sim.splat(ax, ay, (ax - prev.x) * 18000, (ay - prev.y) * 18000, COL[(base + k) % COL.length], 0.03)
-          amb[k] = { x: ax, y: ay }
+      /* 보이지 않는 붓 두 개 — 커서가 화면 밖에 있거나 팔레트 위에 있어도 계속 흐르게.
+         프레임 수와 상관없이 같은 속도로 움직이도록 방향만 쓰고 속도·잉크 양은 시간에 비례 */
+      const t = now / 1000
+      const speed = reduce ? 110 : 260
+      const amt = (reduce ? 0.018 : 0.035) * dt * 60
+      for (let k = 0; k < 2; k++) {
+        const ax = 0.5 + 0.3 * Math.sin(t * (0.23 + k * 0.11) + k * 2.1)
+        const ay = 0.5 + 0.3 * Math.sin(t * (0.31 + k * 0.07) + k)
+        const prev = amb[k]
+        if (prev) {
+          const vx = ax - prev.x
+          const vy = ay - prev.y
+          const len = Math.hypot(vx, vy) || 1
+          sim.splat(ax, ay, (vx / len) * speed, (vy / len) * speed, COL[(base + k) % COL.length], amt)
         }
-        if (now - lastAuto > (p ? 3000 : 1300)) { lastAuto = now; drop(0.45) }
+        amb[k] = { x: ax, y: ay }
       }
-      if (!reduce || p) sim.step(dt)
+      if (!reduce && now - lastAuto > (p ? 3000 : 1300)) { lastAuto = now; drop(0.45) }
+      sim.step(dt)
       sim.render()
     }
     raf = requestAnimationFrame(frame)
 
     return () => {
       cancelAnimationFrame(raf)
+      mq.removeEventListener('change', onMq)
       io.disconnect()
       window.removeEventListener('resize', onResize)
       sim?.dispose()
