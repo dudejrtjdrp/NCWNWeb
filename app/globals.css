@@ -452,3 +452,238 @@ html.lenis body { height: auto; }
   color: rgba(255, 255, 255, 0.25);
 }
 .ProseMirror-selectednode { outline: 2px solid #09F593; outline-offset: 2px; }
+
+
+/* ── 홈 3차(3-2B) — 유체 히어로 → 왼쪽 둥근 패널 (components/sections/home/fluid/FluidHome.tsx) ──
+   CSS 모듈로 두면 홈에만 쓰이는 스타일시트가 따로 생기는데, 이 스타일시트가 이미 로드된 뒤
+   React가 로드 완료를 기다리느라 홈 하이드레이션이 간헐적으로 멈추는 문제가 있어 전역 CSS로 둔다. */
+/* 헤더 래퍼: 히어로에서는 숨기고 패널로 거의 줄어든 뒤 나타남(투명도는 JS가 갱신) */
+.fh-hdr {
+  position: relative;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 그래픽 상자: 위치·크기·모서리는 JS가 매 프레임 갱신 */
+.fh-box {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 20;
+  overflow: hidden;
+  background: #eef0ea;
+  touch-action: pan-y;
+  user-select: none;
+  will-change: transform, width, height;
+}
+
+.fh-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  transform-origin: 0 0;
+}
+
+/* ── 첫 화면 글자 ── */
+.fh-hero {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.fh-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 46%;
+  background: linear-gradient(to bottom, rgba(246, 247, 243, 0) 0%, rgba(246, 247, 243, 0.55) 45%, rgba(246, 247, 243, 0.95) 100%);
+}
+
+.fh-brand {
+  position: absolute;
+  left: 32px;
+  top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  padding: 8px 14px;
+  background: #ffffff;
+  color: #151515;
+  font-size: 15px;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+.fh-brandMark {
+  font-family: 'A2z', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #151515;
+}
+
+.fh-inks {
+  position: absolute;
+  right: 32px;
+  top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  pointer-events: auto;
+}
+
+.fh-inksLabel {
+  margin-right: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a3a3b;
+}
+
+.fh-ink {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(21, 21, 21, 0.35);
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.fh-ink:hover {
+  transform: scale(1.12);
+}
+
+.fh-ink[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #151515;
+}
+
+.fh-ink:focus-visible {
+  outline: 2px solid #151515;
+  outline-offset: 3px;
+}
+
+/* 제목: 두 줄 흰 박스, 줄 사이 틈 없음 */
+.fh-title {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  bottom: 104px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  font-size: clamp(44px, 7.6vw, 132px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  color: #151515;
+}
+
+.fh-title span {
+  padding: 4px 16px 12px;
+  background: #ffffff;
+}
+
+.fh-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #151515;
+}
+
+.fh-cue svg {
+  animation: fh-cue 1.8s ease-in-out infinite;
+}
+
+@keyframes fh-cue {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+/* ── 패널에 도착한 뒤: 지금 보는 섹션 ── */
+.fh-panelLabel {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.fh-panelNo {
+  padding: 6px 10px;
+  background: #151515;
+  color: #09f593;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.fh-panelTitle {
+  padding: 4px 12px 8px;
+  background: #ffffff;
+  font-size: clamp(24px, 3vw, 44px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.fh-panelCap {
+  padding: 6px 12px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #3a3a3b;
+}
+
+/* ── 스크롤 길이 + 오른쪽 정보 열 ── */
+.fh-track {
+  /* 첫 화면(100vh) + 그래픽이 줄어드는 동안 내용이 늦게 올라오도록 80vh 여유 */
+  height: 180vh;
+}
+
+.fh-col {
+  position: relative;
+  z-index: 10;
+  padding: 0 20px 64px;
+}
+
+@media (min-width: 768px) {
+  .fh-col {
+    margin-left: calc(clamp(340px, 40vw, 600px) + 72px);
+    margin-right: 40px;
+    max-width: 900px;
+    padding: 0 0 96px;
+  }
+}
+
+@media (max-width: 767px) {
+  .fh-brand { left: 16px; top: 16px; font-size: 13px; }
+  .fh-brandMark { font-size: 18px; }
+  .fh-inks { right: 16px; top: auto; bottom: 72px; }
+  .fh-inksLabel { display: none; }
+  .fh-title { left: 16px; right: 16px; bottom: 132px; }
+  .fh-title span { padding: 2px 10px 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fh-cue svg { animation: none; }
+  .fh-ink { transition: none; }
+}

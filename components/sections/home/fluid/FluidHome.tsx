@@ -9,15 +9,14 @@
  * 3) 도착 후: 왼쪽 패널에 지금 보는 섹션 번호·이름이 뜨고, 오른쪽 열에 학과 정보가 이어진다. 패널은 푸터에 닿으면 밀려 올라간다.
  *    모바일은 패널 대신 둥근 카드로 줄어든 뒤 페이지와 함께 올라간다.
  *
- * 커서가 없어도 보이지 않는 붓 두 개가 계속 휘저어 멈추지 않는다.
- * prefers-reduced-motion(동작 줄이기)이면 잉크를 더 느리고 옅게 흘리고 자동 방울·섹션 물결만 끈다. 스크롤 전환은 스크롤을 그대로 따라간다.
+ * 커서가 움직이는 동안은 커서만 잉크를 움직이고, 커서가 없거나 멈추면 보이지 않는 붓 하나가 잔잔하게 휘저어 멈추지 않는다.
+ * prefers-reduced-motion(동작 줄이기)이면 붓을 더 느리고 옅게 하고 섹션 물결을 끈다. 스크롤 전환은 스크롤을 그대로 따라간다.
  * 매 프레임 setState를 하지 않고 상자·히어로·헤더 스타일을 ref로 직접 갱신한다(끊김 방지).
  */
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import Header from '@/components/layout/Header'
 import { FluidSim, hexToRgb } from './fluidSim'
-import styles from './FluidHome.module.css'
 
 /** 잉크 색 — 사이트 토큰(nwcn-green / yellow / green-darker / neutral-900) */
 const INKS = ['#09F593', '#E3E94D', '#058F56', '#151515'] as const
@@ -60,6 +59,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
   const pointer = useRef<{ x: number; y: number; down: boolean } | null>(null)
   const boom = useRef<{ x: number; y: number } | null>(null)
   const map = useRef({ s: 1, ox: 0, oy: 0 })
+  const lastMove = useRef(0)
 
   useEffect(() => { inkRef.current = ink }, [ink])
 
@@ -71,10 +71,12 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
   const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const p = local(e)
     pointer.current = { ...p, down: pointer.current?.down ?? false }
+    lastMove.current = performance.now()
   }
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     const p = local(e)
     pointer.current = { ...p, down: true }
+    lastMove.current = performance.now()
     boom.current = p
     try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* 무시 */ }
   }
@@ -121,13 +123,13 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
     let sp = 0
     let raf = 0
     let lastT = 0
-    let lastAuto = 0
+    let idleMix = 1
     let prevActive = -2
     let shownActive = -1
     let shownDocked = false
     let hdrOn = false
     let lastP: { x: number; y: number } | null = null
-    const amb: ({ x: number; y: number } | null)[] = [null, null]
+    const amb: ({ x: number; y: number } | null)[] = [null]
 
     const drop = (amount: number) => {
       if (!sim) return
@@ -228,27 +230,26 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         }
       }
       if (!reduce && prevActive !== -2 && act !== prevActive) {
-        for (let k = 0; k < 4; k++) sim.splat(0.15 + 0.23 * k, 0.5, (k % 2 ? -1 : 1) * 1400, 0, COL[(act + 1 + k) % COL.length], 0.5)
+        for (let k = 0; k < 4; k++) sim.splat(0.15 + 0.23 * k, 0.5, (k % 2 ? -1 : 1) * 700, 0, COL[(act + 1 + k) % COL.length], 0.4)
       }
       prevActive = act
-      /* 보이지 않는 붓 두 개 — 커서가 화면 밖에 있거나 팔레트 위에 있어도 계속 흐르게.
-         프레임 수와 상관없이 같은 속도로 움직이도록 방향만 쓰고 속도·잉크 양은 시간에 비례 */
+      /* 커서가 움직이는 동안은 커서만 잉크를 움직인다(내 손대로 움직이는 느낌).
+         커서가 화면 밖·팔레트 위에 있거나 2초 넘게 멈추면, 보이지 않는 붓 하나가 천천히 들어와
+         잔잔하게 휘저어 화면이 멈춰 보이지 않게 한다. 다시 움직이면 붓은 바로 빠진다. */
+      const idle = !p || now - lastMove.current > 2000
+      idleMix += ((idle ? 1 : 0) - idleMix) * (idle ? 0.02 : 0.25)
       const t = now / 1000
-      const speed = reduce ? 110 : 260
-      const amt = (reduce ? 0.018 : 0.035) * dt * 60
-      for (let k = 0; k < 2; k++) {
-        const ax = 0.5 + 0.3 * Math.sin(t * (0.23 + k * 0.11) + k * 2.1)
-        const ay = 0.5 + 0.3 * Math.sin(t * (0.31 + k * 0.07) + k)
-        const prev = amb[k]
-        if (prev) {
-          const vx = ax - prev.x
-          const vy = ay - prev.y
-          const len = Math.hypot(vx, vy) || 1
-          sim.splat(ax, ay, (vx / len) * speed, (vy / len) * speed, COL[(base + k) % COL.length], amt)
-        }
-        amb[k] = { x: ax, y: ay }
+      const ax = 0.5 + 0.3 * Math.sin(t * 0.21 + 2.1)
+      const ay = 0.5 + 0.28 * Math.sin(t * 0.29 + 1)
+      const prev = amb[0]
+      if (prev && idleMix > 0.01) {
+        const vx = ax - prev.x
+        const vy = ay - prev.y
+        const len = Math.hypot(vx, vy) || 1
+        const speed = (reduce ? 60 : 110) * idleMix
+        sim.splat(ax, ay, (vx / len) * speed, (vy / len) * speed, COL[base % COL.length], (reduce ? 0.012 : 0.02) * dt * 60 * idleMix)
       }
-      if (!reduce && now - lastAuto > (p ? 3000 : 1300)) { lastAuto = now; drop(0.45) }
+      amb[0] = { x: ax, y: ay }
       sim.step(dt)
       sim.render()
     }
@@ -267,13 +268,13 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
 
   return (
     <>
-      <div ref={hdrRef} className={styles.hdr}>
+      <div ref={hdrRef} className="fh-hdr">
         <Header variant="light" />
       </div>
 
       <div
         ref={boxRef}
-        className={styles.box}
+        className="fh-box"
         role="img"
         aria-label={graphicLabel}
         onPointerMove={onMove}
@@ -282,29 +283,29 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         onPointerCancel={onUp}
         onPointerLeave={onLeave}
       >
-        <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+        <canvas ref={canvasRef} className="fh-canvas" aria-hidden="true" />
         {docked && cur && (
-          <div className={styles.panelLabel} aria-hidden="true">
-            <span className={styles.panelNo}>{String(active + 1).padStart(2, '0')} / {String(sections.length).padStart(2, '0')}</span>
-            <strong className={styles.panelTitle}>{cur.label}</strong>
-            <span className={styles.panelCap}>{cur.caption}</span>
+          <div className="fh-panelLabel" aria-hidden="true">
+            <span className="fh-panelNo">{String(active + 1).padStart(2, '0')} / {String(sections.length).padStart(2, '0')}</span>
+            <strong className="fh-panelTitle">{cur.label}</strong>
+            <span className="fh-panelCap">{cur.caption}</span>
           </div>
         )}
       </div>
 
-      <div ref={heroRef} className={styles.hero}>
-        <div className={styles.fade} aria-hidden="true" />
-        <a href="#top" className={styles.brand}>
-          <strong className={styles.brandMark}>NWCN</strong>
+      <div ref={heroRef} className="fh-hero">
+        <div className="fh-fade" aria-hidden="true" />
+        <a href="#top" className="fh-brand">
+          <strong className="fh-brandMark">NWCN</strong>
           <span>{brand}</span>
         </a>
-        <div className={styles.inks} role="group" aria-label={inkLabel}>
-          <span className={styles.inksLabel}>{inkLabel}</span>
+        <div className="fh-inks" role="group" aria-label={inkLabel}>
+          <span className="fh-inksLabel">{inkLabel}</span>
           {INKS.map((c, i) => (
             <button
               key={c}
               type="button"
-              className={styles.ink}
+              className="fh-ink"
               style={{ background: c }}
               aria-label={inkNames[i] ?? c}
               aria-pressed={ink === i}
@@ -312,11 +313,11 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
             />
           ))}
         </div>
-        <h1 className={styles.title}>
+        <h1 className="fh-title">
           <span>{headline[0]}</span>
           <span>{headline[1]}</span>
         </h1>
-        <span className={styles.cue} aria-hidden="true">
+        <span className="fh-cue" aria-hidden="true">
           <span>{scroll}</span>
           <svg width="18" height="22" viewBox="0 0 18 22" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M9 1v19M2 13l7 7 7-7" />
@@ -324,8 +325,8 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         </span>
       </div>
 
-      <div id="top" className={styles.track} aria-hidden="true" />
-      <div ref={colRef} className={styles.col}>{children}</div>
+      <div id="top" className="fh-track" aria-hidden="true" />
+      <div ref={colRef} className="fh-col">{children}</div>
       <div ref={endRef} />
       {footer}
     </>
