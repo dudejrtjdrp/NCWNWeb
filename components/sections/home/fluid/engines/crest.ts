@@ -45,6 +45,7 @@ precision mediump float;
 uniform vec3 uBase;
 uniform vec3 uHot;
 uniform vec3 uSpark;
+uniform float uGain;
 varying float vE;
 varying float vB;
 varying float vD;
@@ -56,7 +57,7 @@ void main() {
   vec3 col = mix(uBase, uHot, smoothstep(0.05, 0.5, vE));
   col = mix(col, uSpark, smoothstep(0.6, 1.0, vE));
   float depth = clamp(0.7 + vD * 1.4, 0.35, 1.0);
-  float al = a * vB * depth * (0.72 + 0.28 * vE);
+  float al = min(1.0, a * vB * depth * (0.72 + 0.28 * vE) * uGain);
   gl_FragColor = vec4(col * al, al);
 }
 `
@@ -97,10 +98,23 @@ function depthAt(x: number, y: number, r: number) {
   return z + (r - 0.5) * 0.03
 }
 
+/** 바탕과 점 색, 겹치는 방식. 진한 바탕은 빛처럼 더하고(additive), 밝은 바탕은 물감처럼 덮는다 */
+export interface CrestPalette {
+  /** 패널 바탕(CSS background) */
+  bg: string
+  base: string
+  hot: string
+  spark: string
+  additive: boolean
+  /** 점 진하기 배율 */
+  gain: number
+}
+
 interface CrestOptions {
   /** 앞면 점 개수(뒷면 두께 점은 따로 22%) */
   count: number
   reduce: boolean
+  palette: CrestPalette
 }
 
 class CrestEngine {
@@ -144,10 +158,12 @@ class CrestEngine {
     this.writeOut()
 
     gl.useProgram(prog)
-    for (const k of ['uR', 'uCam', 'uScale', 'uPx', 'uT', 'uSweep', 'uBase', 'uHot', 'uSpark']) this.u[k] = gl.getUniformLocation(prog, k)
-    gl.uniform3fv(this.u.uBase, hex('#DDEFE5'))
-    gl.uniform3fv(this.u.uHot, hex('#09F593'))
-    gl.uniform3fv(this.u.uSpark, hex('#E3E94D'))
+    for (const k of ['uR', 'uCam', 'uScale', 'uPx', 'uT', 'uSweep', 'uBase', 'uHot', 'uSpark', 'uGain']) this.u[k] = gl.getUniformLocation(prog, k)
+    const pal = o.palette
+    gl.uniform3fv(this.u.uBase, hex(pal.base))
+    gl.uniform3fv(this.u.uHot, hex(pal.hot))
+    gl.uniform3fv(this.u.uSpark, hex(pal.spark))
+    gl.uniform1f(this.u.uGain, pal.gain)
     gl.uniform1f(this.u.uCam, CAM)
 
     this.bufP = gl.createBuffer() as WebGLBuffer
@@ -166,7 +182,8 @@ class CrestEngine {
 
     gl.disable(gl.DEPTH_TEST)
     gl.enable(gl.BLEND)
-    gl.blendFunc(gl.ONE, gl.ONE) // 겹치는 점이 빛처럼 더해진다
+    if (pal.additive) gl.blendFunc(gl.ONE, gl.ONE) // 겹치는 점이 빛처럼 더해진다
+    else gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
     gl.clearColor(0, 0, 0, 0)
 
     canvas.addEventListener('webglcontextlost', this.handleLost)
@@ -402,6 +419,19 @@ class CrestEngine {
 }
 
 /**
+ * 바탕·점 색 조합. 지금은 밝은 종이 바탕(paper) — 키만 바꾸면 다른 조합으로 바뀐다.
+ * night: 거의 검정 / forest: 학과 초록 / sage: 회녹색 / mint·paper: 밝은 바탕에 진한 점
+ */
+export const CREST_PALETTES = {
+  night: { bg: 'radial-gradient(120% 90% at 50% 46%, #15291f 0%, #0b120e 58%, #060907 100%)', base: '#DDEFE5', hot: '#09F593', spark: '#E3E94D', additive: true, gain: 1 },
+  forest: { bg: 'radial-gradient(120% 90% at 50% 46%, #17945f 0%, #0c7046 60%, #08593a 100%)', base: '#FFFFFF', hot: '#E3E94D', spark: '#FFFFFF', additive: true, gain: 0.85 },
+  sage: { bg: 'radial-gradient(120% 90% at 50% 46%, #668575 0%, #4a6657 60%, #3a5246 100%)', base: '#F2FFF7', hot: '#09F593', spark: '#E3E94D', additive: true, gain: 0.9 },
+  mint: { bg: 'radial-gradient(120% 90% at 50% 46%, #d9f4e4 0%, #bfe8d0 60%, #a8ddbf 100%)', base: '#0E3324', hot: '#058F56', spark: '#151515', additive: false, gain: 1.25 },
+  paper: { bg: 'radial-gradient(120% 90% at 50% 46%, #f7f8f4 0%, #e9eee7 60%, #dce5dc 100%)', base: '#173A2B', hot: '#058F56', spark: '#09C97A', additive: false, gain: 1.2 },
+} satisfies Record<string, CrestPalette>
+const CREST_PALETTE: CrestPalette = CREST_PALETTES.paper
+
+/**
  * 패널 엔진 형태로 감싼 엠블럼.
  * 패널이 다른 칸에 있다가 이 칸으로 돌아오면(잠깐 그려지지 않았으면) 점이 다시 모이는 등장을 보여 준다.
  */
@@ -414,9 +444,10 @@ export class CrestPanel implements PanelEngine {
   private wantIntro = true
   private disposed = false
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, palette: CrestPalette = CREST_PALETTE) {
     this.canvas = canvas
-    CrestEngine.create(canvas, SRC, { count: 14000, reduce: false }).then((e) => {
+    canvas.style.background = palette.bg
+    CrestEngine.create(canvas, SRC, { count: 14000, reduce: false, palette }).then((e) => {
       if (this.disposed) return e?.dispose()
       if (e) this.eng = e
       else this.useImage()

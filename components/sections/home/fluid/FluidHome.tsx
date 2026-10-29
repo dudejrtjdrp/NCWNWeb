@@ -338,7 +338,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         onPointerLeave={onLeave}
       >
         <canvas ref={canvasRef} className="fh-canvas" aria-hidden="true" />
-        <canvas ref={crestRef} className="fh-layer fh-layerDark" aria-hidden="true" />
+        <canvas ref={crestRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={brushRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={flockRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={lettersRef} className="fh-layer" aria-hidden="true" />

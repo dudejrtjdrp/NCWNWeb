@@ -656,6 +656,3 @@ html.lenis body { height: auto; }
   .fh-cue svg { animation: none; }
   .fh-ink { transition: none; }
 }
-
-/* 패널 01(학과 소개) 엠블럼 점 구름 — 어두운 바탕 위에 점이 빛처럼 겹친다 */
-.fh-layerDark { background: radial-gradient(120% 90% at 50% 46%, #15291f 0%, #0b120e 58%, #060907 100%); }
