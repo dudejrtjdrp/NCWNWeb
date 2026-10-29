@@ -1,13 +1,17 @@
 /**
- * CrestEngine — 학과 엠블럼을 입체 점 구름으로 그리는 WebGL 엔진
+ * 왼쪽 패널 01(학과 소개) 칸 — 학과 엠블럼을 입체 점 구름으로 그리는 WebGL 엔진
  *
  * 엠블럼 PNG의 불투명 픽셀에서 점을 뽑고, 위치별로 깊이를 줘서(방패는 볼록, 사슴 머리는 앞으로,
  * 리본은 휘고, 양옆 덩굴은 뒤로) 돌렸을 때 입체감이 나게 한다.
  * - 호버: 엠블럼이 커서 쪽으로 고개를 돌리고, 커서 주변 점이 밀려나며 형광으로 빛난다.
  * - 클릭: 누른 자리에서 점이 터져 흩어졌다가 스프링처럼 제자리로 모인다.
- * - 처음 화면에 들어오면 흩어진 점이 모여 엠블럼이 된다.
+ * - 패널이 이 칸으로 바뀔 때마다 흩어진 점이 모여 엠블럼이 된다.
  * 물리는 CPU(Float32Array)에서, 회전·원근·색은 셰이더에서 처리한다. 움직임이 멎으면 물리 계산을 쉰다.
  */
+
+import type { PanelEngine, PanelFrame } from './types'
+
+const SRC = '/images/home/crest.png'
 
 const VS = `
 attribute vec4 aP;
@@ -93,14 +97,13 @@ function depthAt(x: number, y: number, r: number) {
   return z + (r - 0.5) * 0.03
 }
 
-export interface CrestOptions {
+interface CrestOptions {
   /** 앞면 점 개수(뒷면 두께 점은 따로 22%) */
   count: number
   reduce: boolean
-  onLost?: () => void
 }
 
-export class CrestEngine {
+class CrestEngine {
   private gl: WebGLRenderingContext
   private prog: WebGLProgram
   private bufP: WebGLBuffer
@@ -127,14 +130,12 @@ export class CrestEngine {
   private active = true
   private last = 0
   private lost = false
-  private onLost?: () => void
 
   private constructor(canvas: HTMLCanvasElement, gl: WebGLRenderingContext, prog: WebGLProgram, pts: { home: Float32Array; seeds: Float32Array }, o: CrestOptions) {
     this.canvas = canvas
     this.gl = gl
     this.prog = prog
     this.reduce = o.reduce
-    this.onLost = o.onLost
     this.n = pts.home.length / 3
     this.home = pts.home
     this.pos = new Float32Array(pts.home)
@@ -169,10 +170,9 @@ export class CrestEngine {
     gl.clearColor(0, 0, 0, 0)
 
     canvas.addEventListener('webglcontextlost', this.handleLost)
-    this.resize()
   }
 
-  /** WebGL이 없거나 이미지를 못 읽으면 null — 호출한 쪽에서 정적 이미지를 보여 준다. */
+  /** WebGL이 없거나 이미지를 못 읽으면 null — 패널은 엠블럼 이미지를 그대로 그린다. */
   static async create(canvas: HTMLCanvasElement, src: string, o: CrestOptions): Promise<CrestEngine | null> {
     const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, powerPreference: 'low-power' })
     if (!gl) return null
@@ -192,20 +192,24 @@ export class CrestEngine {
     this.reduce = r
   }
 
-  resize() {
-    const r = this.canvas.getBoundingClientRect()
-    this.cssW = Math.max(1, r.width)
-    this.cssH = Math.max(1, r.height)
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2)
-    this.canvas.width = Math.round(this.cssW * this.dpr)
-    this.canvas.height = Math.round(this.cssH * this.dpr)
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
+  /** 패널 크기(CSS px)와 화소 배율이 바뀌었을 때만 화면 맞춤을 다시 계산 */
+  setSize(w: number, h: number, dpr: number) {
+    if (w === this.cssW && h === this.cssH && dpr === this.dpr) return
+    this.cssW = Math.max(1, w)
+    this.cssH = Math.max(1, h)
+    this.dpr = dpr
+    const cw = Math.round(this.cssW * dpr), ch = Math.round(this.cssH * dpr)
+    if (this.canvas.width !== cw || this.canvas.height !== ch) {
+      this.canvas.width = cw
+      this.canvas.height = ch
+    }
+    this.gl.viewport(0, 0, cw, ch)
     // 엠블럼 한 단위가 몇 CSS px인지: 세로 84%, 가로 86% 안에 들어가게
     this.unit = Math.min((0.84 * this.cssH) / 2 / ASPECT, (0.86 * this.cssW) / 2)
     this.scale = [this.unit / (this.cssW / 2), this.unit / (this.cssH / 2)]
   }
 
-  /** 흩어진 점이 모여 엠블럼이 되는 첫 등장 */
+  /** 흩어진 점이 모여 엠블럼이 되는 등장 */
   intro(now: number) {
     if (this.reduce) return
     const r = mulberry32(7)
@@ -237,13 +241,13 @@ export class CrestEngine {
     for (let i = 0; i < this.n; i++) {
       const rx = pos[i * 3] - mx, ry = pos[i * 3 + 1] - my
       const d = Math.sqrt(rx * rx + ry * ry) + 1e-3
-      const s = g * (3.6 * Math.exp(-d * 1.5) + 0.6)
+      const s = g * (3.2 * Math.exp(-d * 1.6) + 0.35)
       const k = 0.5 + Math.random()
       vel[i * 3] += (rx / d) * s * k + (Math.random() - 0.5) * 0.6 * s
       vel[i * 3 + 1] += (ry / d) * s * k + (Math.random() - 0.5) * 0.6 * s
       vel[i * 3 + 2] += (Math.random() * 1.6 - 0.4) * s
     }
-    this.soft = { t0: now / 1000, dur: 0.9, k0: 0.12, heat: 1 }
+    this.soft = { t0: now / 1000, dur: 0.9, k0: 0.12, heat: 0.65 }
     this.active = true
   }
 
@@ -296,7 +300,6 @@ export class CrestEngine {
   private handleLost = (e: Event) => {
     e.preventDefault()
     this.lost = true
-    this.onLost?.()
   }
 
   private step(t: number, dt: number, upload: boolean) {
@@ -305,7 +308,7 @@ export class CrestEngine {
     const ramp = since >= this.soft.dur ? 1 : this.soft.k0 + (1 - this.soft.k0) * smooth(0, this.soft.dur, since)
     const k = 30 * ramp
     // 흩어진 직후에는 저항도 약하게 해서 점이 멀리 미끄러지게
-    const damp = (this.reduce ? 7 : 5.2) * (0.55 + 0.45 * ramp)
+    const damp = (this.reduce ? 7 : 5.2) * (0.7 + 0.3 * ramp)
     const rep = this.reduce ? 6 : 14
     const R = 0.3, RG = 0.4
     let mx = 0, my = 0
@@ -395,6 +398,74 @@ export class CrestEngine {
     const wx = a * (CAM - tz), wy = b * (CAM - tz), wz = tz
     // Rᵀ·w
     return [m[0] * wx + m[1] * wy + m[2] * wz, m[3] * wx + m[4] * wy + m[5] * wz]
+  }
+}
+
+/**
+ * 패널 엔진 형태로 감싼 엠블럼.
+ * 패널이 다른 칸에 있다가 이 칸으로 돌아오면(잠깐 그려지지 않았으면) 점이 다시 모이는 등장을 보여 준다.
+ */
+export class CrestPanel implements PanelEngine {
+  private canvas: HTMLCanvasElement
+  private eng: CrestEngine | null = null
+  private img: HTMLImageElement | null = null
+  private ctx2d: CanvasRenderingContext2D | null = null
+  private lastFrame = -1e9
+  private wantIntro = true
+  private disposed = false
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas
+    CrestEngine.create(canvas, SRC, { count: 14000, reduce: false }).then((e) => {
+      if (this.disposed) return e?.dispose()
+      if (e) this.eng = e
+      else this.useImage()
+    })
+  }
+
+  frame(f: PanelFrame) {
+    if (f.now - this.lastFrame > 400) this.wantIntro = true
+    this.lastFrame = f.now
+    const e = this.eng
+    if (!e) return this.drawImage()
+    e.setReduce(f.reduce)
+    e.setSize(f.w, f.h, f.dpr)
+    if (this.wantIntro) {
+      this.wantIntro = false
+      e.intro(f.now)
+    }
+    if (f.pointer) e.pointer(f.pointer.x, f.pointer.y)
+    else e.leave()
+    e.frame(f.now)
+  }
+
+  down(x: number, y: number) {
+    this.eng?.burst(x, y, performance.now())
+  }
+
+  dispose() {
+    this.disposed = true
+    this.eng?.dispose()
+  }
+
+  /** WebGL을 못 쓰면 엠블럼 이미지를 가운데에 그린다 */
+  private useImage() {
+    this.ctx2d = this.canvas.getContext('2d')
+    if (!this.ctx2d) return
+    const img = new Image()
+    img.onload = () => { this.img = img }
+    img.src = SRC
+  }
+
+  private drawImage() {
+    const g = this.ctx2d, img = this.img
+    if (!g || !img) return
+    const W = this.canvas.width, H = this.canvas.height
+    const s = Math.min((W * 0.86) / img.naturalWidth, (H * 0.84) / img.naturalHeight)
+    g.clearRect(0, 0, W, H)
+    g.globalAlpha = 0.9
+    g.drawImage(img, (W - img.naturalWidth * s) / 2, (H - img.naturalHeight * s) / 2, img.naturalWidth * s, img.naturalHeight * s)
+    g.globalAlpha = 1
   }
 }
 

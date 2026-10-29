@@ -21,16 +21,17 @@ import type { PanelEngine } from './engines/types'
 import { BrushEngine } from './engines/brush'
 import { FlockEngine } from './engines/flock'
 import { BubbleEngine } from './engines/bubbles'
+import { CrestPanel } from './engines/crest'
 
 /** 잉크 색 — 사이트 토큰(nwcn-green / yellow / green-darker / neutral-900) */
 const INKS = ['#09F593', '#E3E94D', '#058F56', '#151515'] as const
 const BG = '#EEF0EA'
 
-/** 섹션별 패널 미디어아트 — 01 학과 소개는 첫 화면의 유체를 그대로 잇고, 나머지는 섹션마다 다른 기법으로 페이드 전환
- *  02 학생 작품: 유화 붓결 / 03 NINC: 군무 / 04 NCR 트렌드: 'NCR' 글자 붓결 / 05 입학 안내: 비눗방울 */
-type LayerKey = 'fluid' | 'brush' | 'flock' | 'letters' | 'bubbles'
-const SECTION_LAYER: readonly LayerKey[] = ['fluid', 'brush', 'flock', 'letters', 'bubbles']
-const LAYERS: readonly LayerKey[] = ['fluid', 'brush', 'flock', 'letters', 'bubbles']
+/** 섹션별 패널 미디어아트 — 유체 잉크는 첫 화면과 패널로 줄어드는 동안만 보이고, 도착하면 섹션마다 다른 그림으로 페이드 전환
+ *  01 학과 소개: 학과 엠블럼 점 구름 / 02 학생 작품: 유화 붓결 / 03 NINC: 군무 / 04 NCR 트렌드: 'NCR' 글자 붓결 / 05 입학 안내: 비눗방울 */
+type LayerKey = 'fluid' | 'crest' | 'brush' | 'flock' | 'letters' | 'bubbles'
+const SECTION_LAYER: readonly LayerKey[] = ['crest', 'brush', 'flock', 'letters', 'bubbles']
+const LAYERS: readonly LayerKey[] = ['fluid', 'crest', 'brush', 'flock', 'letters', 'bubbles']
 const FADE_S = 0.7
 
 export interface FluidHomeProps {
@@ -51,6 +52,7 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames, graphicLabel, children, footer }: FluidHomeProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const crestRef = useRef<HTMLCanvasElement>(null)
   const brushRef = useRef<HTMLCanvasElement>(null)
   const flockRef = useRef<HTMLCanvasElement>(null)
   const lettersRef = useRef<HTMLCanvasElement>(null)
@@ -118,14 +120,15 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
 
     /* 섹션 패널 레이어 — 처음 보일 때 만든다 */
     const layerEl: Record<LayerKey, HTMLCanvasElement | null> = {
-      fluid: canvas, brush: brushRef.current, flock: flockRef.current, letters: lettersRef.current, bubbles: bubblesRef.current,
+      fluid: canvas, crest: crestRef.current, brush: brushRef.current, flock: flockRef.current, letters: lettersRef.current, bubbles: bubblesRef.current,
     }
-    const op: Record<LayerKey, number> = { fluid: 1, brush: 0, flock: 0, letters: 0, bubbles: 0 }
+    const op: Record<LayerKey, number> = { fluid: 1, crest: 0, brush: 0, flock: 0, letters: 0, bubbles: 0 }
     const engines = enginesRef.current
     const make = (k: LayerKey): PanelEngine | null => {
       const c = layerEl[k]
       if (!c || k === 'fluid') return null
       try {
+        if (k === 'crest') return new CrestPanel(c)
         if (k === 'brush') return new BrushEngine(c)
         if (k === 'flock') return new FlockEngine(c)
         if (k === 'letters') return new BrushEngine(c, { mask: 'NCR' })
@@ -335,6 +338,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         onPointerLeave={onLeave}
       >
         <canvas ref={canvasRef} className="fh-canvas" aria-hidden="true" />
+        <canvas ref={crestRef} className="fh-layer fh-layerDark" aria-hidden="true" />
         <canvas ref={brushRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={flockRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={lettersRef} className="fh-layer" aria-hidden="true" />
