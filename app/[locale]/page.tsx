@@ -38,15 +38,6 @@ export default async function HomePage({ params }: PageProps) {
     getHomeNcrReports(locale),
   ])
 
-  /* 학생 작품 섹션 패널(ASCII 렌즈)용 이미지 — 픽셀을 읽어야 해서 같은 출처의 이미지 최적화 주소로 넘긴다 */
-  const asciiSources = [
-    ...works.map((w) => w.thumbnail_url),
-    ...ninc.map((n) => n.image_url),
-  ]
-    .filter((u): u is string => !!u)
-    .slice(0, 6)
-    .map((u) => `/_next/image?url=${encodeURIComponent(u)}&w=640&q=60`)
-
   return (
     <>
       {/* SEO/GEO: 기관·사이트 구조화 데이터 */}
@@ -60,7 +51,6 @@ export default async function HomePage({ params }: PageProps) {
         inkNames={[t('ink0'), t('ink1'), t('ink2'), t('ink3')]}
         graphicLabel={t('graphic')}
         sections={SECTION_KEYS.map((k) => ({ label: t(`sections.${k}.label`), caption: t(`sections.${k}.caption`) }))}
-        asciiSources={asciiSources}
         footer={<Footer />}
       >
         <HomeColumn locale={locale} works={works} ninc={ninc} ncr={ncr.items} />

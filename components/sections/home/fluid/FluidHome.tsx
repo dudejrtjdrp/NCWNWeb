@@ -18,19 +18,19 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, ty
 import Header from '@/components/layout/Header'
 import { FluidSim, hexToRgb } from './fluidSim'
 import type { PanelEngine } from './engines/types'
-import { AsciiEngine } from './engines/ascii'
-import { ParticleEngine } from './engines/particles'
-import { GrowthEngine } from './engines/growth'
-import { PhysicsEngine } from './engines/physics'
+import { BrushEngine } from './engines/brush'
+import { FlockEngine } from './engines/flock'
+import { BubbleEngine } from './engines/bubbles'
 
 /** 잉크 색 — 사이트 토큰(nwcn-green / yellow / green-darker / neutral-900) */
 const INKS = ['#09F593', '#E3E94D', '#058F56', '#151515'] as const
 const BG = '#EEF0EA'
 
-/** 섹션별 패널 미디어아트 — 01 학과 소개는 첫 화면의 유체를 그대로 잇고, 나머지는 섹션마다 다른 기법으로 페이드 전환 */
-type LayerKey = 'fluid' | 'ascii' | 'particle' | 'growth' | 'physics'
-const SECTION_LAYER: readonly LayerKey[] = ['fluid', 'ascii', 'particle', 'growth', 'physics']
-const LAYERS: readonly LayerKey[] = ['fluid', 'ascii', 'particle', 'growth', 'physics']
+/** 섹션별 패널 미디어아트 — 01 학과 소개는 첫 화면의 유체를 그대로 잇고, 나머지는 섹션마다 다른 기법으로 페이드 전환
+ *  02 학생 작품: 유화 붓결 / 03 NINC: 군무 / 04 NCR 트렌드: 'NCR' 글자 붓결 / 05 입학 안내: 비눗방울 */
+type LayerKey = 'fluid' | 'brush' | 'flock' | 'letters' | 'bubbles'
+const SECTION_LAYER: readonly LayerKey[] = ['fluid', 'brush', 'flock', 'letters', 'bubbles']
+const LAYERS: readonly LayerKey[] = ['fluid', 'brush', 'flock', 'letters', 'bubbles']
 const FADE_S = 0.7
 
 interface SectionMeta {
@@ -46,8 +46,6 @@ export interface FluidHomeProps {
   inkNames: readonly string[]
   graphicLabel: string
   sections: SectionMeta[]
-  /** 학생 작품 섹션 ASCII 렌즈에 쓰는 이미지 (같은 출처 /_next/image 주소) */
-  asciiSources: string[]
   children: ReactNode
   footer: ReactNode
 }
@@ -56,13 +54,13 @@ interface Box { x: number; y: number; w: number; h: number; r: number }
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
-export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames, graphicLabel, sections, asciiSources, children, footer }: FluidHomeProps) {
+export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames, graphicLabel, sections, children, footer }: FluidHomeProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const asciiRef = useRef<HTMLCanvasElement>(null)
-  const particleRef = useRef<HTMLCanvasElement>(null)
-  const growthRef = useRef<HTMLCanvasElement>(null)
-  const physicsRef = useRef<HTMLCanvasElement>(null)
+  const brushRef = useRef<HTMLCanvasElement>(null)
+  const flockRef = useRef<HTMLCanvasElement>(null)
+  const lettersRef = useRef<HTMLCanvasElement>(null)
+  const bubblesRef = useRef<HTMLCanvasElement>(null)
   const layerRef = useRef<LayerKey>('fluid')
   const enginesRef = useRef<Partial<Record<LayerKey, PanelEngine | null>>>({})
   const heroRef = useRef<HTMLDivElement>(null)
@@ -128,18 +126,18 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
 
     /* 섹션 패널 레이어 — 처음 보일 때 만든다 */
     const layerEl: Record<LayerKey, HTMLCanvasElement | null> = {
-      fluid: canvas, ascii: asciiRef.current, particle: particleRef.current, growth: growthRef.current, physics: physicsRef.current,
+      fluid: canvas, brush: brushRef.current, flock: flockRef.current, letters: lettersRef.current, bubbles: bubblesRef.current,
     }
-    const op: Record<LayerKey, number> = { fluid: 1, ascii: 0, particle: 0, growth: 0, physics: 0 }
+    const op: Record<LayerKey, number> = { fluid: 1, brush: 0, flock: 0, letters: 0, bubbles: 0 }
     const engines = enginesRef.current
     const make = (k: LayerKey): PanelEngine | null => {
       const c = layerEl[k]
       if (!c || k === 'fluid') return null
       try {
-        if (k === 'ascii') return new AsciiEngine(c, asciiSources)
-        if (k === 'particle') return new ParticleEngine(c, 'NINC')
-        if (k === 'growth') return new GrowthEngine(c, 'NCR')
-        return new PhysicsEngine(c)
+        if (k === 'brush') return new BrushEngine(c)
+        if (k === 'flock') return new FlockEngine(c)
+        if (k === 'letters') return new BrushEngine(c, { mask: 'NCR' })
+        return new BubbleEngine(c)
       } catch (err) {
         console.warn('[FluidHome] 패널 엔진 생성 실패', k, err)
         return null
@@ -329,8 +327,6 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
       sim?.dispose()
       for (const k of LAYERS) engines[k]?.dispose?.()
     }
-    // asciiSources는 첫 렌더 값만 쓴다(홈 데이터는 서버에서 한 번 정해짐)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const cur = active >= 0 ? sections[active] : null
@@ -353,10 +349,10 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         onPointerLeave={onLeave}
       >
         <canvas ref={canvasRef} className="fh-canvas" aria-hidden="true" />
-        <canvas ref={asciiRef} className="fh-layer" aria-hidden="true" />
-        <canvas ref={particleRef} className="fh-layer" aria-hidden="true" />
-        <canvas ref={growthRef} className="fh-layer" aria-hidden="true" />
-        <canvas ref={physicsRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={brushRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={flockRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={lettersRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={bubblesRef} className="fh-layer" aria-hidden="true" />
         {docked && cur && (
           <div className="fh-panelLabel" aria-hidden="true">
             <span className="fh-panelNo">{String(active + 1).padStart(2, '0')} / {String(sections.length).padStart(2, '0')}</span>
