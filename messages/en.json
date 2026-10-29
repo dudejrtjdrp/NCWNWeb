@@ -82,7 +82,8 @@
         "dept": "Department",
         "faculty": "Faculty",
         "curriculum": "Curriculum",
-        "lab": "Labs"
+        "lab": "Labs",
+        "crest": "NWCN department crest"
       },
       "work": {
         "title": "Student work",

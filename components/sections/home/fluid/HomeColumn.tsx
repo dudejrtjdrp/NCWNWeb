@@ -9,6 +9,7 @@
 import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import CrestCloud from './CrestCloud'
 import type { WorkListItem } from '@/lib/supabase/queries/works'
 import type { HomeNincCard, HomeNcrReport } from '@/lib/supabase/queries/home'
 
@@ -46,6 +47,7 @@ export default async function HomeColumn({ locale, works, ninc, ncr }: HomeColum
         <p className={KICKER}>01 · ABOUT</p>
         <h2 className={H2}>{t('about.title')}</h2>
         <p className="m-0 max-w-prose text-body text-nwcn-neutral-600">{t('about.body')}</p>
+        <CrestCloud label={t('about.crest')} />
         <div className="grid gap-4 sm:grid-cols-3">
           {(['plan', 'design', 'dev'] as const).map((k) => (
             <div key={k} className="flex flex-col gap-2 p-6 rounded-card bg-white border border-nwcn-border-light">
