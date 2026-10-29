@@ -619,42 +619,9 @@ html.lenis body { height: auto; }
   50% { transform: translateY(6px); }
 }
 
-/* ── 패널에 도착한 뒤: 지금 보는 섹션 ── */
-.fh-panelLabel {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  pointer-events: none;
-}
 
-.fh-panelNo {
-  padding: 6px 10px;
-  background: #151515;
-  color: #09f593;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
 
-.fh-panelTitle {
-  padding: 4px 12px 8px;
-  background: #ffffff;
-  font-size: clamp(24px, 3vw, 44px);
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-}
 
-.fh-panelCap {
-  padding: 6px 12px;
-  background: #ffffff;
-  font-size: 14px;
-  color: #3a3a3b;
-}
 
 /* ── 스크롤 길이 + 오른쪽 정보 열 ── */
 .fh-track {

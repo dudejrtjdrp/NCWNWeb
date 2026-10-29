@@ -6,7 +6,7 @@
  * 1) 첫 화면: 유체 잉크 그래픽이 화면을 꽉 채우고, 학과명 · 큰 제목 · 잉크 색 고르기 · Scroll만 보인다(메뉴 바 없음).
  * 2) 스크롤: 스크롤 양(화면 높이의 1.2배 구간)에 맞춰 그래픽 상자가 둥근 직사각형으로 서서히 줄며 왼쪽 패널 자리로 이동.
  *    그림은 상자와 함께 통째로 축소된다(캔버스는 화면 크기 그대로, CSS로 가운데 채우기).
- * 3) 도착 후: 왼쪽 패널에 지금 보는 섹션 번호·이름이 뜨고, 오른쪽 열에 학과 정보가 이어진다. 패널은 푸터에 닿으면 밀려 올라간다.
+ * 3) 도착 후: 왼쪽 패널은 지금 보는 섹션에 맞는 미디어아트로 바뀌고(글자 없이 그림만), 오른쪽 열에 학과 정보가 이어진다. 패널은 푸터에 닿으면 밀려 올라간다.
  *    모바일은 패널 대신 둥근 카드로 줄어든 뒤 페이지와 함께 올라간다.
  *
  * 커서가 움직이는 동안은 커서만 잉크를 움직이고, 커서가 없거나 멈추면 보이지 않는 붓 하나가 잔잔하게 휘저어 멈추지 않는다.
@@ -33,11 +33,6 @@ const SECTION_LAYER: readonly LayerKey[] = ['fluid', 'brush', 'flock', 'letters'
 const LAYERS: readonly LayerKey[] = ['fluid', 'brush', 'flock', 'letters', 'bubbles']
 const FADE_S = 0.7
 
-interface SectionMeta {
-  label: string
-  caption: string
-}
-
 export interface FluidHomeProps {
   brand: string
   headline: readonly [string, string]
@@ -45,7 +40,6 @@ export interface FluidHomeProps {
   inkLabel: string
   inkNames: readonly string[]
   graphicLabel: string
-  sections: SectionMeta[]
   children: ReactNode
   footer: ReactNode
 }
@@ -54,7 +48,7 @@ interface Box { x: number; y: number; w: number; h: number; r: number }
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
-export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames, graphicLabel, sections, children, footer }: FluidHomeProps) {
+export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames, graphicLabel, children, footer }: FluidHomeProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const brushRef = useRef<HTMLCanvasElement>(null)
@@ -68,8 +62,6 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
   const colRef = useRef<HTMLDivElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
 
-  const [active, setActive] = useState(-1)
-  const [docked, setDocked] = useState(false)
   const [ink, setInk] = useState(0)
 
   const inkRef = useRef(0)
@@ -167,8 +159,6 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
     let lastT = 0
     let idleMix = 1
     let prevActive = -2
-    let shownActive = -1
-    let shownDocked = false
     let hdrOn = false
     let lastP: { x: number; y: number } | null = null
     const amb: ({ x: number; y: number } | null)[] = [null]
@@ -241,9 +231,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
       }
 
       const act = sp < 0.6 ? -1 : activeNow
-      if (act !== shownActive) { shownActive = act; setActive(act) }
       const dk = !mobile && sp > 0.94
-      if (dk !== shownDocked) { shownDocked = dk; setDocked(dk) }
 
       const dt = clamp((now - (lastT || now - 16)) / 1000, 0.008, 0.033)
       lastT = now
@@ -329,8 +317,6 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
     }
   }, [])
 
-  const cur = active >= 0 ? sections[active] : null
-
   return (
     <>
       <div ref={hdrRef} className="fh-hdr">
@@ -353,13 +339,6 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         <canvas ref={flockRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={lettersRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={bubblesRef} className="fh-layer" aria-hidden="true" />
-        {docked && cur && (
-          <div className="fh-panelLabel" aria-hidden="true">
-            <span className="fh-panelNo">{String(active + 1).padStart(2, '0')} / {String(sections.length).padStart(2, '0')}</span>
-            <strong className="fh-panelTitle">{cur.label}</strong>
-            <span className="fh-panelCap">{cur.caption}</span>
-          </div>
-        )}
       </div>
 
       <div ref={heroRef} className="fh-hero">

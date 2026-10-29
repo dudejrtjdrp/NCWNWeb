@@ -70,28 +70,6 @@
       "ink2": "Deep green ink",
       "ink3": "Black ink",
       "graphic": "Fluid ink graphic you can stir with your cursor",
-      "sections": {
-        "about": {
-          "label": "About",
-          "caption": "Planning, design and development, together"
-        },
-        "work": {
-          "label": "Student Work",
-          "caption": "Made by our students"
-        },
-        "ninc": {
-          "label": "NINC",
-          "caption": "Industry projects · awards · events"
-        },
-        "ncr": {
-          "label": "NCR Trend",
-          "caption": "Department stories by student reporters"
-        },
-        "admission": {
-          "label": "Admission",
-          "caption": "Guidelines and contact"
-        }
-      },
       "about": {
         "title": "We plan, design and build.",
         "body": "The Department of New Media Contents at Dong-Ah Institute of Media and Arts trains creators where broadcasting, art and IT meet. Students make a piece of content from start to finish.",

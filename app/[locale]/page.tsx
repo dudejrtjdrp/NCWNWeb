@@ -26,8 +26,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { alternates: localizedAlternates(locale, '') }
 }
 
-const SECTION_KEYS = ['about', 'work', 'ninc', 'ncr', 'admission'] as const
-
 export default async function HomePage({ params }: PageProps) {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'home.fluid' })
@@ -50,7 +48,6 @@ export default async function HomePage({ params }: PageProps) {
         inkLabel={t('inkLabel')}
         inkNames={[t('ink0'), t('ink1'), t('ink2'), t('ink3')]}
         graphicLabel={t('graphic')}
-        sections={SECTION_KEYS.map((k) => ({ label: t(`sections.${k}.label`), caption: t(`sections.${k}.caption`) }))}
         footer={<Footer />}
       >
         <HomeColumn locale={locale} works={works} ninc={ninc} ncr={ncr.items} />
