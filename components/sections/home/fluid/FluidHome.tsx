@@ -17,10 +17,21 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import Header from '@/components/layout/Header'
 import { FluidSim, hexToRgb } from './fluidSim'
+import type { PanelEngine } from './engines/types'
+import { AsciiEngine } from './engines/ascii'
+import { ParticleEngine } from './engines/particles'
+import { GrowthEngine } from './engines/growth'
+import { PhysicsEngine } from './engines/physics'
 
 /** 잉크 색 — 사이트 토큰(nwcn-green / yellow / green-darker / neutral-900) */
 const INKS = ['#09F593', '#E3E94D', '#058F56', '#151515'] as const
 const BG = '#EEF0EA'
+
+/** 섹션별 패널 미디어아트 — 01 학과 소개는 첫 화면의 유체를 그대로 잇고, 나머지는 섹션마다 다른 기법으로 페이드 전환 */
+type LayerKey = 'fluid' | 'ascii' | 'particle' | 'growth' | 'physics'
+const SECTION_LAYER: readonly LayerKey[] = ['fluid', 'ascii', 'particle', 'growth', 'physics']
+const LAYERS: readonly LayerKey[] = ['fluid', 'ascii', 'particle', 'growth', 'physics']
+const FADE_S = 0.7
 
 interface SectionMeta {
   label: string
@@ -35,6 +46,8 @@ export interface FluidHomeProps {
   inkNames: readonly string[]
   graphicLabel: string
   sections: SectionMeta[]
+  /** 학생 작품 섹션 ASCII 렌즈에 쓰는 이미지 (같은 출처 /_next/image 주소) */
+  asciiSources: string[]
   children: ReactNode
   footer: ReactNode
 }
@@ -43,9 +56,15 @@ interface Box { x: number; y: number; w: number; h: number; r: number }
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
-export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames, graphicLabel, sections, children, footer }: FluidHomeProps) {
+export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames, graphicLabel, sections, asciiSources, children, footer }: FluidHomeProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const asciiRef = useRef<HTMLCanvasElement>(null)
+  const particleRef = useRef<HTMLCanvasElement>(null)
+  const growthRef = useRef<HTMLCanvasElement>(null)
+  const physicsRef = useRef<HTMLCanvasElement>(null)
+  const layerRef = useRef<LayerKey>('fluid')
+  const enginesRef = useRef<Partial<Record<LayerKey, PanelEngine | null>>>({})
   const heroRef = useRef<HTMLDivElement>(null)
   const hdrRef = useRef<HTMLDivElement>(null)
   const colRef = useRef<HTMLDivElement>(null)
@@ -77,10 +96,15 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
     const p = local(e)
     pointer.current = { ...p, down: true }
     lastMove.current = performance.now()
-    boom.current = p
+    const eng = layerRef.current === 'fluid' ? null : enginesRef.current[layerRef.current]
+    if (eng) eng.down?.(p.x, p.y)
+    else boom.current = p
     try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* 무시 */ }
   }
-  const onUp = () => { if (pointer.current) pointer.current.down = false }
+  const onUp = () => {
+    if (pointer.current) pointer.current.down = false
+    enginesRef.current[layerRef.current]?.up?.()
+  }
   const onLeave = () => { if (!pointer.current?.down) pointer.current = null }
 
   useEffect(() => {
@@ -101,6 +125,26 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
     canvas.height = H
     const sim = FluidSim.create(canvas, { aspect: W / H, small: W < 768, bg: BG })
     const COL = INKS.map(hexToRgb)
+
+    /* 섹션 패널 레이어 — 처음 보일 때 만든다 */
+    const layerEl: Record<LayerKey, HTMLCanvasElement | null> = {
+      fluid: canvas, ascii: asciiRef.current, particle: particleRef.current, growth: growthRef.current, physics: physicsRef.current,
+    }
+    const op: Record<LayerKey, number> = { fluid: 1, ascii: 0, particle: 0, growth: 0, physics: 0 }
+    const engines = enginesRef.current
+    const make = (k: LayerKey): PanelEngine | null => {
+      const c = layerEl[k]
+      if (!c || k === 'fluid') return null
+      try {
+        if (k === 'ascii') return new AsciiEngine(c, asciiSources)
+        if (k === 'particle') return new ParticleEngine(c, 'NINC')
+        if (k === 'growth') return new GrowthEngine(c, 'NCR')
+        return new PhysicsEngine(c)
+      } catch (err) {
+        console.warn('[FluidHome] 패널 엔진 생성 실패', k, err)
+        return null
+      }
+    }
 
     /* 지금 보고 있는 섹션 — 화면 가운데 띠에 걸린 섹션 */
     let activeNow = 0
@@ -203,9 +247,31 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
       const dk = !mobile && sp > 0.94
       if (dk !== shownDocked) { shownDocked = dk; setDocked(dk) }
 
-      if (!sim) return
       const dt = clamp((now - (lastT || now - 16)) / 1000, 0.008, 0.033)
       lastT = now
+
+      /* 섹션이 바뀌면 패널 미디어아트를 페이드로 교체 (JS로 투명도를 바꿔 '동작 줄이기'에서도 페이드 유지) */
+      const want: LayerKey = dk ? SECTION_LAYER[act] ?? 'fluid' : 'fluid'
+      layerRef.current = want
+      const dpr2 = Math.min(window.devicePixelRatio || 1, 1.5)
+      const idleMs = now - lastMove.current
+      for (const k of LAYERS) {
+        const target = k === want ? 1 : 0
+        op[k] = clamp(op[k] + Math.sign(target - op[k]) * (dt / FADE_S), 0, 1)
+        const el = layerEl[k]
+        if (el) el.style.opacity = String(op[k])
+        if (k === 'fluid' || op[k] <= 0.001) continue
+        if (engines[k] === undefined) engines[k] = make(k)
+        const eng = engines[k]
+        if (!eng || !el) continue
+        const cw = Math.round(R.w * dpr2)
+        const ch = Math.round(R.h * dpr2)
+        if (el.width !== cw || el.height !== ch) { el.width = cw; el.height = ch }
+        const pp = k === want ? pointer.current : null
+        eng.frame({ now, dt, w: R.w, h: R.h, dpr: dpr2, pointer: pp, idleMs: pp ? idleMs : 1e9, reduce })
+      }
+
+      if (!sim || op.fluid <= 0.001) return
       const base = Math.floor(now / 2200) + act + 1
       const m = map.current
       const p = pointer.current
@@ -261,7 +327,10 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
       io.disconnect()
       window.removeEventListener('resize', onResize)
       sim?.dispose()
+      for (const k of LAYERS) engines[k]?.dispose?.()
     }
+    // asciiSources는 첫 렌더 값만 쓴다(홈 데이터는 서버에서 한 번 정해짐)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const cur = active >= 0 ? sections[active] : null
@@ -284,6 +353,10 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         onPointerLeave={onLeave}
       >
         <canvas ref={canvasRef} className="fh-canvas" aria-hidden="true" />
+        <canvas ref={asciiRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={particleRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={growthRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={physicsRef} className="fh-layer" aria-hidden="true" />
         {docked && cur && (
           <div className="fh-panelLabel" aria-hidden="true">
             <span className="fh-panelNo">{String(active + 1).padStart(2, '0')} / {String(sections.length).padStart(2, '0')}</span>
@@ -300,7 +373,6 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
           <span>{brand}</span>
         </a>
         <div className="fh-inks" role="group" aria-label={inkLabel}>
-          <span className="fh-inksLabel">{inkLabel}</span>
           {INKS.map((c, i) => (
             <button
               key={c}

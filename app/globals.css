@@ -480,6 +480,15 @@ html.lenis body { height: auto; }
   will-change: transform, width, height;
 }
 
+.fh-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+}
+
 .fh-canvas {
   position: absolute;
   left: 0;
@@ -540,12 +549,6 @@ html.lenis body { height: auto; }
   pointer-events: auto;
 }
 
-.fh-inksLabel {
-  margin-right: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #3a3a3b;
-}
 
 .fh-ink {
   width: 22px;
@@ -678,7 +681,6 @@ html.lenis body { height: auto; }
   .fh-brand { left: 16px; top: 16px; font-size: 13px; }
   .fh-brandMark { font-size: 18px; }
   .fh-inks { right: 16px; top: auto; bottom: 72px; }
-  .fh-inksLabel { display: none; }
   .fh-title { left: 16px; right: 16px; bottom: 132px; }
   .fh-title span { padding: 2px 10px 8px; }
 }
