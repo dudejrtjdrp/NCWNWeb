@@ -71,44 +71,44 @@
       "ink3": "Black ink",
       "graphic": "Fluid ink graphic you can stir with your cursor",
       "about": {
-        "title": "We plan, design and build.",
-        "body": "The Department of New Media Contents at Dong-Ah Institute of Media and Arts trains creators where broadcasting, art and IT meet. Students make a piece of content from start to finish.",
+        "title": "Make content from start to finish",
+        "body": "New Media Contents brings video, design, web, 3D and XR together in one program. Students plan an idea, design it and build it into something that actually works, through classes and real projects.",
         "plan": "Planning",
-        "planDesc": "Decide what to make, for whom and why, and shape the story.",
+        "planDesc": "Decide what to make, who it is for and why, then shape the story and screens.",
         "design": "Design",
-        "designDesc": "Shape how it looks and works through graphics, video, motion and UX.",
+        "designDesc": "Design how it looks and how it is used, through graphics, video, motion and UX.",
         "dev": "Development",
-        "devDesc": "Make it actually run on the web, apps, interactive media and XR.",
+        "devDesc": "Make it work on the web, in apps, in interactive media and in XR.",
         "dept": "Department",
         "faculty": "Faculty",
         "curriculum": "Curriculum",
         "lab": "Labs"
       },
       "work": {
-        "title": "What students made",
+        "title": "Student work",
         "all": "View all work",
         "exhibition": "Graduation shows",
         "archive": "Archive",
         "empty": "No work has been posted yet."
       },
       "ninc": {
-        "title": "Made beyond campus",
+        "title": "Industry projects · Awards · Events",
         "project": "Projects",
         "awards": "Awards",
         "event": "Events",
         "empty": "No activities have been posted yet."
       },
       "ncr": {
-        "title": "Stories by students",
-        "all": "View all NCR Trend",
+        "title": "Department news from student reporters",
+        "all": "More articles",
         "empty": "No articles have been posted yet."
       },
       "admission": {
-        "title": "The next seat is yours",
-        "guide": "Admission guide",
-        "guideDesc": "Guidelines and schedule",
+        "title": "Admissions",
+        "guide": "Admission guidelines",
+        "guideDesc": "Check the tracks and schedule.",
         "contact": "Location · Contact",
-        "contactDesc": "Where we are and how to reach us"
+        "contactDesc": "Campus location and department contacts"
       }
     }
   },
