@@ -83,6 +83,17 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: '/admin/portfolio',
+    label: '졸업생',
+    desc: '졸업생 명단 · 포트폴리오 공개',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+      </svg>
+    ),
+  },
+  {
     href: '/admin/types',
     label: '유형 관리',
     desc: '아티클·프로젝트 유형 추가/삭제',

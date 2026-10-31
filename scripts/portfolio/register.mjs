@@ -59,6 +59,10 @@ try {
 /** 제출 폴더 안에서 파일 이름으로 찾기 (학생별 폴더 포함) */
 function findFile(name) {
   if (!name) return null
+  if (name.includes('/')) {
+    const direct = path.join(dir, name) // 예: _roster/2024123456.jpg (학과가 받은 사진)
+    return fs.existsSync(direct) ? direct : null
+  }
   const stack = [dir]
   while (stack.length) {
     const d = stack.pop()

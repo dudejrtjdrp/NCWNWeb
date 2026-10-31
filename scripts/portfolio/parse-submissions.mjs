@@ -10,6 +10,10 @@
  *   submissions/2026_홍길동.txt + 2026_홍길동.pdf + 2026_홍길동_사진.jpg (프로필 사진 필수)
  *   submissions/2026_홍길동/ 안에 txt · pdf · 2026_홍길동_사진.jpg · 1-01.jpg 같은 원본 이미지
  *
+ * 학과가 받은 졸업생 사진·명단 (선택)
+ *   submissions/_roster/명단.csv          이름,학번,영문이름 (한 줄에 한 명, 첫 줄 머리글 가능)
+ *   submissions/_roster/<학번 또는 이름>.jpg  학생이 프로필 사진을 안 냈으면 이 사진을 쓴다
+ *
  * 실행
  *   node scripts/portfolio/parse-submissions.mjs [제출 폴더=submissions]
  *   → <제출 폴더>/_parsed/<id>.json, <제출 폴더>/_parsed/report.md
@@ -149,7 +153,7 @@ function validate(d, files) {
   if (d.visibility.consent !== true) errors.push('홈페이지 게시 동의가 "예"가 아님 — 게시 불가')
   if (!d.projects.length) errors.push('프로젝트가 하나도 없음')
   if (!files.pdf) errors.push('원본 포트폴리오 PDF 없음')
-  if (!files.profile) errors.push('프로필 사진 없음 (졸업연도_이름_사진.jpg)')
+  if (!files.profile) errors.push('프로필 사진 없음 (졸업연도_이름_사진.jpg 또는 submissions/_roster/ 의 학과 사진)')
 
   const bad = [...b.fields, ...b.interests, ...d.projects.flatMap((p) => p.fields)].filter((f) => !FIELDS.includes(f))
   if (bad.length) warns.push(`목록에 없는 분야: ${[...new Set(bad)].join(', ')}`)
@@ -206,6 +210,30 @@ function slug(year, nameEn, fallback) {
 }
 
 const dir = process.argv[2] || 'submissions'
+
+/* ── 학과가 받은 명단·사진 (submissions/_roster) ── */
+const rosterDir = join(dir, '_roster')
+const roster = { byName: new Map(), photos: [] }
+if (existsSync(rosterDir)) {
+  for (const f of readdirSync(rosterDir)) {
+    if (/\.(jpe?g|png|webp)$/i.test(f)) roster.photos.push(f)
+    if (/\.csv$/i.test(f)) {
+      for (const line of readFileSync(join(rosterDir, f), 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/)) {
+        const [name, no, en] = line.split(/\s*[,\t]\s*/)
+        if (!name || name === '이름') continue
+        roster.byName.set(name.trim(), { no: (no ?? '').trim() || null, en: (en ?? '').trim() || null })
+      }
+    }
+  }
+}
+/** 이름(→학번)으로 명단 사진 찾기 — 같은 이름 사진이 여러 장이면 null */
+function rosterPhoto(name) {
+  if (!name) return null
+  const no = roster.byName.get(name)?.no
+  const stem = (f) => basename(f, extname(f))
+  const hits = roster.photos.filter((f) => stem(f) === name || (no && stem(f) === no) || stem(f).endsWith(`_${name}`))
+  return hits.length === 1 ? `_roster/${hits[0]}` : null
+}
 if (!existsSync(dir)) { console.error(`제출 폴더가 없습니다: ${dir}`); process.exit(1) }
 const outDir = join(dir, '_parsed')
 mkdirSync(outDir, { recursive: true })
@@ -215,13 +243,18 @@ const used = new Set()
 for (const sub of collect(dir)) {
   if (!sub.txt) { rows.push({ id: sub.id, status: '❌', errors: ['txt 없음'], warns: [] }); continue }
   const { data, missingStudent } = build(parseTxt(readFileSync(sub.txt, 'utf8')))
+  if (!sub.profile) {
+    const fromRoster = rosterPhoto(data.basic.name)
+    if (fromRoster) sub.profile = join(dir, fromRoster)
+  }
+  if (!data.basic.nameEn && roster.byName.get(data.basic.name)?.en) data.basic.nameEn = roster.byName.get(data.basic.name).en
   const { errors, warns } = validate(data, sub)
   if (missingStudent.length) errors.unshift(`학생 직접 입력 누락: ${missingStudent.join(', ')}`)
   let id = slug(data.basic.year, data.basic.nameEn, sub.id)
   for (let n = 2; used.has(id); n++) id = `${slug(data.basic.year, data.basic.nameEn, sub.id)}-${n}` // 영문 이름이 같은 학생
   used.add(id)
   const record = {
-    id, source: { txt: basename(sub.txt), pdf: sub.pdf && basename(sub.pdf), profile: sub.profile && basename(sub.profile), images: sub.images },
+    id, source: { txt: basename(sub.txt), pdf: sub.pdf && basename(sub.pdf), profile: sub.profile && (sub.profile.includes('_roster') ? `_roster/${basename(sub.profile)}` : basename(sub.profile)), images: sub.images },
     ...data,
   }
   writeFileSync(join(outDir, `${id}.json`), JSON.stringify(record, null, 2))

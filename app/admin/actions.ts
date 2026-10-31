@@ -1542,3 +1542,192 @@ export async function saveWorkFilterTags(tags: string[]): Promise<ActionResult> 
   }
   return result
 }
+
+// ════════════════════════════════════════════════════════
+// 졸업생 명단 (students) · 졸업생 포트폴리오 (portfolios)
+// students 는 학번이 있어 로그인한 관리자만 읽는다. portfolios 는 공개된 것만 사이트에 보인다.
+// ════════════════════════════════════════════════════════
+
+const STUDENT_NO_RE = /^[0-9A-Za-z-]{4,20}$/
+const PORTFOLIO_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+function revalidatePortfolios() {
+  revalidateTag('portfolios')
+  revalidateTag('students')
+  revalidatePath('/work/portfolio')
+}
+
+function parseYear(v: unknown): number | null {
+  const n = Number(v)
+  return Number.isInteger(n) && n >= 2000 && n <= 2100 ? n : null
+}
+
+/** 졸업생 한 명 추가/수정 */
+export async function saveStudent(id: string | null, formData: FormData): Promise<ActionResult> {
+  if (id) assertValidUUID(id, '학생 ID')
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const name = (formData.get('name') as string)?.trim()
+  const studentNo = (formData.get('student_no') as string)?.trim() || null
+  const nameEn = (formData.get('name_en') as string)?.trim() || null
+  const year = parseYear(formData.get('graduation_year'))
+  if (!name || name.length > 30) return { error: '이름을 30자 이내로 입력해주세요.' }
+  if (studentNo && !STUDENT_NO_RE.test(studentNo)) return { error: '학번은 숫자·영문 4~20자로 입력해주세요.' }
+  if (nameEn && nameEn.length > 60) return { error: '영문 이름은 60자 이내로 입력해주세요.' }
+
+  const row = { name, student_no: studentNo, name_en: nameEn, graduation_year: year }
+  const { error } = id
+    ? await supabase.from('students').update(row).eq('id', id)
+    : await supabase.from('students').insert(row)
+  if (error) {
+    if (error.code === '23505') return { error: '같은 학번이 이미 있습니다.' }
+    logError('[saveStudent]', error.message)
+    return { error: '저장 중 오류가 발생했습니다. (students 표가 없으면 create_students.sql 을 먼저 실행해주세요)' }
+  }
+  revalidatePortfolios()
+  return { success: true }
+}
+
+export async function deleteStudent(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '학생 ID')
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+  const { error } = await supabase.from('students').delete().eq('id', id)
+  if (error) {
+    logError('[deleteStudent]', error.message)
+    return { error: '삭제 중 오류가 발생했습니다.' }
+  }
+  revalidatePortfolios()
+  return { success: true }
+}
+
+/**
+ * 명단 한꺼번에 넣기 — 한 줄에 한 명, "이름, 학번, 영문 이름(선택)" (쉼표 또는 탭).
+ * 학번이 같은 사람이 이미 있으면 이름·영문 이름·졸업 연도를 고친다.
+ */
+export async function importStudents(
+  yearRaw: string,
+  text: string
+): Promise<{ success: true; added: number; updated: number; skipped: string[] } | { error: string }> {
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+  const year = parseYear(yearRaw)
+  if (!year) return { error: '졸업 연도를 확인해주세요.' }
+
+  const skipped: string[] = []
+  const rows: { name: string; student_no: string | null; name_en: string | null; graduation_year: number }[] = []
+  for (const raw of text.split('\n').slice(0, 300)) {
+    const line = raw.trim()
+    if (!line || /^이름\s*[,\t]/.test(line)) continue
+    const [name = '', no = '', en = ''] = line.split(/\s*[,\t]\s*/)
+    if (!name || name.length > 30) { skipped.push(line); continue }
+    if (no && !STUDENT_NO_RE.test(no)) { skipped.push(line); continue }
+    rows.push({ name, student_no: no || null, name_en: en.slice(0, 60) || null, graduation_year: year })
+  }
+  if (!rows.length) return { error: '넣을 줄이 없습니다. "이름, 학번" 형식인지 확인해주세요.' }
+
+  const nos = rows.map((r) => r.student_no).filter((v): v is string => !!v)
+  const { data: existing, error: findErr } = nos.length
+    ? await supabase.from('students').select('id, student_no').in('student_no', nos)
+    : { data: [], error: null }
+  if (findErr) {
+    logError('[importStudents] 조회', findErr.message)
+    return { error: '명단을 불러오지 못했습니다. (students 표가 없으면 create_students.sql 을 먼저 실행해주세요)' }
+  }
+  const byNo = new Map((existing ?? []).map((s: { id: string; student_no: string }) => [s.student_no, s.id]))
+  let added = 0
+  let updated = 0
+  for (const r of rows) {
+    const id = r.student_no ? byNo.get(r.student_no) : undefined
+    const { error } = id
+      ? await supabase.from('students').update(r).eq('id', id)
+      : await supabase.from('students').insert(r)
+    if (error) { skipped.push(`${r.name} ${r.student_no ?? ''}`.trim()); continue }
+    if (id) updated++
+    else added++
+  }
+  revalidatePortfolios()
+  return { success: true, added, updated, skipped }
+}
+
+/** 포트폴리오 공개/비공개 */
+export async function setPortfolioPublished(id: string, published: boolean): Promise<ActionResult> {
+  assertValidUUID(id, '포트폴리오 ID')
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+  const { error } = await supabase.from('portfolios').update({ is_published: published, updated_at: new Date().toISOString() }).eq('id', id)
+  if (error) {
+    logError('[setPortfolioPublished]', error.message)
+    return { error: '바꾸는 중 오류가 발생했습니다.' }
+  }
+  revalidatePortfolios()
+  return { success: true }
+}
+
+/** 포트폴리오 기본 정보 수정 (프로젝트·원본 쪽은 등록 스크립트로 다시 올린다) */
+export async function updatePortfolio(id: string, formData: FormData): Promise<ActionResult> {
+  assertValidUUID(id, '포트폴리오 ID')
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+
+  const str = (k: string, max: number) => {
+    const v = (formData.get(k) as string | null)?.trim() ?? ''
+    return v ? v.slice(0, max) : null
+  }
+  const name = str('name', 30)
+  const slug = str('slug', 80)
+  const year = parseYear(formData.get('year'))
+  if (!name) return { error: '이름을 입력해주세요.' }
+  if (!slug || !PORTFOLIO_SLUG_RE.test(slug)) return { error: '주소(slug)는 영문 소문자·숫자·하이픈만 쓸 수 있어요. 예: 2026-hong-gildong' }
+  if (!year) return { error: '졸업 연도를 확인해주세요.' }
+  const website = str('website', 300)
+  if (website && !/^https?:\/\//.test(website)) return { error: '웹사이트는 http(s):// 로 시작해야 합니다.' }
+  const studentIdRaw = (formData.get('student_id') as string | null)?.trim() || null
+  if (studentIdRaw) assertValidUUID(studentIdRaw, '학생 ID')
+
+  const row = {
+    name, slug, year,
+    name_en: str('name_en', 60),
+    fields: ((formData.get('fields') as string) ?? '').split(/\s*[,，]\s*/).filter(Boolean).slice(0, 5),
+    tagline: str('tagline', 80),
+    tagline_en: str('tagline_en', 160),
+    bio: str('bio', 600),
+    bio_en: str('bio_en', 1200),
+    email: str('email', 120),
+    website,
+    instagram: str('instagram', 120),
+    sort_order: Number(formData.get('sort_order')) || 0,
+    student_id: studentIdRaw,
+    is_published: formData.get('is_published') === 'on',
+    updated_at: new Date().toISOString(),
+  }
+  const { error } = await supabase.from('portfolios').update(row).eq('id', id)
+  if (error) {
+    if (error.code === '23505') return { error: '같은 주소(slug)를 쓰는 포트폴리오가 이미 있습니다.' }
+    logError('[updatePortfolio]', error.message)
+    return { error: '저장 중 오류가 발생했습니다.' }
+  }
+  revalidatePortfolios()
+  return { success: true }
+}
+
+/** 포트폴리오 삭제 — DB 줄만 지운다 (R2 의 portfolios/{연도}/{slug}/ 파일은 남음) */
+export async function deletePortfolio(id: string): Promise<ActionResult> {
+  assertValidUUID(id, '포트폴리오 ID')
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+  const { error } = await supabase.from('portfolios').delete().eq('id', id)
+  if (error) {
+    logError('[deletePortfolio]', error.message)
+    return { error: '삭제 중 오류가 발생했습니다.' }
+  }
+  revalidatePortfolios()
+  return { success: true }
+}
