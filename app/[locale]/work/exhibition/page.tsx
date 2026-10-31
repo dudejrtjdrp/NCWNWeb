@@ -1,15 +1,21 @@
+/**
+ * WORK/Exhibition 졸업전시 — E4 틀
+ * 포스터형 히어로(EXHIBITION / 졸업전시, 역대 포스터를 어두운 판 위에) + 연도 목차 줄 + 해마다 포스터·소개·전시 사이트.
+ * 내용은 모두 exhibitions 테이블(관리자 등록)에서 온다.
+ */
+
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import SubPageLayout from '@/components/layout/SubPageLayout'
-import WorkHero from '@/components/base/WorkHero'
-import SubNav from '@/components/common/SubNav'
-import { WORK_NAV_ITEMS } from '@/constants/nav-items'
+import PosterHero, { type PosterSlide } from '@/components/sections/about/PosterHero'
+import AnchorBar from '@/components/sections/about/AnchorBar'
+import WorkLocalBar from '@/components/sections/work/WorkLocalBar'
+import ExhibitionList, { exhibitionAnchor } from '@/components/sections/work/ExhibitionList'
 import { getExhibitions } from '@/lib/supabase/queries/exhibitions'
-import ExhibitionCarousel from './ExhibitionCarousel'
 
 export const metadata: Metadata = {
   title: 'EXHIBITION — 졸업전시',
-  description:
-    '동아방송예술대학교 뉴미디어콘텐츠과 졸업전시 아카이브. 연도별 전시 주제와 작품을 확인하세요.',
+  description: '동아방송예술대학교 뉴미디어콘텐츠과 졸업전시 아카이브. 연도별 전시 주제와 작품을 확인하세요.',
   keywords: ['뉴미디어콘텐츠과', '졸업전시', '전시회', '아카이브', '동아방송예술대학교'],
   alternates: { canonical: '/work/exhibition' },
   openGraph: {
@@ -19,29 +25,42 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function ExhibitionPage() {
-  const exhibitions = await getExhibitions()
+export default async function ExhibitionPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const [exhibitions, t, h, nav, dept] = await Promise.all([
+    getExhibitions(),
+    getTranslations({ locale, namespace: 'work.exhibition' }),
+    getTranslations({ locale, namespace: 'work.hero' }),
+    getTranslations({ locale, namespace: 'work.nav' }),
+    getTranslations({ locale, namespace: 'about.department' }),
+  ])
+
+  const slides: PosterSlide[] = exhibitions
+    .filter((ex) => ex.poster_url)
+    .map((ex) => ({
+      src: ex.poster_url as string,
+      alt: t('posterAlt', { year: ex.year, title: ex.title }),
+      caption: t('caption', { year: ex.year, title: ex.title }),
+      fit: 'portrait',
+    }))
+  const anchors = exhibitions.map((ex) => ({ id: exhibitionAnchor(ex.year), label: String(ex.year) }))
 
   return (
-    <SubPageLayout>
-      {/* 히어로 */}
-      <WorkHero />
-
-      {/* 서브 탭 */}
-      <SubNav items={WORK_NAV_ITEMS} />
-
-      {/* 졸업전시 커버플로우 캐러셀 (가로 무한 슬라이드) */}
-      <div className="bg-white pt-12 sm:pt-16 lg:pt-section-sm pb-20 sm:pb-24 lg:pb-28">
-        <div className="page-container">
-          {exhibitions.length > 0 ? (
-            <ExhibitionCarousel items={exhibitions} />
-          ) : (
-            <p className="py-24 text-center font-body text-body text-nwcn-gray-muted">
-              등록된 졸업전시가 아직 없습니다.
-            </p>
-          )}
-        </div>
-      </div>
+    <SubPageLayout tone="paper">
+      <WorkLocalBar />
+      <PosterHero
+        titleEn={t.raw('heroEn') as string[]}
+        titleKo={t('heroKo')}
+        lead={t('lead')}
+        slides={slides}
+        emptyCaption={t('emptyMedia')}
+        emptyImage={{ src: '/images/home/crest.png', alt: '' }}
+        labels={{ region: t('region'), prev: h('prev'), next: h('next'), pause: h('pause'), play: h('play') }}
+      />
+      {anchors.length > 0 && (
+        <AnchorBar items={anchors} label={nav('toc')} cta={{ href: '/info/admission', label: dept('admission') }} />
+      )}
+      <ExhibitionList items={exhibitions} />
     </SubPageLayout>
   )
 }

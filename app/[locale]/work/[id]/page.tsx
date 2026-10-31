@@ -1,16 +1,15 @@
 /**
- * Work 세부 페이지: /work/[id]
- * 작업물 타입에 따라 3가지 템플릿을 렌더링합니다.
- * - design: 이미지 갤러리 형식
- * - video: 비디오 플레이어 형식
- * - 3d: 3D 뷰어 형식 (iframe 임베드)
+ * Work 세부 페이지: /work/[id] — E4 틀
+ * 종이 바탕, WORK 위치·하위 메뉴 줄 → 큰 제목 + 정보표(제작·연도·유형·분야·조회) → 작품(영상/이미지/3D)
+ * → 작품 소개 · 관련 링크 → 다른 작품 카드.
+ * 작업물 타입별 뷰어: design 이미지 갤러리 / video 영상 플레이어 / 3d iframe 임베드.
  */
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import SubPageLayout from '@/components/layout/SubPageLayout'
-import Badge from '@/components/ui/Badge'
-import WorkMasonry from '@/components/sections/WorkMasonry'
+import { Link } from '@/i18n/navigation'
+import WorkLocalBar from '@/components/sections/work/WorkLocalBar'
+import WorkCard from '@/components/sections/work/WorkCard'
 import { notFound } from 'next/navigation'
 import { getWorkById, getRelatedWorks, type WorkType } from '@/lib/supabase/queries/works'
 import { getTranslations } from 'next-intl/server'
@@ -57,31 +56,39 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 // ── 뷰어 컴포넌트 ─────────────────────────────────────────
 
-function VideoViewer({ embed, title, placeholder }: { embed?: string | null; title: string; placeholder: string }) {
+function EmptyViewer({ label, icon }: { label: string; icon: React.ReactNode }) {
   return (
-    <div className="w-full">
-      {embed ? (
-        <div className="aspect-video w-full rounded-panel overflow-hidden bg-black">
-          <iframe
-            src={embed}
-            title={title}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </div>
-      ) : (
-        <div className="aspect-video w-full rounded-panel bg-nwcn-dark flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4 opacity-40">
-            <div className="w-16 h-16 rounded-full border-2 border-white/30 flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <polygon points="5,3 19,12 5,21" />
-              </svg>
-            </div>
-            <span className="font-body text-body-sm text-white/50">{placeholder}</span>
-          </div>
-        </div>
-      )}
+    <div className="grid aspect-video w-full place-items-center bg-nwcn-dark text-nwcn-paper">
+      <div className="flex flex-col items-center gap-4 opacity-50">
+        {icon}
+        <span className="text-body-sm">{label}</span>
+      </div>
+    </div>
+  )
+}
+
+function VideoViewer({ embed, title, placeholder }: { embed?: string | null; title: string; placeholder: string }) {
+  if (!embed) {
+    return (
+      <EmptyViewer
+        label={placeholder}
+        icon={
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="6,4 20,12 6,20" />
+          </svg>
+        }
+      />
+    )
+  }
+  return (
+    <div className="aspect-video w-full overflow-hidden bg-black">
+      <iframe
+        src={embed}
+        title={title}
+        className="h-full w-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
     </div>
   )
 }
@@ -90,30 +97,22 @@ function ThreeDViewer({ embed, title, placeholder, hint }: { embed?: string | nu
   return (
     <div className="w-full">
       {embed ? (
-        <div className="aspect-video w-full rounded-panel overflow-hidden bg-nwcn-dark">
-          <iframe
-            title={title}
-            src={embed}
-            className="w-full h-full"
-            allow="autoplay; fullscreen; xr-spatial-tracking"
-            allowFullScreen
-          />
+        <div className="aspect-video w-full overflow-hidden bg-nwcn-dark">
+          <iframe title={title} src={embed} className="h-full w-full" allow="autoplay; fullscreen; xr-spatial-tracking" allowFullScreen />
         </div>
       ) : (
-        <div className="aspect-video w-full rounded-panel bg-nwcn-dark flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4 opacity-40">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.2">
+        <EmptyViewer
+          label={placeholder}
+          icon={
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden="true">
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
               <path d="M2 17l10 5 10-5" />
               <path d="M2 12l10 5 10-5" />
             </svg>
-            <span className="font-body text-body-sm text-white/50">{placeholder}</span>
-          </div>
-        </div>
+          }
+        />
       )}
-      <p className="font-body text-caption text-nwcn-text-sub mt-3 text-center">
-        {hint}
-      </p>
+      {embed && <p className="mt-2 text-body-sm text-nwcn-neutral-600">{hint}</p>}
     </div>
   )
 }
@@ -122,165 +121,113 @@ interface PageProps {
   params: Promise<{ id: string; locale: string }>
 }
 
-const TYPE_BADGE_VARIANT: Record<WorkType, 'new' | 'hot' | 'number'> = {
-  design: 'hot',
-  video: 'new',
-  '3d': 'number',
-}
-
 export default async function WorkDetailPage({ params }: PageProps) {
   const { id, locale } = await params
-  const [work, related] = await Promise.all([
-    getWorkById(id, locale),
-    getRelatedWorks(id, locale, 8),
-  ])
+  const [work, related] = await Promise.all([getWorkById(id, locale), getRelatedWorks(id, locale, 6)])
   if (!work) notFound()
 
   const t = await getTranslations({ locale, namespace: 'work.detail' })
+  const TYPE_LABEL: Record<WorkType, string> = { design: t('typeDesign'), video: t('typeVideo'), '3d': t('type3d') }
+  const tags = (work.tech_stack ?? []).filter(Boolean)
+  const links = (work.related_links ?? []).filter((l) => l.url)
 
-  const TYPE_LABEL: Record<WorkType, string> = {
-    design: t('typeDesign'),
-    video: t('typeVideo'),
-    '3d': t('type3d'),
-  }
+  const rows: { label: string; value: React.ReactNode }[] = [
+    { label: t('sectionAuthor'), value: work.author },
+    { label: t('sectionPeriod'), value: work.year },
+    { label: t('sectionType'), value: TYPE_LABEL[work.type] },
+    ...(tags.length ? [{ label: t('sectionTools'), value: tags.join(' · ') }] : []),
+    { label: t('views'), value: <span className="tabular-nums">{work.view_count.toLocaleString()}</span> },
+  ]
 
   return (
-    <SubPageLayout>
+    <SubPageLayout tone="paper">
       {/* 조회수 증가 트래커 (Client Component, fire-and-forget) */}
       <ViewCountTracker workId={work.id} />
+      <WorkLocalBar />
 
-      <div className="bg-white">
-        <div className="page-container pt-section-md pb-section-lg">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-caption font-body text-nwcn-gray-muted mb-7">
-            <Link href="/work/showcase" className="hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn">
-              SHOWCASE
-            </Link>
-            <span>/</span>
-            <span className="text-nwcn-text-muted">{work.title}</span>
-          </nav>
-
-          {/* 타입 배지 */}
-          <Badge variant={TYPE_BADGE_VARIANT[work.type]}>{TYPE_LABEL[work.type]}</Badge>
-
-          {/* 제목 + 조회수 */}
-          <div className="mt-4 flex items-start justify-between gap-6">
-            <h1 className="font-body font-bold text-page-1 text-nwcn-text-default leading-tight">
-              {work.title}
-            </h1>
-            <div className="flex items-center gap-1.5 text-nwcn-gray-muted shrink-0 pt-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              <span className="font-body text-body-sm">{work.view_count.toLocaleString()} {t('views')}</span>
+      <div className="mx-auto max-w-page border-t border-nwcn-dark">
+        <div className="editorial-container pb-24">
+          {/* ── 제목 + 정보표 ── */}
+          <header className="grid grid-cols-12 gap-x-6 gap-y-8 pt-5">
+            <div className="col-span-12 flex min-w-0 flex-col lg:col-span-8">
+              <Link href="/work/showcase" className="editorial-link self-start font-semibold text-body-sm">
+                <span aria-hidden="true">← </span>
+                {t('backToList')}
+              </Link>
+              <h1 className="m-0 mt-10 break-words font-extrabold text-headline lg:mt-14">{work.title}</h1>
             </div>
+            <dl className="col-span-12 self-end border-b border-nwcn-dark text-list lg:col-span-4">
+              {rows.map((row) => (
+                <div key={row.label} className="grid grid-cols-12 gap-x-4 border-t border-nwcn-dark py-2.5">
+                  <dt className="col-span-4 text-nwcn-neutral-600">{row.label}</dt>
+                  <dd className="col-span-8 min-w-0 break-words">{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </header>
+
+          {/* ── 작품 ── */}
+          <div className="mt-12">
+            {work.type === 'video' && (
+              <VideoViewer embed={normalizeVideoEmbed(work.video_embed)} title={work.title} placeholder={t('videoPlaceholder')} />
+            )}
+            {work.type === 'design' && <DesignViewer images={work.images ?? []} title={work.title} />}
+            {work.type === '3d' && (
+              <ThreeDViewer embed={work.model_embed} title={work.title} placeholder={t('threeDPlaceholder')} hint={t('threeDHint')} />
+            )}
           </div>
 
-          {/* ── 뷰어(좌) + 정보(우) ── */}
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-            {/* 뷰어 */}
-            <div className="lg:col-span-3">
-              {work.type === 'video' && (
-                <VideoViewer embed={normalizeVideoEmbed(work.video_embed)} title={work.title} placeholder={t('videoPlaceholder')} />
+          {/* ── 작품 소개 · 관련 링크 ── */}
+          {(work.description || links.length > 0) && (
+            <div className="grid grid-cols-12 gap-x-6 gap-y-10 pt-chapter">
+              {work.description && (
+                <section aria-labelledby="work-intro" className="col-span-12 lg:col-span-7">
+                  <h2 id="work-intro" className="m-0 border-t border-nwcn-dark pt-3.5 font-bold text-section">
+                    {t('sectionIntro')}
+                  </h2>
+                  <p className="mt-5 whitespace-pre-line text-list">{work.description}</p>
+                </section>
               )}
-              {work.type === 'design' && (
-                <DesignViewer images={work.images ?? []} title={work.title} />
-              )}
-              {work.type === '3d' && (
-                <ThreeDViewer
-                  embed={work.model_embed}
-                  title={work.title}
-                  placeholder={t('threeDPlaceholder')}
-                  hint={t('threeDHint')}
-                />
-              )}
-            </div>
-
-            {/* 정보 사이드바 */}
-            <aside className="lg:col-span-2">
-              <div className="space-y-7 lg:sticky lg:top-24">
-                {/* 제작자 */}
-                <div>
-                  <p className="font-body text-caption text-nwcn-gray-muted mb-1.5">{t('sectionAuthor')}</p>
-                  <p className="font-body text-body font-medium text-nwcn-text-default">{work.author}</p>
-                </div>
-
-                {/* 제작 기간 */}
-                <div>
-                  <p className="font-body text-caption text-nwcn-gray-muted mb-1.5">{t('sectionPeriod')}</p>
-                  <p className="font-body text-body font-medium text-nwcn-text-default">{work.year}</p>
-                </div>
-
-                {/* 사용 도구 / 기술 */}
-                <div>
-                  <p className="font-body text-caption text-nwcn-gray-muted mb-2">{t('sectionTools')}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {work.tech_stack.map((tag) => (
-                      <Badge key={tag} variant="number">{tag}</Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 작품 소개 */}
-                {work.description && (
-                  <div>
-                    <p className="font-body text-caption text-nwcn-gray-muted mb-2">{t('sectionIntro')}</p>
-                    <p className="font-body text-body-sm text-nwcn-gray-text leading-relaxed whitespace-pre-line">
-                      {work.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* 관련 링크 */}
-                {work.related_links && work.related_links.length > 0 && (
-                  <div>
-                    <p className="font-body text-caption text-nwcn-gray-muted mb-2">{t('sectionLinks')}</p>
-                    <div className="flex flex-col gap-2">
-                      {work.related_links.map((link, i) => (
+              {links.length > 0 && (
+                <section aria-labelledby="work-links" className="col-span-12 lg:col-span-4 lg:col-start-9">
+                  <h2 id="work-links" className="m-0 border-t border-nwcn-dark pt-3.5 font-bold text-section">
+                    {t('sectionLinks')}
+                  </h2>
+                  <ul className="mt-3 border-b border-nwcn-dark">
+                    {links.map((link, i) => (
+                      <li key={i} className="border-t border-nwcn-rule first:border-t-0">
                         <a
-                          key={i}
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group flex items-center gap-2 font-body text-body-sm text-nwcn-gray-text hover:text-nwcn-green-dark transition-colors duration-fast ease-nwcn"
+                          className="group flex items-baseline justify-between gap-3 py-3 text-list"
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                          </svg>
-                          <span className="truncate group-hover:underline">{link.label || link.url}</span>
+                          <span className="min-w-0 truncate decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">
+                            {link.label || link.url}
+                          </span>
+                          <span aria-hidden="true">↗</span>
                         </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </aside>
-          </div>
-
-          {/* ── 관련 게시물 (핀터레스트 마소너리) ── */}
-          {related.length > 0 && (
-            <section className="mt-20 pt-12 border-t border-nwcn-border-light">
-              <h2 className="font-body font-bold text-section text-nwcn-text-default mb-7">
-                {t('relatedTitle')}
-              </h2>
-              <WorkMasonry works={related} />
-            </section>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
           )}
 
-          {/* ── 하단 네비게이션 ── */}
-          <div className="mt-16">
-            <Link
-              href="/work/showcase"
-              className="inline-flex items-center gap-2 font-body text-body-sm text-nwcn-gray-muted hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn group"
-            >
-              <svg className="w-4 h-4 transition-transform duration-base ease-nwcn group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7" />
-              </svg>
-              SHOWCASE
-            </Link>
-          </div>
+          {/* ── 다른 작품 ── */}
+          {related.length > 0 && (
+            <section aria-labelledby="work-related" className="pt-chapter">
+              <h2 id="work-related" className="m-0 mb-6 font-extrabold text-headline">
+                {t('relatedTitle')}
+              </h2>
+              <ul className="grid grid-cols-1 gap-x-6 gap-y-12 border-t border-nwcn-dark pt-6 sm:grid-cols-2 lg:grid-cols-3">
+                {related.map((w) => (
+                  <WorkCard key={w.id} work={w} typeLabel={TYPE_LABEL} />
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </div>
     </SubPageLayout>

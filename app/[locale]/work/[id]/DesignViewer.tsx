@@ -42,7 +42,7 @@ export default function DesignViewer({ images, title }: Props) {
         disabled={!current}
         aria-label={current ? `${title} 이미지 크게 보기` : undefined}
         className={cn(
-          'focus-ring relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-panel bg-nwcn-neutral-100',
+          'focus-ring relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-nwcn-neutral-200',
           current && 'cursor-zoom-in'
         )}
       >
@@ -64,7 +64,7 @@ export default function DesignViewer({ images, title }: Props) {
               aria-label={`${i + 1}번 이미지 보기`}
               aria-current={selected === i}
               className={cn(
-                'focus-ring aspect-square overflow-hidden rounded-lg border-2 bg-nwcn-neutral-100',
+                'focus-ring aspect-square overflow-hidden border-2 bg-nwcn-neutral-200',
                 'transition-[border-color,transform] duration-fast ease-nwcn hover:-translate-y-0.5',
                 selected === i ? 'border-nwcn-text-default' : 'border-transparent hover:border-nwcn-text-sub/40'
               )}

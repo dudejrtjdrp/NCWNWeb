@@ -113,18 +113,52 @@
     }
   },
   "work": {
+    "nav": {
+      "section": "WORK",
+      "breadcrumb": "Breadcrumb",
+      "menu": "Work menu",
+      "toc": "On this page",
+      "showcase": "Showcase",
+      "exhibition": "Exhibition"
+    },
     "hero": {
-      "label": "NWCN — STUDENT WORKS",
-      "title": "Student Works\nPortfolio",
-      "description": "Explore the creative works and graduation\nexhibition records of NWCN students."
+      "photos": "Work images",
+      "prev": "Previous image",
+      "next": "Next image",
+      "pause": "Pause slideshow",
+      "play": "Play slideshow"
     },
     "showcase": {
       "title": "SHOWCASE",
+      "heroEn": [
+        "SHOWCASE"
+      ],
+      "heroKo": "학생 작품",
+      "lead": "Video, design, web and 3D work\nmade by New Media Contents students.",
+      "emptyMedia": "Works coming soon",
       "all": "All",
-      "empty": "No works found."
+      "filterLabel": "Field",
+      "searchLabel": "Search works",
+      "searchPlaceholder": "Search by title, field or name",
+      "loading": "Loading works…",
+      "empty": "No works match these filters.",
+      "emptyReset": "Clear filters",
+      "more": "More works are being added."
     },
     "exhibition": {
-      "title": "EXHIBITION"
+      "title": "EXHIBITION",
+      "heroEn": [
+        "EXHIBITION"
+      ],
+      "heroKo": "졸업전시",
+      "lead": "A record of the graduation exhibitions\nheld each year by New Media Contents.",
+      "region": "Graduation exhibition posters",
+      "emptyMedia": "No exhibitions yet",
+      "posterAlt": "Poster of the {year} graduation exhibition {title}",
+      "caption": "Graduation exhibition '{title}' · {year}",
+      "yearLabel": "{year} graduation exhibition",
+      "site": "Visit the exhibition site",
+      "empty": "No graduation exhibitions have been added yet."
     },
     "detail": {
       "typeDesign": "Design",
@@ -133,16 +167,17 @@
       "videoPlaceholder": "Video coming soon",
       "threeDPlaceholder": "3D model coming soon",
       "threeDHint": "Click and drag to rotate the 3D model",
-      "sectionIntro": "About This Work",
-      "sectionAuthor": "Author",
+      "sectionIntro": "About this work",
+      "sectionAuthor": "By",
       "yearWork": "Work from {year}",
-      "sectionTools": "Tools & Technologies",
-      "sectionLinks": "Related Links",
+      "sectionTools": "Fields & tools",
+      "sectionLinks": "Related links",
       "views": "views",
       "sectionTags": "Tags",
-      "backToList": "Back to Works",
-      "sectionPeriod": "Production Period",
-      "relatedTitle": "Related Works"
+      "backToList": "Back to student works",
+      "sectionPeriod": "Year",
+      "sectionType": "Type",
+      "relatedTitle": "More works"
     }
   },
   "about": {

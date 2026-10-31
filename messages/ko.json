@@ -113,18 +113,52 @@
     }
   },
   "work": {
+    "nav": {
+      "section": "WORK",
+      "breadcrumb": "현재 위치",
+      "menu": "WORK 하위 메뉴",
+      "toc": "이 페이지 목차",
+      "showcase": "쇼케이스",
+      "exhibition": "졸업전시"
+    },
     "hero": {
-      "label": "NWCN — STUDENT WORKS",
-      "title": "학생 작품\n포트폴리오",
-      "description": "뉴미디어콘텐츠과 재학생들의 크리에이티브한\n작품과 졸업전시 기록을 만나보세요."
+      "photos": "작품 이미지",
+      "prev": "이전 이미지",
+      "next": "다음 이미지",
+      "pause": "자동 넘김 멈춤",
+      "play": "자동 넘김 시작"
     },
     "showcase": {
       "title": "SHOWCASE",
+      "heroEn": [
+        "SHOWCASE"
+      ],
+      "heroKo": "학생 작품",
+      "lead": "뉴미디어콘텐츠과 학생들이 만든\n영상·디자인·웹·3D 작품입니다.",
+      "emptyMedia": "작품을 준비하고 있습니다",
       "all": "전체",
-      "empty": "작품이 없습니다."
+      "filterLabel": "작품 분야",
+      "searchLabel": "작품 검색",
+      "searchPlaceholder": "제목, 분야, 이름으로 검색",
+      "loading": "작품을 불러오는 중…",
+      "empty": "조건에 맞는 작품이 없습니다.",
+      "emptyReset": "필터 지우기",
+      "more": "작품을 계속 올리고 있습니다."
     },
     "exhibition": {
-      "title": "EXHIBITION"
+      "title": "EXHIBITION",
+      "heroEn": [
+        "EXHIBITION"
+      ],
+      "heroKo": "졸업전시",
+      "lead": "뉴미디어콘텐츠과 졸업반이 해마다 여는\n졸업전시의 기록입니다.",
+      "region": "졸업전시 포스터",
+      "emptyMedia": "등록된 졸업전시가 없습니다",
+      "posterAlt": "{year} 졸업전시 {title} 포스터",
+      "caption": "졸업전시 〈{title}〉 · {year}",
+      "yearLabel": "{year}년 졸업전시",
+      "site": "전시 사이트 보기",
+      "empty": "등록된 졸업전시가 아직 없습니다."
     },
     "detail": {
       "typeDesign": "디자인",
@@ -134,15 +168,16 @@
       "threeDPlaceholder": "3D 모델을 준비 중입니다",
       "threeDHint": "마우스로 드래그하여 3D 모델을 회전할 수 있습니다",
       "sectionIntro": "작품 소개",
-      "sectionAuthor": "작가",
+      "sectionAuthor": "제작",
       "yearWork": "{year}년 작품",
-      "sectionTools": "사용 도구 / 기술",
+      "sectionTools": "분야 · 도구",
       "sectionLinks": "관련 링크",
       "views": "조회",
       "sectionTags": "태그",
-      "backToList": "작품 목록으로",
-      "sectionPeriod": "제작 기간",
-      "relatedTitle": "관련 게시물"
+      "backToList": "학생 작품으로 돌아가기",
+      "sectionPeriod": "연도",
+      "sectionType": "유형",
+      "relatedTitle": "다른 작품"
     }
   },
   "about": {
