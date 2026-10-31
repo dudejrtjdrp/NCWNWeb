@@ -16,7 +16,7 @@ import PortfolioTabs from '@/components/sections/work/portfolio/PortfolioTabs'
 import PortfolioSummary from '@/components/sections/work/portfolio/PortfolioSummary'
 import PortfolioOriginal from '@/components/sections/work/portfolio/PortfolioOriginal'
 import PortfolioCard from '@/components/sections/work/portfolio/PortfolioCard'
-import { getPortfolioBySlug, getPortfolios, getPortfolioWorks } from '@/lib/supabase/queries/portfolios'
+import { getPortfolioBySlug, getPortfolios, getPortfolioWorks, toGraduateCard } from '@/lib/supabase/queries/portfolios'
 import type { WorkType } from '@/lib/supabase/queries/works'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
@@ -103,7 +103,11 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
               <h2 id="others-t" className="m-0 mb-6 font-extrabold text-headline">{t('others')}</h2>
               <ul className="grid grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 lg:grid-cols-4">
                 {others.map((p) => (
-                  <PortfolioCard key={p.id} item={p} labels={{ profileAlt: list('profileAlt', { name: p.name }), coverHint: list('coverHint') }} />
+                  <PortfolioCard
+                    key={p.id}
+                    item={toGraduateCard(p)}
+                    labels={{ profileAlt: list('profileAlt', { name: p.name }), coverHint: list('coverHint'), preparing: list('preparing') }}
+                  />
                 ))}
               </ul>
             </section>

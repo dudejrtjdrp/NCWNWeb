@@ -8,9 +8,11 @@
 
 ## 학과가 받은 명단·사진 (선택)
 - `submissions/_roster/명단.csv` — 한 줄에 한 명 `이름,학번,영문이름`
-- `submissions/_roster/<학번 또는 이름>.jpg` — 학생이 프로필 사진을 안 냈을 때 대신 쓴다 (세로 4:5 권장, 등록할 때 4:5로 잘라 씀)
+- `submissions/_roster/<학번_이름 · 학번 · 이름>.jpg` — 학과가 받은 프로필 사진. 학생이 사진을 안 냈을 때 포트폴리오에도 대신 쓴다 (4:5로 자를 때 위쪽 기준)
 - 명단 DB 반영: 관리자 페이지 `졸업생 > 명단 한꺼번에 넣기` 또는 `APPLY=1 node scripts/portfolio/import-roster.mjs <졸업연도>`
-- 명단에 넣은 학생은 관리자 작품 입력의 '제작자' 검색에 나온다(이름 + 회색 학번)
+- 사진 올리기: `APPLY=1 node scripts/portfolio/upload-roster-photos.mjs` — R2 `graduates/{졸업연도}/{학생 id}-{해시}.webp`(주소에 학번·이름 없음) + `students.photo_url`
+- 명단에 넣은 학생은 사이트 `WORK > 졸업생`(/work/portfolio)에 사진과 함께 나오고, 포트폴리오를 공개하면 카드가 개인 페이지로 이어진다(그 전엔 '포트폴리오 준비 중'). 학번은 공개하지 않는다(`get_graduates` 함수, `supabase/migrations/add_graduates.sql`).
+- 관리자 작품 입력의 '제작자' 검색에도 나온다(이름 + 회색 학번)
 
 ## 받은 뒤
 1. 제출물을 저장소 루트의 `submissions/`에 그대로 넣는다 (학생별 폴더 또는 `2027_이름.txt`·`2027_이름.pdf`·`2027_이름_사진.jpg`).

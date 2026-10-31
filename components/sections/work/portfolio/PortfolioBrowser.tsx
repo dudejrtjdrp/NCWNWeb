@@ -1,19 +1,20 @@
 'use client'
 
 /**
- * PortfolioBrowser — 졸업생 포트폴리오 목록 (E4)
- * 위: 분야 거르개(전체 · 영상 · 모션 …, 있는 분야만) / 아래: 졸업 연도별 묶음, 카드 4열(태블릿 3열, 휴대폰 2열).
+ * PortfolioBrowser — 졸업생 목록 (E4)
+ * 위: 분야 거르개(전체 · 영상 · 모션 …, 포트폴리오에 있는 분야만) / 아래: 졸업 연도별 묶음, 카드 4열(태블릿 3열, 휴대폰 2열).
+ * 포트폴리오가 공개된 학생 카드만 개인 페이지로 이어진다.
  */
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
-import type { PortfolioListItem } from '@/lib/supabase/queries/portfolios'
+import type { GraduateCard } from '@/lib/supabase/queries/portfolios'
 import PortfolioCard from './PortfolioCard'
 import { PORTFOLIO_FIELDS, portfolioYearAnchor } from './portfolio-utils'
 
 
-export default function PortfolioBrowser({ items }: { items: PortfolioListItem[] }) {
+export default function PortfolioBrowser({ items }: { items: GraduateCard[] }) {
   const t = useTranslations('work.portfolio')
   const [field, setField] = useState<string>('ALL')
 
@@ -69,10 +70,10 @@ export default function PortfolioBrowser({ items }: { items: PortfolioListItem[]
               <ul className="grid grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 lg:grid-cols-4">
                 {list.map((p, i) => (
                   <PortfolioCard
-                    key={p.id}
+                    key={p.key}
                     item={p}
                     priority={i < 4}
-                    labels={{ profileAlt: t('profileAlt', { name: p.name }), coverHint: t('coverHint') }}
+                    labels={{ profileAlt: t('profileAlt', { name: p.name }), coverHint: t('coverHint'), preparing: t('preparing') }}
                   />
                 ))}
               </ul>

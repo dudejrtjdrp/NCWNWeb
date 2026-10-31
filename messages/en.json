@@ -120,7 +120,7 @@
       "toc": "On this page",
       "showcase": "Showcase",
       "exhibition": "Exhibition",
-      "portfolio": "Portfolios"
+      "portfolio": "Graduates"
     },
     "hero": {
       "photos": "Work images",
@@ -184,24 +184,24 @@
     },
     "portfolio": {
       "heroEn": [
-        "PORTFOLIO"
+        "GRADUATES"
       ],
-      "heroKo": "포트폴리오",
-      "lead": "Graduate portfolios from New Media Contents —\nour summary and the original side by side.",
-      "region": "Portfolio covers",
-      "emptyMedia": "Portfolios are on the way",
+      "heroKo": "졸업생",
+      "lead": "Graduates of New Media Contents.\nPick a name to see our summary and their original portfolio side by side.",
+      "region": "Graduate photos",
+      "emptyMedia": "Graduates are on the way",
       "posterAlt": "Portfolio cover of {name}",
       "caption": "Class of {year} · {name}",
       "filterLabel": "Field",
       "all": "All",
       "yearTitle": "Class of {year}",
       "count": "{n}",
-      "empty": "No portfolios have been added yet.",
+      "empty": "No graduates have been added yet.",
       "emptyFilter": "No portfolios in this field.",
       "profileAlt": "Profile photo of {name}",
       "coverHint": "Original cover",
       "detail": {
-        "backToList": "Back to portfolios",
+        "backToList": "Back to graduates",
         "graduate": "Class of {year}",
         "viewLabel": "View",
         "viewSummary": "Summary",
@@ -238,7 +238,8 @@
         "others": "Other graduates",
         "toc": "On this page",
         "summaryOf": "{name}'s portfolio, summarized in the department format."
-      }
+      },
+      "preparing": "Portfolio coming soon"
     }
   },
   "about": {

@@ -4,7 +4,7 @@
  * 브랜치 미리보기·로컬 개발에서 화면이 텅 비지 않게, scripts/snapshot-public-data.mjs 로 저장해 둔
  * 실제 공개 데이터에 형식 확인용 예시 데이터(snapshot/mock-data.ts)를 덧붙여 돌려준다.
  * 공개 페이지 조회에 쓰는 것만 지원: select · eq · neq · in · contains · filter(cs) · or(ilike/eq) · ilike
- * · is · not(is) · gt/gte/lt/lte · order · limit · range · single · maybeSingle · rpc(작품 랜덤 정렬).
+ * · is · not(is) · gt/gte/lt/lte · order · limit · range · single · maybeSingle · rpc(작품 랜덤 정렬 · 졸업생 목록).
  * 쓰기(insert/update/delete)는 지원하지 않는다(에러를 돌려줌).
  */
 
@@ -156,8 +156,11 @@ class SnapshotTable {
   delete() { return new SnapshotQuery([], true) }
 }
 
-/** 작품 랜덤 정렬 RPC 흉내 — 시드 대신 기본 정렬(연도·조회수)로 돌려준다 */
+/** RPC 흉내 — 작품 랜덤 정렬은 시드 대신 기본 정렬(연도·조회수)로, 졸업생 목록은 예시 명단으로 돌려준다 */
 function rpc(name: string, params: Record<string, unknown> = {}) {
+  if (name === 'get_graduates') {
+    return new SnapshotQuery(TABLES.graduates ?? []).select('*').order('graduation_year', { ascending: false }).order('name', { ascending: true })
+  }
   if (name !== 'get_showcase_works_random') {
     return new SnapshotQuery([], true)
   }

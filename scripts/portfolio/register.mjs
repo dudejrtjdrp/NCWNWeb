@@ -141,7 +141,7 @@ for (const rec of records) {
   const pageUrls = pages.map((buf, i) => putFile(`${base}/pages/${String(i + 1).padStart(3, '0')}.webp`, buf, 'image/webp'))
   const profileUrl = putFile(
     `${base}/profile.webp`,
-    await toWebp(fs.readFileSync(profile), { width: 1200, height: 1500, fit: 'cover', position: 'attention' }),
+    await toWebp(fs.readFileSync(profile), { width: 1200, height: 1500, fit: 'cover', position: 'top' }),
     'image/webp'
   )
   const pdfUrl = v.pdfDownload === true ? putFile(`${base}/portfolio.pdf`, fs.readFileSync(pdf), 'application/pdf') : null

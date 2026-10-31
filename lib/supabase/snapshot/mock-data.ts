@@ -260,7 +260,16 @@ const portfolios = [
   updated_at: created(p.n),
 }))
 
-/** 표 이름 → 덧붙일 예시 행 */
+/** 예시 졸업생 명단 — 공개 함수 get_graduates 가 돌려주는 모양(학번 없음).
+ *  포트폴리오가 있는 4명 + 아직 없는 3명(사진 없는 카드·'포트폴리오 준비 중' 확인용) */
+const graduates = [
+  ...portfolios.map((p) => ({ id: p.student_id, name: p.name, name_en: p.name_en, graduation_year: p.year, photo_url: p.profile_url })),
+  { id: id('f', 5), name: '박서준', name_en: 'Park Seojun', graduation_year: 2027, photo_url: null },
+  { id: id('f', 6), name: '정유나', name_en: 'Jung Yuna', graduation_year: 2027, photo_url: null },
+  { id: id('f', 7), name: '윤도현', name_en: 'Yoon Dohyun', graduation_year: 2026, photo_url: null },
+]
+
+/** 표 이름 → 덧붙일 예시 행 (graduates 는 표가 아니라 get_graduates 함수 결과) */
 export const MOCK_TABLES: Record<string, Record<string, unknown>[]> = {
   awards,
   showcase_works: works,
@@ -268,4 +277,5 @@ export const MOCK_TABLES: Record<string, Record<string, unknown>[]> = {
   projects,
   events,
   portfolios,
+  graduates,
 }

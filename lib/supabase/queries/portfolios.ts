@@ -198,3 +198,102 @@ export async function getPortfolioSlugs(studentIds: string[]): Promise<Map<strin
     return new Map()
   }
 }
+
+/* ── 졸업생 목록 (WORK > 졸업생) ─────────────────────────────
+ * 명단(students, 학번 제외 공개 함수 get_graduates) + 공개 포트폴리오를 합친다.
+ * 포트폴리오가 공개된 학생만 카드가 개인 페이지로 이어지고, 나머지는 '포트폴리오 준비 중'.
+ * 명단에 없는 포트폴리오(학생 연결 전)도 그대로 보여 준다.
+ */
+
+export interface GraduateCard {
+  key: string
+  name: string
+  year: number
+  photo: string | null
+  cover: string | null
+  /** 공개된 포트폴리오 주소. 없으면 준비 중 */
+  slug: string | null
+  fields: string[]
+  tagline: string | null
+  sort: number
+}
+
+interface GraduateRow {
+  id: string
+  name: string
+  name_en: string | null
+  graduation_year: number
+  photo_url: string | null
+}
+
+const isMissingGraduates = (msg: string) => /get_graduates|photo_url/.test(msg) && /(does not exist|schema cache|Could not find)/i.test(msg)
+
+/** 포트폴리오 → 졸업생 카드 */
+export function toGraduateCard(p: PortfolioListItem): GraduateCard {
+  return {
+    key: p.id,
+    name: p.name,
+    year: p.year,
+    photo: p.profile_url,
+    cover: p.cover_url,
+    slug: p.slug,
+    fields: p.fields ?? [],
+    tagline: p.tagline,
+    sort: p.sort_order ?? 0,
+  }
+}
+
+async function getGraduateRows(): Promise<GraduateRow[]> {
+  const fetcher = unstable_cache(
+    async (): Promise<GraduateRow[]> => {
+      const supabase = createClient()
+      const { data, error } = await supabase.rpc('get_graduates')
+      if (error) {
+        if (isMissingGraduates(error.message)) return []
+        throw new Error(error.message)
+      }
+      return (data ?? []) as GraduateRow[]
+    },
+    ['graduates-list'],
+    { revalidate: 300, tags: ['portfolios'] }
+  )
+  try {
+    return await fetcher()
+  } catch (err) {
+    console.error('[getGraduates]', err)
+    return []
+  }
+}
+
+/** 졸업생 목록 — 졸업 연도 최신순 → 포트폴리오 공개한 사람 먼저 → 정렬 순서 → 이름 */
+export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[]> {
+  const [rows, portfolios] = await Promise.all([getGraduateRows(), getPortfolios(locale)])
+  const byStudent = new Map(portfolios.filter((p) => p.student_id).map((p) => [p.student_id as string, p]))
+  const listed = new Set<string>()
+  const cards: GraduateCard[] = rows.map((g) => {
+    const p = byStudent.get(g.id)
+    if (p) {
+      listed.add(p.id)
+      return { ...toGraduateCard(p), key: g.id, photo: p.profile_url ?? g.photo_url }
+    }
+    return {
+      key: g.id,
+      name: locale !== 'ko' && g.name_en?.trim() ? g.name_en : g.name,
+      year: g.graduation_year,
+      photo: g.photo_url,
+      cover: null,
+      slug: null,
+      fields: [],
+      tagline: null,
+      sort: Number.MAX_SAFE_INTEGER,
+    }
+  })
+  for (const p of portfolios) if (!listed.has(p.id)) cards.push(toGraduateCard(p))
+  return cards.sort(
+    (a, b) =>
+      b.year - a.year ||
+      Number(Boolean(b.slug)) - Number(Boolean(a.slug)) ||
+      a.sort - b.sort ||
+      a.name.localeCompare(b.name, 'ko')
+  )
+}

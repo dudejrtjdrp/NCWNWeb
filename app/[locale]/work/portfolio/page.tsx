@@ -1,8 +1,9 @@
 /**
- * WORK/Portfolio 졸업생 포트폴리오 — E4 틀
- * 포스터형 히어로(PORTFOLIO / 포트폴리오, 졸업생 프로필 사진을 어두운 판 위에) + 졸업 연도 목차 줄
- * + 분야 거르개 · 연도별 카드(프로필 사진 → 올리면 원본 표지) + 아래 바로가기.
- * 내용은 portfolios 표(학과 관리자가 등록, supabase/migrations/create_portfolios.sql).
+ * WORK/졸업생 — E4 틀 (주소는 /work/portfolio, 개인 페이지는 /work/portfolio/[slug])
+ * 포스터형 히어로(GRADUATES / 졸업생, 졸업생 프로필 사진을 어두운 판 위에) + 졸업 연도 목차 줄
+ * + 분야 거르개 · 연도별 졸업생 카드 + 아래 바로가기.
+ * 졸업생 = 학과 명단(students, 공개 함수 get_graduates — 학번 제외) + 공개된 포트폴리오(portfolios).
+ * 포트폴리오가 공개된 학생 카드만 개인 포트폴리오로 이어지고(올리면 원본 표지), 나머지는 '포트폴리오 준비 중'.
  */
 
 import type { Metadata } from 'next'
@@ -14,24 +15,24 @@ import MoreLinks from '@/components/sections/editorial/MoreLinks'
 import WorkLocalBar from '@/components/sections/work/WorkLocalBar'
 import PortfolioBrowser from '@/components/sections/work/portfolio/PortfolioBrowser'
 import { portfolioYearAnchor } from '@/components/sections/work/portfolio/portfolio-utils'
-import { getPortfolios } from '@/lib/supabase/queries/portfolios'
+import { getGraduates } from '@/lib/supabase/queries/portfolios'
 
 export const metadata: Metadata = {
-  title: 'PORTFOLIO — 졸업생 포트폴리오',
-  description: '동아방송예술대학교 뉴미디어콘텐츠과 졸업생 포트폴리오. 학과가 정리한 소개와 학생이 만든 원본 포트폴리오를 함께 봅니다.',
+  title: 'GRADUATES — 졸업생',
+  description: '동아방송예술대학교 뉴미디어콘텐츠과 졸업생과 포트폴리오. 학과가 정리한 소개와 학생이 만든 원본 포트폴리오를 함께 봅니다.',
   keywords: ['뉴미디어콘텐츠과', '졸업생', '포트폴리오', '동아방송예술대학교'],
   alternates: { canonical: '/work/portfolio' },
   openGraph: {
     type: 'website',
-    title: 'PORTFOLIO — 졸업생 포트폴리오 | NWCN',
-    description: '뉴미디어콘텐츠과 졸업생 포트폴리오',
+    title: 'GRADUATES — 졸업생 | NWCN',
+    description: '뉴미디어콘텐츠과 졸업생과 포트폴리오',
   },
 }
 
 export default async function PortfolioPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const [items, t, h, nav, dept, aboutNav] = await Promise.all([
-    getPortfolios(locale),
+    getGraduates(locale),
     getTranslations({ locale, namespace: 'work.portfolio' }),
     getTranslations({ locale, namespace: 'work.hero' }),
     getTranslations({ locale, namespace: 'work.nav' }),
@@ -41,10 +42,10 @@ export default async function PortfolioPage({ params }: { params: Promise<{ loca
 
   // 히어로는 졸업생 프로필 사진(모두 세로 4:5라 제목이 사진을 가리지 않음). 원본 표지는 카드에 마우스를 올리면 보인다.
   const slides: PosterSlide[] = items
-    .filter((p) => p.profile_url)
+    .filter((p) => p.photo)
     .slice(0, 8)
     .map((p) => ({
-      src: p.profile_url as string,
+      src: p.photo as string,
       alt: t('profileAlt', { name: p.name }),
       caption: t('caption', { year: p.year, name: p.name }),
       fit: 'portrait',
@@ -57,7 +58,7 @@ export default async function PortfolioPage({ params }: { params: Promise<{ loca
       <WorkLocalBar />
       <PosterHero
         titleEn={t.raw('heroEn') as string[]}
-        titleEnEm={5.2}
+        titleEnEm={5.7}
         titleKo={t('heroKo')}
         lead={t('lead')}
         slides={slides}
