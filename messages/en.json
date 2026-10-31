@@ -177,7 +177,9 @@
       "backToList": "Back to student works",
       "sectionPeriod": "Year",
       "sectionType": "Type",
-      "relatedTitle": "More works"
+      "relatedTitle": "More works",
+      "relatedSame": "Same creator",
+      "relatedHint": "Works by the same creator come first"
     }
   },
   "about": {

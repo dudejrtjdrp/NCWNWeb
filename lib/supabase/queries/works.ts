@@ -203,6 +203,75 @@ export async function getRelatedWorks(
   return scored.slice(0, limit).map((s) => s.w)
 }
 
+/* ── 제작자 · 학생(포트폴리오) 연동 ───────────────────────────
+ * 작품의 author 는 한 칸 문자열이다. 여러 명이면 쉼표(,)·가운뎃점(·)·& 로 구분해 적는다.
+ * students 테이블(supabase/migrations/create_students.sql)에 같은 이름이 딱 한 명 있으면
+ * 그 학생의 포트폴리오(/portfolio/[slug])로 연결한다. 동명이인이면 연결하지 않는다.
+ */
+
+/** 'A, B · C' → ['A', 'B', 'C'] */
+export function splitCreators(author: string | null | undefined): string[] {
+  return (author ?? '')
+    .split(/\s*[,，·&]\s*|\s+및\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+export interface WorkCreator {
+  name: string
+  /** 포트폴리오 주소용 slug — 학생 DB 에 이름이 한 명과만 일치할 때 */
+  studentSlug: string | null
+}
+
+/** 작품 제작자 목록 + 학생 DB 연동 (캐시 5분, tag: students) */
+export async function getWorkCreators(author: string): Promise<WorkCreator[]> {
+  const names = splitCreators(author)
+  if (names.length === 0) return []
+  const fetcher = unstable_cache(
+    async (): Promise<WorkCreator[]> => {
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase.from('students').select('name, slug').in('name', names)
+        // 테이블이 아직 없거나(마이그레이션 전) 오류 → 이름만 표시
+        if (error) return names.map((name) => ({ name, studentSlug: null }))
+        const rows = (data ?? []) as { name: string; slug: string }[]
+        return names.map((name) => {
+          const match = rows.filter((r) => r.name === name)
+          return { name, studentSlug: match.length === 1 ? match[0].slug : null }
+        })
+      } catch {
+        return names.map((name) => ({ name, studentSlug: null }))
+      }
+    },
+    ['work-creators', names.join('|')],
+    { revalidate: 300, tags: ['students', 'works'] }
+  )
+  return fetcher()
+}
+
+/**
+ * 상세 페이지 하단 "다른 작품" — 같은 제작자가 만든 작품을 먼저, 모자라면 분야·유형이 비슷한 작품으로 채운다.
+ */
+export async function getMoreWorks(
+  id: string,
+  locale: string = 'ko',
+  limit = 3
+): Promise<{ work: WorkListItem; sameCreator: boolean }[]> {
+  const [all, current] = await Promise.all([getShowcaseWorks(locale), getWorkById(id, locale)])
+  const pool = all.filter((w) => w.id !== id)
+  if (!current) return pool.slice(0, limit).map((work) => ({ work, sameCreator: false }))
+
+  const names = new Set(splitCreators(current.author))
+  const same = pool.filter((w) => splitCreators(w.author).some((n) => names.has(n)))
+  const sameIds = new Set(same.map((w) => w.id))
+  const rest = (await getRelatedWorks(id, locale, limit + same.length)).filter((w) => !sameIds.has(w.id))
+
+  return [
+    ...same.map((work) => ({ work, sameCreator: true })),
+    ...rest.map((work) => ({ work, sameCreator: false })),
+  ].slice(0, limit)
+}
+
 /** 기존 하드코딩 필터값 — settings에 데이터 없을 때 fallback (마이그레이션 보호) */
 export const DEFAULT_WORK_FILTER_TAGS = ['Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
 

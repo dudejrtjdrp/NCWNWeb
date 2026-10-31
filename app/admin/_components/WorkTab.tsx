@@ -138,7 +138,7 @@ function WorkForm({
       <h4 className="font-body font-semibold text-sm text-white">{work ? '작업물 수정' : '새 작업물 추가'}</h4>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>작가명 *</Label><Input name="author" defaultValue={work?.author ?? ''} placeholder="작가/학생 이름" required /></div>
+          <div><Label>제작자 *</Label><Input name="author" defaultValue={work?.author ?? ''} placeholder="여러 명이면 쉼표로 구분 (예: 홍길동, 김민지)" required /></div>
           <div><Label>제작 연도 *</Label><Input name="year" type="number" defaultValue={work?.year ?? new Date().getFullYear()} required /></div>
         </div>
 

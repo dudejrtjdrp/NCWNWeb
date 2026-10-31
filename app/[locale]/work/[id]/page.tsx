@@ -1,7 +1,8 @@
 /**
  * Work 세부 페이지: /work/[id] — E4 틀
  * 종이 바탕, WORK 위치·하위 메뉴 줄 → 큰 제목 + 정보표(제작·연도·유형·분야·조회) → 작품(영상/이미지/3D)
- * → 작품 소개 · 관련 링크 → 다른 작품 카드.
+ * → 작품 소개 · 관련 링크 → 다른 작품 3개(큰 칸 1 + 작은 칸 2, 같은 제작자의 작품 먼저).
+ * 제작자는 여러 명일 수 있고(author 를 쉼표로 구분), 학생 DB(students)에 있으면 포트폴리오로 연결된다.
  * 작업물 타입별 뷰어: design 이미지 갤러리 / video 영상 플레이어 / 3d iframe 임베드.
  */
 
@@ -11,7 +12,7 @@ import { Link } from '@/i18n/navigation'
 import WorkLocalBar from '@/components/sections/work/WorkLocalBar'
 import WorkCard from '@/components/sections/work/WorkCard'
 import { notFound } from 'next/navigation'
-import { getWorkById, getRelatedWorks, type WorkType } from '@/lib/supabase/queries/works'
+import { getWorkById, getMoreWorks, getWorkCreators, type WorkType } from '@/lib/supabase/queries/works'
 import { getTranslations } from 'next-intl/server'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
@@ -123,8 +124,9 @@ interface PageProps {
 
 export default async function WorkDetailPage({ params }: PageProps) {
   const { id, locale } = await params
-  const [work, related] = await Promise.all([getWorkById(id, locale), getRelatedWorks(id, locale, 6)])
+  const [work, more] = await Promise.all([getWorkById(id, locale), getMoreWorks(id, locale, 3)])
   if (!work) notFound()
+  const creators = await getWorkCreators(work.author)
 
   const t = await getTranslations({ locale, namespace: 'work.detail' })
   const TYPE_LABEL: Record<WorkType, string> = { design: t('typeDesign'), video: t('typeVideo'), '3d': t('type3d') }
@@ -132,7 +134,24 @@ export default async function WorkDetailPage({ params }: PageProps) {
   const links = (work.related_links ?? []).filter((l) => l.url)
 
   const rows: { label: string; value: React.ReactNode }[] = [
-    { label: t('sectionAuthor'), value: work.author },
+    {
+      label: t('sectionAuthor'),
+      value: (
+        <ul className="flex flex-col gap-0.5">
+          {creators.map((c) => (
+            <li key={c.name}>
+              {c.studentSlug ? (
+                <Link href={`/portfolio/${c.studentSlug}`} className="underline decoration-1 underline-offset-4 editorial-link">
+                  {c.name}
+                </Link>
+              ) : (
+                c.name
+              )}
+            </li>
+          ))}
+        </ul>
+      ),
+    },
     { label: t('sectionPeriod'), value: work.year },
     { label: t('sectionType'), value: TYPE_LABEL[work.type] },
     ...(tags.length ? [{ label: t('sectionTools'), value: tags.join(' · ') }] : []),
@@ -215,17 +234,41 @@ export default async function WorkDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* ── 다른 작품 ── */}
-          {related.length > 0 && (
-            <section aria-labelledby="work-related" className="pt-chapter">
-              <h2 id="work-related" className="m-0 mb-6 font-extrabold text-headline">
-                {t('relatedTitle')}
-              </h2>
-              <ul className="grid grid-cols-1 gap-x-6 gap-y-12 border-t border-nwcn-dark pt-6 sm:grid-cols-2 lg:grid-cols-3">
-                {related.map((w) => (
-                  <WorkCard key={w.id} work={w} typeLabel={TYPE_LABEL} />
-                ))}
-              </ul>
+          {/* ── 다른 작품: 큰 칸 1 + 작은 칸 2 (같은 제작자의 작품 먼저) ── */}
+          {more.length > 0 && (
+            <section aria-labelledby="work-more" className="pt-chapter">
+              <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                <h2 id="work-more" className="m-0 font-extrabold text-headline">
+                  {t('relatedTitle')}
+                </h2>
+                {more.some((m) => m.sameCreator) && (
+                  <p className="text-body-sm text-nwcn-neutral-600">{t('relatedHint')}</p>
+                )}
+              </div>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-10 border-t border-nwcn-dark pt-6 lg:grid-cols-12">
+                <WorkCard
+                  as="div"
+                  variant="feature"
+                  work={more[0].work}
+                  typeLabel={TYPE_LABEL}
+                  badge={more[0].sameCreator ? t('relatedSame') : undefined}
+                  className="lg:col-span-7"
+                />
+                {more.length > 1 && (
+                  <div className="flex flex-col gap-10 lg:col-span-5">
+                    {more.slice(1).map((m) => (
+                      <WorkCard
+                        key={m.work.id}
+                        as="div"
+                        variant="compact"
+                        work={m.work}
+                        typeLabel={TYPE_LABEL}
+                        badge={m.sameCreator ? t('relatedSame') : undefined}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
             </section>
           )}
         </div>

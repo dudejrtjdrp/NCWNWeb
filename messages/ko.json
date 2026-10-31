@@ -177,7 +177,9 @@
       "backToList": "학생 작품으로 돌아가기",
       "sectionPeriod": "연도",
       "sectionType": "유형",
-      "relatedTitle": "다른 작품"
+      "relatedTitle": "다른 작품",
+      "relatedSame": "같은 제작자",
+      "relatedHint": "같은 제작자가 만든 작품을 먼저 보여 줍니다"
     }
   },
   "about": {
