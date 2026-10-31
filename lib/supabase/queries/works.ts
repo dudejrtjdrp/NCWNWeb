@@ -10,10 +10,16 @@
 import { createDbClient as createClient } from '@/lib/supabase/db'
 import { unstable_cache } from 'next/cache'
 import { applyLocale, applyLocaleList } from './_locale'
+import { splitCreators, creatorRefs } from '@/lib/work-creators'
+
+export { splitCreators, creatorRefs }
 
 export type WorkType = 'video' | 'design' | '3d'
 
 export interface RelatedLink { label: string; url: string }
+
+/** 작품 제작자 한 명 (showcase_works.creators — 관리자에서 학생 DB 를 검색해 고르면 student_id 가 들어간다) */
+export interface WorkCreatorRef { name: string; student_id: string | null; student_no?: string | null }
 
 export interface WorkItem {
   id: string
@@ -28,6 +34,8 @@ export interface WorkItem {
   model_embed: string | null
   images: string[] | null
   related_links: RelatedLink[] | null
+  /** 제작자 목록 — creators 컬럼(마이그레이션 후). 없으면 author 문자열을 쓴다 */
+  creators?: WorkCreatorRef[] | null
   view_count: number
   created_at: string
   // 영어 원문 (admin 편집용)
@@ -44,19 +52,23 @@ export async function getShowcaseWorks(locale: string = 'ko'): Promise<WorkListI
     async (): Promise<WorkListItem[]> => {
       try {
         const supabase = createClient()
-        const { data, error } = await supabase
-          .from('showcase_works')
-          .select(
-            'id, title, title_en, author, year, description, description_en, type, tech_stack, thumbnail_url, video_embed, model_embed, view_count, created_at'
-          )
-          .order('year', { ascending: false })
-          .order('view_count', { ascending: false })
+        const cols =
+          'id, title, title_en, author, year, description, description_en, type, tech_stack, thumbnail_url, video_embed, model_embed, view_count, created_at'
+        const run = (select: string) =>
+          supabase
+            .from('showcase_works')
+            .select(select)
+            .order('year', { ascending: false })
+            .order('view_count', { ascending: false })
+        let { data, error } = await run(`${cols}, creators`)
+        // creators 컬럼이 아직 없으면(마이그레이션 전) 빼고 다시
+        if (error && /creators/.test(error.message)) ({ data, error } = await run(cols))
 
         if (error) {
           console.error('[getShowcaseWorks]', error.message)
           return []
         }
-        return (data ?? []) as WorkListItem[]
+        return (data ?? []) as unknown as WorkListItem[]
       } catch (err) {
         console.error('[getShowcaseWorks] unexpected:', err)
         return []
@@ -204,49 +216,55 @@ export async function getRelatedWorks(
 }
 
 /* ── 제작자 · 학생(포트폴리오) 연동 ───────────────────────────
- * 작품의 author 는 한 칸 문자열이다. 여러 명이면 쉼표(,)·가운뎃점(·)·& 로 구분해 적는다.
- * students 테이블(supabase/migrations/create_students.sql)에 같은 이름이 딱 한 명 있으면
- * 그 학생의 포트폴리오(/portfolio/[slug])로 연결한다. 동명이인이면 연결하지 않는다.
+ * 제작자는 여러 명일 수 있다. 관리자 작품 입력에서 학생 DB(students)를 검색해 고르면
+ * showcase_works.creators 에 student_id 가 저장되고, 그 학생에게 포트폴리오(slug)가 있으면
+ * 작품 상세의 이름이 /portfolio/[slug] 로 연결된다.
+ * creators 가 없는 예전 작품은 author("A, B")를 나눠 이름만 보여준다.
  */
-
-/** 'A, B · C' → ['A', 'B', 'C'] */
-export function splitCreators(author: string | null | undefined): string[] {
-  return (author ?? '')
-    .split(/\s*[,，·&]\s*|\s+및\s+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
 
 export interface WorkCreator {
   name: string
-  /** 포트폴리오 주소용 slug — 학생 DB 에 이름이 한 명과만 일치할 때 */
+  /** 학번 (학생 DB 와 연결된 경우) */
+  studentNo: string | null
+  /** 포트폴리오 주소용 slug — 학생 DB 와 연결되고 포트폴리오가 있을 때 */
   studentSlug: string | null
 }
 
-/** 작품 제작자 목록 + 학생 DB 연동 (캐시 5분, tag: students) */
-export async function getWorkCreators(author: string): Promise<WorkCreator[]> {
-  const names = splitCreators(author)
-  if (names.length === 0) return []
+/** 작품 제작자 + 학생 DB 연동 (캐시 5분, tag: students) */
+export async function getWorkCreators(work: Pick<WorkListItem, 'author' | 'creators'>): Promise<WorkCreator[]> {
+  const refs = creatorRefs(work)
+  const ids = refs.map((r) => r.student_id).filter((v): v is string => !!v)
+  const plain = refs.map((r) => ({ name: r.name, studentNo: r.student_no ?? null, studentSlug: null }))
+  if (ids.length === 0) return plain
+
   const fetcher = unstable_cache(
     async (): Promise<WorkCreator[]> => {
       try {
         const supabase = createClient()
-        const { data, error } = await supabase.from('students').select('name, slug').in('name', names)
-        // 테이블이 아직 없거나(마이그레이션 전) 오류 → 이름만 표시
-        if (error) return names.map((name) => ({ name, studentSlug: null }))
-        const rows = (data ?? []) as { name: string; slug: string }[]
-        return names.map((name) => {
-          const match = rows.filter((r) => r.name === name)
-          return { name, studentSlug: match.length === 1 ? match[0].slug : null }
+        const { data, error } = await supabase.from('students').select('id, name, student_no, slug').in('id', ids)
+        if (error) return plain // 학생 DB 가 아직 없으면 이름만
+        const byId = new Map((data ?? []).map((st: { id: string; name: string; student_no: string | null; slug: string | null }) => [st.id, st]))
+        return refs.map((r) => {
+          const st = r.student_id ? byId.get(r.student_id) : undefined
+          return st
+            ? { name: st.name, studentNo: st.student_no, studentSlug: st.slug }
+            : { name: r.name, studentNo: r.student_no ?? null, studentSlug: null }
         })
       } catch {
-        return names.map((name) => ({ name, studentSlug: null }))
+        return plain
       }
     },
-    ['work-creators', names.join('|')],
+    ['work-creators', ids.join('|')],
     { revalidate: 300, tags: ['students', 'works'] }
   )
   return fetcher()
+}
+
+/** 두 작품이 같은 제작자를 공유하는지 — 학생 DB 연결이 있으면 그것으로, 없으면 이름으로 */
+function shareCreator(a: WorkCreatorRef[], b: WorkCreatorRef[]): boolean {
+  return a.some((x) =>
+    b.some((y) => (x.student_id && y.student_id ? x.student_id === y.student_id : x.name === y.name))
+  )
 }
 
 /**
@@ -261,8 +279,8 @@ export async function getMoreWorks(
   const pool = all.filter((w) => w.id !== id)
   if (!current) return pool.slice(0, limit).map((work) => ({ work, sameCreator: false }))
 
-  const names = new Set(splitCreators(current.author))
-  const same = pool.filter((w) => splitCreators(w.author).some((n) => names.has(n)))
+  const mine = creatorRefs(current)
+  const same = pool.filter((w) => shareCreator(mine, creatorRefs(w)))
   const sameIds = new Set(same.map((w) => w.id))
   const rest = (await getRelatedWorks(id, locale, limit + same.length)).filter((w) => !sameIds.has(w.id))
 

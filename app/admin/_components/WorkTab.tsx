@@ -7,6 +7,7 @@ import { Label, Input, Textarea, FileDropZone, MultiImageDropZone, Feedback, Sub
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
 import LangTab from './LangTab'
+import CreatorPicker, { type CreatorValue } from './CreatorPicker'
 import type { ActionResult } from '../actions'
 
 const DEFAULT_WORK_FILTER_TAGS = ['Video', 'Graphic', 'Web', 'Motion', 'Photo', 'AI']
@@ -37,7 +38,19 @@ interface WorkItem {
   description: string | null
   description_en: string | null
   related_links: RelatedLink[] | null
+  /** 제작자 목록 (creators 컬럼 — 마이그레이션 전에는 없음) */
+  creators?: CreatorValue[] | null
   created_at: string
+}
+
+/** 수정할 작품의 제작자 초기값 — creators 가 없으면 author 를 쉼표로 나눠 이름만 */
+function initialCreators(work: WorkItem | null): CreatorValue[] {
+  if (!work) return []
+  if (work.creators && work.creators.length) return work.creators
+  return (work.author ?? '')
+    .split(/\s*[,，·&]\s*/)
+    .filter(Boolean)
+    .map((name) => ({ name, student_id: null, student_no: null }))
 }
 
 // ── 작업물 폼 ─────────────────────────────────────────────
@@ -138,7 +151,7 @@ function WorkForm({
       <h4 className="font-body font-semibold text-sm text-white">{work ? '작업물 수정' : '새 작업물 추가'}</h4>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>제작자 *</Label><Input name="author" defaultValue={work?.author ?? ''} placeholder="여러 명이면 쉼표로 구분 (예: 홍길동, 김민지)" required /></div>
+          <div className="md:col-span-2"><Label>제작자 *</Label><CreatorPicker key={work?.id ?? 'new'} initial={initialCreators(work)} /></div>
           <div><Label>제작 연도 *</Label><Input name="year" type="number" defaultValue={work?.year ?? new Date().getFullYear()} required /></div>
         </div>
 
@@ -362,7 +375,7 @@ export default function WorkTab() {
       const supabase = createClient()
       const { data } = await supabase
         .from('showcase_works')
-        .select('id, title, title_en, author, year, type, tech_stack, thumbnail_url, video_embed, model_embed, images, description, description_en, related_links, created_at')
+        .select('*') // creators 컬럼은 마이그레이션 후에만 있으므로 열 이름을 고정하지 않는다
         .order('created_at', { ascending: false })
         .limit(50)
       setWorks((data ?? []) as WorkItem[])

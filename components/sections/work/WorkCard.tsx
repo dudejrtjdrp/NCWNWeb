@@ -11,7 +11,8 @@
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { cn } from '@/lib/utils'
-import { splitCreators, type WorkListItem, type WorkType } from '@/lib/supabase/queries/works'
+import type { WorkListItem, WorkType } from '@/lib/supabase/queries/works'
+import { creatorRefs } from '@/lib/work-creators'
 
 export interface WorkCardProps {
   work: WorkListItem
@@ -75,7 +76,7 @@ export default function WorkCard({ work, typeLabel, priority, variant = 'grid', 
             </span>
           </div>
           <p className="mt-1 text-body-sm">
-            {splitCreators(work.author).join(', ')} · {work.year}
+            {creatorRefs(work).map((c) => c.name).join(', ')} · {work.year}
           </p>
           {fields && <p className="mt-0.5 text-body-sm text-nwcn-neutral-600">{fields}</p>}
         </div>

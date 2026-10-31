@@ -278,6 +278,76 @@ export async function uploadArticleImage(
 // WORK
 // ════════════════════════════════════════════════════════
 
+// ── 작품 제작자 (여러 명 · 학생 DB 연결) ─────────────────────────
+// 폼은 creators(JSON) 를 보낸다: [{ name, student_id, student_no }]
+// author 는 이름을 쉼표로 이은 표시용 문자열로 함께 저장한다(목록·검색용).
+
+export interface WorkCreatorInput {
+  name: string
+  student_id: string | null
+  student_no: string | null
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function parseCreators(formData: FormData): WorkCreatorInput[] | { error: string } {
+  const raw = formData.get('creators') as string | null
+  let list: unknown = []
+  if (raw) {
+    try {
+      list = JSON.parse(raw)
+    } catch {
+      return { error: '제작자 목록을 읽지 못했습니다.' }
+    }
+  } else {
+    // 예전 폼 호환: author 문자열을 쉼표로 나눔
+    list = ((formData.get('author') as string) ?? '')
+      .split(/\s*[,，·&]\s*/)
+      .filter(Boolean)
+      .map((name) => ({ name }))
+  }
+  if (!Array.isArray(list)) return { error: '제작자 목록 형식이 올바르지 않습니다.' }
+  const out: WorkCreatorInput[] = []
+  for (const item of list.slice(0, 30)) {
+    const name = String((item as { name?: unknown })?.name ?? '').trim()
+    if (!name) continue
+    if (name.length > 50) return { error: '제작자 이름은 50자 이내로 입력해주세요.' }
+    const sid = (item as { student_id?: unknown }).student_id
+    const sno = (item as { student_no?: unknown }).student_no
+    out.push({
+      name,
+      student_id: typeof sid === 'string' && UUID_RE.test(sid) ? sid : null,
+      student_no: typeof sno === 'string' && sno.trim() ? sno.trim().slice(0, 30) : null,
+    })
+  }
+  if (out.length === 0) return { error: '제작자를 한 명 이상 추가해주세요.' }
+  return out
+}
+
+/** creators 컬럼이 아직 없을 때(마이그레이션 전) 나는 오류인지 */
+function isMissingCreatorsColumn(message: string | undefined): boolean {
+  return !!message && /creators/.test(message) && /(column|schema cache)/i.test(message)
+}
+
+/** 관리자 — 학생 검색 (이름 또는 학번 일부). 학생 DB 가 아직 없으면 missing: true */
+export async function searchStudents(
+  q: string
+): Promise<{ items: { id: string; name: string; student_no: string | null }[]; missing?: boolean } | { error: string }> {
+  const supabase = createClient()
+  const authError = await requireAuth(supabase)
+  if (authError) return authError
+  const term = q.trim().replace(/[%_,()]/g, '').slice(0, 30)
+  let query = supabase.from('students').select('id, name, student_no').order('name').limit(8)
+  if (term) query = query.or(`name.ilike.%${term}%,student_no.ilike.%${term}%`)
+  const { data, error } = await query
+  if (error) {
+    if (/students/.test(error.message)) return { items: [], missing: true }
+    logError('[searchStudents]', error.message)
+    return { error: '학생 목록을 불러오지 못했습니다.' }
+  }
+  return { items: (data ?? []) as { id: string; name: string; student_no: string | null }[] }
+}
+
 export async function saveWork(_: unknown, formData: FormData): Promise<ActionResult> {
   const supabase = createClient()
   const authError = await requireAuth(supabase)
@@ -285,7 +355,9 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
 
   const title          = (formData.get('title')          as string)?.trim()
   const title_en       = (formData.get('title_en')       as string)?.trim()
-  const author         = (formData.get('author')         as string)?.trim()
+  const creators       = parseCreators(formData)
+  if ('error' in creators) return creators
+  const author         = creators.map((c) => c.name).join(', ')
   const yearStr        = formData.get('year')             as string
   const description    = (formData.get('description')    as string)?.trim()
   const description_en = (formData.get('description_en') as string)?.trim()
@@ -341,7 +413,7 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
     images = uploaded.urls
   }
 
-  const { error } = await supabase.from('showcase_works').insert({
+  const row = {
     title, author, year, type,
     description:    description || null,
     title_en:       title_en || null,
@@ -353,7 +425,12 @@ export async function saveWork(_: unknown, formData: FormData): Promise<ActionRe
     model_embed,
     images,
     view_count: 0,
-  })
+  }
+  let { error } = await supabase.from('showcase_works').insert({ ...row, creators })
+  // creators 컬럼이 아직 없으면(마이그레이션 전) 이름 문자열만 저장
+  if (error && isMissingCreatorsColumn(error.message)) {
+    ;({ error } = await supabase.from('showcase_works').insert(row))
+  }
 
   if (error) {
     logError('[saveWork] DB 저장 실패', error.message)
@@ -374,7 +451,9 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
 
   const title          = (formData.get('title')          as string)?.trim()
   const title_en       = (formData.get('title_en')       as string)?.trim()
-  const author         = (formData.get('author')         as string)?.trim()
+  const creators       = parseCreators(formData)
+  if ('error' in creators) return creators
+  const author         = creators.map((c) => c.name).join(', ')
   const yearStr        = formData.get('year')             as string
   const description    = (formData.get('description')    as string)?.trim()
   const description_en = (formData.get('description_en') as string)?.trim()
@@ -457,7 +536,11 @@ export async function updateWork(id: string, formData: FormData): Promise<Action
     updateData.model_embed = null
   }
 
-  const { error } = await supabase.from('showcase_works').update(updateData).eq('id', id)
+  let { error } = await supabase.from('showcase_works').update({ ...updateData, creators }).eq('id', id)
+  // creators 컬럼이 아직 없으면(마이그레이션 전) 이름 문자열만 저장
+  if (error && isMissingCreatorsColumn(error.message)) {
+    ;({ error } = await supabase.from('showcase_works').update(updateData).eq('id', id))
+  }
   if (error) {
     logError('[updateWork] DB 수정 실패', error.message)
     return { error: '수정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' }

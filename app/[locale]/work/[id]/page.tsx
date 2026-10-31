@@ -2,7 +2,7 @@
  * Work 세부 페이지: /work/[id] — E4 틀
  * 종이 바탕, WORK 위치·하위 메뉴 줄 → 큰 제목 + 정보표(제작·연도·유형·분야·조회) → 작품(영상/이미지/3D)
  * → 작품 소개 · 관련 링크 → 다른 작품 3개(큰 칸 1 + 작은 칸 2, 같은 제작자의 작품 먼저).
- * 제작자는 여러 명일 수 있고(author 를 쉼표로 구분), 학생 DB(students)에 있으면 포트폴리오로 연결된다.
+ * 제작자는 여러 명일 수 있고, 관리자에서 학생 DB(students)로 연결한 제작자는 포트폴리오로 이어진다.
  * 작업물 타입별 뷰어: design 이미지 갤러리 / video 영상 플레이어 / 3d iframe 임베드.
  */
 
@@ -126,7 +126,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
   const { id, locale } = await params
   const [work, more] = await Promise.all([getWorkById(id, locale), getMoreWorks(id, locale, 3)])
   if (!work) notFound()
-  const creators = await getWorkCreators(work.author)
+  const creators = await getWorkCreators(work)
 
   const t = await getTranslations({ locale, namespace: 'work.detail' })
   const TYPE_LABEL: Record<WorkType, string> = { design: t('typeDesign'), video: t('typeVideo'), '3d': t('type3d') }
