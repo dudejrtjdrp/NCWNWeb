@@ -3,7 +3,7 @@
  * 졸업생 포트폴리오 등록 — parse-submissions.mjs 다음 단계
  * ────────────────────────────────────────────────────────────
  * submissions/_parsed/<id>.json(점검 통과분)과 원본 파일을 읽어
- *  1) 원본 PDF 를 쪽 이미지(webp, 긴 변 2000px)로 바꾸고  ← poppler 의 pdftoppm 필요 (맥: brew install poppler)
+ *  1) 원본 PDF 를 쪽 이미지(webp, 긴 변 2000px)로 바꾸고(전화번호·생년월일은 자동으로 가림)  ← poppler 의 pdftoppm·pdftotext 필요 (맥: brew install poppler)
  *  2) 프로필 사진을 4:5(1200×1500) webp 로 맞추고
  *  3) 프로젝트 이미지는 학생이 따로 보낸 N-01.jpg 를 쓰고, 없으면 양식의 '이미지 쪽' PDF 쪽을 쓴다
  *  4) R2 `portfolios/{졸업연도}/{slug}/…` 에 올리고
@@ -81,14 +81,92 @@ function findFile(name) {
 
 const toWebp = (input, opts) => sharp(input).rotate().resize(opts).webp({ quality: 80 }).toBuffer()
 
-/** PDF → 쪽 이미지(webp) 배열 */
+/* 원본 쪽에 남은 개인정보 가리기 — 전화번호·생년월일(1950~2012년 연.월.일)을 PDF 글자 위치에서 찾아
+   쪽 이미지에서 그 자리만 주변 바탕색으로 덮는다. 원본 쪽은 사이트에 그대로 보이므로 학생이 지우지 못한 경우의 안전장치.
+   (PDF 파일 자체는 고치지 않는다 — 'PDF 다운로드 허용'이면 원본이 그대로 올라감) */
+const PHONE = /(?:\+?82[\s-]?)?0\d{1,2}[\s.)-]*\d{3,4}[\s.-]*\d{4}/
+const BIRTH = /(?:19[5-9]\d|200\d|201[0-2])\s*[.\-/년]\s*\d{1,2}\s*[.\-/월]\s*\d{1,2}/
+const decode = (t) => t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+
+function sensitiveBoxes(pdf) {
+  let html = ''
+  try {
+    html = execFileSync('pdftotext', ['-bbox', pdf, '-'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  } catch {
+    return []
+  }
+  const pages = []
+  for (const pm of html.matchAll(/<page width="([\d.]+)" height="([\d.]+)">([\s\S]*?)<\/page>/g)) {
+    const words = [...pm[3].matchAll(/<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">([^<]*)<\/word>/g)].map((m) => ({
+      x0: +m[1], y0: +m[2], x1: +m[3], y1: +m[4], t: decode(m[5]),
+    }))
+    const hit = new Set()
+    for (let i = 0; i < words.length; i++) {
+      for (let n = 1; n <= 4 && i + n <= words.length; n++) {
+        const group = words.slice(i, i + n)
+        const joined = group.map((w) => w.t).join(' ')
+        const m = joined.match(PHONE) || joined.match(BIRTH)
+        // 묶음 글자 대부분이 번호·날짜일 때만 (앞뒤 다른 글자까지 덮지 않게)
+        if (m && m[0].replace(/\s/g, '').length >= joined.replace(/[\s()]/g, '').length - 1) group.forEach((_, k) => hit.add(i + k))
+      }
+    }
+    pages.push({ w: +pm[1], h: +pm[2], boxes: [...hit].map((k) => words[k]) })
+  }
+  return pages
+}
+
+async function redact(png, page) {
+  if (!page || !page.boxes.length) return png
+  const meta = await sharp(png).metadata()
+  const s = meta.width / page.w
+  const rects = []
+  for (const b of page.boxes) {
+    const x = Math.max(0, Math.floor(b.x0 * s) - 2)
+    // 글자 상자 윗부분은 글꼴 여백이라 숫자보다 높다 — 위 12%는 덮지 않아 바로 위 이름표(예: '전화')를 건드리지 않는다
+    const y = Math.max(0, Math.floor((b.y0 + (b.y1 - b.y0) * 0.12) * s))
+    const w = Math.min(meta.width - x, Math.ceil((b.x1 - b.x0) * s) + 4)
+    const h = Math.min(meta.height - y, Math.ceil(b.y1 * s) + 2 - y)
+    // 바탕색: 상자 둘레(8px)에서 가장 많은 색 — 글자 색이 섞이지 않게 평균 대신 최빈값
+    const rx = Math.max(0, x - 8)
+    const ry = Math.max(0, y - 8)
+    const rw = Math.min(meta.width - rx, w + 16)
+    const rh = Math.min(meta.height - ry, h + 16)
+    const { data, info } = await sharp(png).extract({ left: rx, top: ry, width: rw, height: rh }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+    const bins = new Map()
+    for (let i = 0; i < data.length; i += info.channels) {
+      const key = ((data[i] >> 3) << 10) | ((data[i + 1] >> 3) << 5) | (data[i + 2] >> 3)
+      const e = bins.get(key) ?? { n: 0, r: 0, g: 0, b: 0 }
+      e.n++
+      e.r += data[i]
+      e.g += data[i + 1]
+      e.b += data[i + 2]
+      bins.set(key, e)
+    }
+    let best = { n: 0, r: 255, g: 255, b: 255 }
+    for (const e of bins.values()) if (e.n > best.n) best = e
+    const fill = best.n ? `rgb(${Math.round(best.r / best.n)},${Math.round(best.g / best.n)},${Math.round(best.b / best.n)})` : 'rgb(255,255,255)'
+    rects.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"/>`)
+  }
+  const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${meta.width}" height="${meta.height}">${rects.join('')}</svg>`)
+  return sharp(png).composite([{ input: svg, top: 0, left: 0 }]).png().toBuffer()
+}
+
+/** PDF → 쪽 이미지(webp) 배열 (+ 가린 곳 수) */
 async function pdfPages(pdf) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nwcn-pf-'))
   execFileSync('pdftoppm', ['-r', '110', '-png', pdf, path.join(tmp, 'p')])
   const files = fs.readdirSync(tmp).filter((f) => f.endsWith('.png')).sort()
+  const boxes = sensitiveBoxes(pdf)
   const out = []
-  for (const f of files) out.push(await toWebp(path.join(tmp, f), { width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true }))
+  const masked = []
+  for (const [i, f] of files.entries()) {
+    const n = boxes[i]?.boxes.length ?? 0
+    if (n) masked.push(`${i + 1}쪽 ${n}곳`)
+    const png = await redact(path.join(tmp, f), boxes[i])
+    out.push(await toWebp(png, { width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true }))
+  }
   fs.rmSync(tmp, { recursive: true, force: true })
+  out.masked = masked
   return out
 }
 
@@ -117,6 +195,10 @@ function videoEmbed(raw) {
   if (m) return `https://www.youtube.com/embed/${m[1]}`
   return /^https?:\/\//i.test(url) ? url : null
 }
+
+/** 양식 분야 → 쇼케이스 필터 태그(설정의 영문 태그와 같은 이름 — Video, Web …) */
+const TAG = { 영상: 'Video', 모션: 'Motion', 그래픽: 'Graphic', 웹: 'Web', 사진: 'Photo', AI: 'AI', '3D': '3D', 게임: 'Game', XR: 'XR', 'UX/UI': 'UX/UI', 사운드: 'Sound', 인터랙티브: 'Interactive', 기획: 'Planning' }
+const workTags = (fields) => [...new Set(fields.map((f) => TAG[f] ?? f))]
 
 /** 분야 → 쇼케이스 유형(video/design/3d) */
 const workType = (fields) =>
@@ -212,6 +294,7 @@ for (const rec of records) {
 
   const total = uploads.reduce((n, u) => n + u.bytes, 0)
   console.log(`• ${b.name} (${slug}) — 원본 ${pages.length}쪽 · 프로젝트 ${projects.length}개 · 올릴 파일 ${uploads.length}개 ${(total / 1024 / 1024).toFixed(1)}MB${row.email ? ' · 이메일 공개' : ''}${pdfUrl ? ' · PDF 공개' : ''}`)
+  if (pages.masked?.length) console.log(`  · 원본 쪽 개인정보 가림: ${pages.masked.join(', ')}`)
   if (!APPLY) {
     uploads.length = 0
     continue
@@ -254,7 +337,7 @@ for (const rec of records) {
       description: p.description || p.summary || null,
       description_en: p.descriptionEn || null,
       type: workType(p.fields ?? []),
-      tech_stack: p.fields ?? [],
+      tech_stack: workTags(p.fields ?? []),
       thumbnail_url: p.cover ?? p.images[0] ?? null,
       images: p.images,
       video_embed: videoEmbed(p.video),
