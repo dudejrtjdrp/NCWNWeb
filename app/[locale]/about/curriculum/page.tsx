@@ -44,6 +44,7 @@ export default async function CurriculumPage({ params }: PageProps) {
       <AboutLocalBar />
       <PosterHero
         titleEn={t.raw('heroEn') as string[]}
+        titleEnEm={6.1}
         titleKo={t('heroKo')}
         lead={t('lead')}
         slides={slides}

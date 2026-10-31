@@ -50,6 +50,7 @@ export default async function ExhibitionPage({ params }: { params: Promise<{ loc
       <WorkLocalBar />
       <PosterHero
         titleEn={t.raw('heroEn') as string[]}
+        titleEnEm={5.2}
         titleKo={t('heroKo')}
         lead={t('lead')}
         slides={slides}

@@ -46,15 +46,21 @@ export interface PosterHeroProps {
   emptyImage?: { src: string; alt: string }
   /** 사진 대신 판에 넣을 내용 (예: 다음 행사 날짜). 주면 slides 는 쓰지 않는다 */
   media?: React.ReactNode
+  /**
+   * 영문 제목 한 줄의 가로 길이(글자 크기 배수, 예: EXHIBITION ≈ 5.2).
+   * 주면 lg 이상에서 영문 제목이 판 가운데 포스터(portrait) 왼쪽 끝 24px 앞에서 멈추도록 글자를 줄인다.
+   * 어두운 판 안으로 넘어가는 건 괜찮고, 포스터만 가리지 않게 하는 용도.
+   */
+  titleEnEm?: number
   id?: string
 }
 
 const INTERVAL_MS = 6500
 
-function Title({ titleEn, titleKo }: Pick<PosterHeroProps, 'titleEn' | 'titleKo'>) {
+function Title({ titleEn, titleKo, fit }: Pick<PosterHeroProps, 'titleEn' | 'titleKo'> & { fit?: boolean }) {
   return (
     <span className="flex flex-col">
-      <span lang="en" className="block font-black text-poster-en">
+      <span lang="en" className={cn('block font-black text-poster-en', fit && 'lg:[font-size:var(--poster-en-fit)]')}>
         {titleEn.map((line) => (
           <span key={line} className="block">
             {line}
@@ -76,6 +82,7 @@ export default function PosterHero({
   emptyCaption,
   emptyImage,
   media,
+  titleEnEm,
   id = 'top',
 }: PosterHeroProps) {
   const count = slides.length
@@ -108,7 +115,16 @@ export default function PosterHero({
       id={id}
       data-no-reveal
       className="relative mx-auto flex max-w-page flex-col overflow-hidden break-keep border-t border-nwcn-dark lg:block lg:h-poster"
-      style={{ '--poster-split': `${split}%` } as CSSProperties}
+      style={
+        {
+          '--poster-split': `${split}%`,
+          // 포스터 왼쪽 끝 ≈ 60vw - 116px (판 44% 시작 · 높이 clamp(540px,46vw,660px) · 세로 포스터 기준, 1024~1440 실측)
+          // → 제목 오른쪽 끝이 그보다 24px 앞에 오도록: (60vw - 140px) / em, 페이지 최대폭(1440)에서는 735px / em
+          ...(titleEnEm
+            ? { '--poster-en-fit': `min(12.4vw, 182px, calc((60vw - 140px) / ${titleEnEm}), calc(735px / ${titleEnEm}))` }
+            : {}),
+        } as CSSProperties
+      }
     >
       {/* ── 사진 대신 직접 넣은 내용 ── */}
       {media && (
@@ -227,7 +243,7 @@ export default function PosterHero({
       {/* ── 제목: 검정 (사진 왼쪽만 보이게 잘림) ── */}
       <div className="poster-ink relative z-10 order-1 flex flex-col px-4 pb-8 pt-5 text-nwcn-dark sm:px-8 lg:absolute lg:inset-0 lg:pb-0 lg:pt-6">
         <h1 className="m-0">
-          <Title titleEn={titleEn} titleKo={titleKo} />
+          <Title titleEn={titleEn} titleKo={titleKo} fit={!!titleEnEm} />
         </h1>
         {lead && <p className="mt-5 max-w-lg whitespace-pre-line font-medium text-lead lg:mt-6">{lead}</p>}
       </div>
@@ -237,7 +253,7 @@ export default function PosterHero({
         aria-hidden="true"
         className="poster-light pointer-events-none absolute inset-0 z-10 hidden flex-col px-8 pt-6 text-white lg:flex"
       >
-        <Title titleEn={titleEn} titleKo={titleKo} />
+        <Title titleEn={titleEn} titleKo={titleKo} fit={!!titleEnEm} />
         {lead && <p className="mt-6 max-w-lg whitespace-pre-line font-medium text-lead">{lead}</p>}
       </div>
     </section>
