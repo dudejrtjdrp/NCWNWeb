@@ -10,8 +10,9 @@
  * - 6.5초마다 다음 사진으로 넘어가고, 마우스를 올리거나 키보드 포커스가 들어오면 멈춘다.
  * - 멈춤/재생 버튼 제공(WCAG 2.2.2), prefers-reduced-motion 이면 자동 넘김 없음.
  * - 모바일(<lg)은 제목 → 사진 순으로 쌓이고 글자는 모두 검정.
- * - fit 'portrait': 인물 사진·포스터처럼 잘리면 안 되는 이미지를 어두운 판 위에 통째로(contain)
- *   올린다. 사진이 없으면(slides=[]) 어두운 판에 emptyCaption 만 보여준다.
+ * - fit 'portrait': 포스터처럼 잘리면 안 되는 이미지를 판 세로 가운데에 꽉 차게(contain) 올리고
+ *   그림자를 준다. 뒤에는 같은 이미지를 크게 확대·블러·반투명으로 깔아 판을 채운다.
+ *   사진이 없으면(slides=[]) 어두운 판에 emptyCaption 만 보여준다.
  */
 
 import Image from 'next/image'
@@ -126,17 +127,24 @@ export default function PosterHero({
             className={cn('poster-slide absolute inset-0', i === index ? 'opacity-100' : 'opacity-0')}
           >
             {slide.fit === 'portrait' ? (
-              <div className="poster-portrait">
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  fill
-                  priority={i === 0}
-                  sizes="(min-width: 1024px) 36vw, 70vw"
-                  className="object-contain"
-                  style={{ objectPosition: slide.position ?? '60% 100%' }}
-                />
-              </div>
+              <>
+                {/* 뒤: 같은 포스터를 크게 확대 + 블러 + 반투명 */}
+                <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+                  <Image src={slide.src} alt="" fill sizes="30vw" className="poster-backdrop object-cover" />
+                </div>
+                {/* 앞: 세로 가운데, 칸을 꽉 채우고 그림자 */}
+                <div className="poster-portrait">
+                  <Image
+                    src={slide.src}
+                    alt={slide.alt}
+                    fill
+                    priority={i === 0}
+                    sizes="(min-width: 1024px) 40vw, 80vw"
+                    className="poster-shadow object-contain"
+                    style={{ objectPosition: slide.position ?? '50% 50%' }}
+                  />
+                </div>
+              </>
             ) : (
               <Image
                 src={slide.src}
@@ -155,7 +163,13 @@ export default function PosterHero({
             <Image src={emptyImage.src} alt={emptyImage.alt} fill sizes="(min-width: 1024px) 36vw, 70vw" className="object-contain" />
           </div>
         )}
-        <div aria-hidden="true" className="poster-shade pointer-events-none absolute inset-0" />
+        <div
+          aria-hidden="true"
+          className={cn(
+            'pointer-events-none absolute inset-0',
+            slides.some((sl) => sl.fit === 'portrait') ? 'poster-shade-soft' : 'poster-shade'
+          )}
+        />
 
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 py-1.5 pl-4 pr-2 text-body-sm sm:pl-5">
           <span className="min-w-0 truncate">{current?.caption ?? emptyCaption}</span>
