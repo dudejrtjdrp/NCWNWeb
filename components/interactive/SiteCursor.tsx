@@ -8,9 +8,9 @@
  *  - 평소(젤리): 초록 원이 살짝 늦게 따라오며 움직이는 방향으로 늘어났다 돌아온다. 가운데 작은 점이 실제 클릭 지점.
  *  - 링크·버튼 위: 원이 커지며 'VIEW' / 글 입력칸 위: 세로 막대 / 누르는 동안: 조금 작아짐
  *  - 미디어아트 위: 그 작품에 맞는 도구로 바뀐다 — 요소의 data-cursor 값
- *      brush(붓: 홈 첫 화면 유체 잉크·유화) · needle(바늘: 비눗방울) · magnet(자석: 엠블럼 점 구름)
+ *      brush(붓 크기 링: 홈 첫 화면 유체 잉크·유화) · needle(바늘: 비눗방울) · glow(초록 빛무리: 엠블럼 점 구름)
  *      hawk(매: 군무) · nib(펜촉: NCR 글자)
- *    붓 끝 색은 요소의 CSS 변수 --cursor-ink (홈에서 고른 잉크 색). 같은 요소에서 작품이 바뀌어도(스크롤) 매 프레임 다시 읽는다.
+ *    붓 링 가운데 점 색은 요소의 CSS 변수 --cursor-ink (홈에서 고른 잉크 색). 같은 요소에서 작품이 바뀌어도(스크롤) 매 프레임 다시 읽는다.
  *  - 창 밖·iframe(지도·영상) 위: 숨김(iframe 안은 그 페이지 커서)
  * 화면 전체를 덮는 레이어·blend 없이 작은 요소 몇 개의 transform 만 바꾼다(Windows + Lenis 떨림 방지).
  * 모션 최소화 설정이면 늘어나기·뒤따라오기 없이 바로 움직인다.
@@ -22,16 +22,16 @@ const INTERACTIVE =
   'a[href], button:not(:disabled), [role="button"], [role="tab"], [role="link"], [role="option"], select, summary, label[for], input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], input[type="range"], [data-cursor="link"]'
 const TEXT =
   'input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="range"]):not([type="hidden"]), textarea, [contenteditable="true"], [contenteditable=""]'
-const ARTS = ['brush', 'needle', 'magnet', 'hawk', 'nib'] as const
+const ARTS = ['brush', 'needle', 'glow', 'hawk', 'nib'] as const
 type Art = (typeof ARTS)[number]
 type Mode = 'default' | 'link' | 'text' | 'art' | 'hidden'
 
-/** 도구 그림의 클릭 지점(px, 48×48 그림 기준)과 기울기 방식 */
+/** 도구 그림의 클릭 지점(px, 그림 왼쪽 위 기준)과 기울기 방식 */
 const ART_SPEC: Record<Art, { hx: number; hy: number; tilt: 'drag' | 'heading' | 'none' }> = {
-  brush: { hx: 10.5, hy: 42, tilt: 'drag' },
+  brush: { hx: 24, hy: 24, tilt: 'none' },
   needle: { hx: 10.5, hy: 43.5, tilt: 'drag' },
   nib: { hx: 10.5, hy: 43.5, tilt: 'drag' },
-  magnet: { hx: 24, hy: 30, tilt: 'none' },
+  glow: { hx: 48, hy: 48, tilt: 'none' },
   hawk: { hx: 24, hy: 24, tilt: 'heading' },
 }
 
@@ -231,16 +231,11 @@ export default function SiteCursor() {
         <span className="sc-bar" />
       </div>
       <div ref={artRef} className="sc-art">
-        {/* 붓 — 끝은 고른 잉크 색 */}
-        <svg className="sc-tool sc-brush" viewBox="0 0 64 64" width="48" height="48">
-          <g transform="rotate(38 14 56)">
-            <rect x="11.5" y="6" width="5" height="29" rx="2.5" fill="#151515" />
-            <rect x="12.6" y="9" width="1.2" height="20" rx="0.6" fill="#5b5f58" />
-            <path d="M10 34 h8 v7 h-8 z" fill="#c9cdc4" stroke="#151515" strokeWidth="1.2" />
-            <path d="M10 37 h8" stroke="#151515" strokeWidth="0.8" />
-            <path d="M10 41 C 8 46, 10 52, 14 56 C 18 52, 20 46, 18 41 Z" fill="var(--cursor-ink, #09f593)" stroke="#151515" strokeWidth="1.3" strokeLinejoin="round" />
-            <path d="M13 43 C 12.5 47, 13 51, 14 54" stroke="rgba(255,255,255,0.55)" strokeWidth="1" fill="none" strokeLinecap="round" />
-          </g>
+        {/* 붓 크기 링 — 그림 프로그램의 붓 크기 원, 가운데 점은 고른 잉크 색 */}
+        <svg className="sc-tool sc-brush" viewBox="0 0 48 48" width="48" height="48">
+          <circle cx="24" cy="24" r="17" fill="none" stroke="#f6f7f3" strokeWidth="3.2" opacity="0.9" />
+          <circle cx="24" cy="24" r="17" fill="none" stroke="#151515" strokeWidth="1.3" />
+          <circle className="sc-brush-dot" cx="24" cy="24" r="4" fill="var(--cursor-ink, #09f593)" stroke="#151515" strokeWidth="1.2" />
         </svg>
         {/* 바늘 — 실은 학과 초록 */}
         <svg className="sc-tool sc-needle" viewBox="0 0 64 64" width="48" height="48">
@@ -260,12 +255,17 @@ export default function SiteCursor() {
             <circle cx="14" cy="31" r="2.1" fill="#09f593" />
           </g>
         </svg>
-        {/* 자석 — 아래 두 극 사이가 클릭 지점 */}
-        <svg className="sc-tool sc-magnet" viewBox="0 0 48 48" width="48" height="48">
-          <path d="M9 26 V17 A15 15 0 0 1 39 17 V26 H31 V17 A7 7 0 0 0 17 17 V26 Z" fill="#09f593" stroke="#151515" strokeWidth="1.4" strokeLinejoin="round" />
-          <rect x="9" y="25" width="8" height="5.5" fill="#e8eae4" stroke="#151515" strokeWidth="1.4" />
-          <rect x="31" y="25" width="8" height="5.5" fill="#e8eae4" stroke="#151515" strokeWidth="1.4" />
-          <path className="sc-field" d="M17 36 Q24 41 31 36 M14 40 Q24 47 34 40" stroke="#058f56" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+        {/* 초록 빛무리 — 엠블럼 점이 커서 주변에서 형광으로 빛나는 효과와 이어짐 */}
+        <svg className="sc-tool sc-glow" viewBox="0 0 96 96" width="96" height="96">
+          <defs>
+            <radialGradient id="sc-glow-g">
+              <stop offset="0" stopColor="#09f593" stopOpacity="0.6" />
+              <stop offset="0.45" stopColor="#09f593" stopOpacity="0.2" />
+              <stop offset="1" stopColor="#09f593" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <circle className="sc-glow-halo" cx="48" cy="48" r="48" fill="url(#sc-glow-g)" />
+          <circle cx="48" cy="48" r="3.4" fill="#ffffff" stroke="#058f56" strokeWidth="1.4" />
         </svg>
         {/* 매 — 위에서 본 날개 편 모습, 나는 방향을 본다 */}
         <svg className="sc-tool sc-hawk" viewBox="0 0 48 48" width="48" height="48">

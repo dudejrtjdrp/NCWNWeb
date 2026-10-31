@@ -10,7 +10,7 @@
  *    모바일은 패널 대신 둥근 카드로 줄어든 뒤 페이지와 함께 올라간다.
  *
  * 커서가 움직이는 동안은 커서만 잉크를 움직이고, 커서가 없거나 멈추면 보이지 않는 붓 하나가 잔잔하게 휘저어 멈추지 않는다.
- * 마우스 기기에서는 커서가 지금 보이는 작품에 맞는 도구로 바뀐다(상자의 data-cursor — 붓·자석·매·펜촉·바늘).
+ * 마우스 기기에서는 커서가 지금 보이는 작품에 맞는 도구로 바뀐다(상자의 data-cursor — 붓 링·빛무리·매·펜촉·바늘).
  * prefers-reduced-motion(동작 줄이기)이면 붓을 더 느리고 옅게 하고 섹션 물결을 끈다. 스크롤 전환은 스크롤을 그대로 따라간다.
  * 매 프레임 setState를 하지 않고 상자·히어로·헤더 스타일을 ref로 직접 갱신한다(끊김 방지).
  */
@@ -35,8 +35,8 @@ const SECTION_LAYER: readonly LayerKey[] = ['crest', 'brush', 'flock', 'letters'
 const LAYERS: readonly LayerKey[] = ['fluid', 'crest', 'brush', 'flock', 'letters', 'bubbles']
 const FADE_S = 0.7
 /** 패널 미디어아트별 커서 도구 (components/interactive/SiteCursor 가 data-cursor 로 읽음)
- *  첫 화면 유체 잉크·유화 붓결은 붓(끝은 고른 잉크 색), 엠블럼 점 구름은 자석, 군무는 매, NCR 글자는 펜촉, 비눗방울은 바늘 */
-const LAYER_CURSOR: Record<LayerKey, string> = { fluid: 'brush', crest: 'magnet', brush: 'brush', flock: 'hawk', letters: 'nib', bubbles: 'needle' }
+ *  첫 화면 유체 잉크·유화 붓결은 붓 크기 링(가운데는 고른 잉크 색), 엠블럼 점 구름은 초록 빛무리, 군무는 매, NCR 글자는 펜촉, 비눗방울은 바늘 */
+const LAYER_CURSOR: Record<LayerKey, string> = { fluid: 'brush', crest: 'glow', brush: 'brush', flock: 'hawk', letters: 'nib', bubbles: 'needle' }
 
 export interface FluidHomeProps {
   brand: string
