@@ -381,10 +381,13 @@ html.lenis body { height: auto; }
 /* ── 상세페이지 본문 (흰 배경) ──────────────────────────── */
 .article-body {
   font-family: 'Pretendard', sans-serif;
-  color: #4a4949;
-  font-size: 16px;
+  color: #2b2b2b;
+  font-size: 17px;
   line-height: 1.85;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
+.article-body > :first-child { margin-top: 0; }
 .article-body h2 { font-size: 26px; font-weight: 700; color: #151515; margin: 2.4em 0 0.8em; line-height: 1.3; }
 .article-body h3 { font-size: 20px; font-weight: 700; color: #151515; margin: 1.8em 0 0.6em; line-height: 1.35; }
 .article-body p { margin: 0 0 1.1em; }
@@ -396,20 +399,20 @@ html.lenis body { height: auto; }
 .article-body ol { list-style: decimal; }
 .article-body li { margin: 0.35em 0; }
 .article-body blockquote {
-  border-left: 3px solid #09F593;
+  border-left: 2px solid #151515;
   padding: 0.2em 0 0.2em 1.1em;
   margin: 1.5em 0;
-  color: #6b6a6a;
-  font-style: italic;
+  color: #151515;
+  font-weight: 500;
 }
 .article-body img, .article-body .article-img {
   max-width: 100%;
   height: auto;
-  border-radius: 12px;
+  border-radius: 0;
   margin: 1.8em auto;
   display: block;
 }
-.article-body hr { border: 0; border-top: 1px solid rgba(0,0,0,0.1); margin: 2em 0; }
+.article-body hr { border: 0; border-top: 1px solid var(--color-rule, #CFD2CA); margin: 2em 0; }
 
 /* 영상 임베드 (16:9 반응형) — 본문/에디터 공통 */
 .article-embed {
@@ -421,6 +424,7 @@ html.lenis body { height: auto; }
   overflow: hidden;
   background: #000;
 }
+.article-body .article-embed { border-radius: 0; }
 .article-embed iframe {
   position: absolute;
   inset: 0;

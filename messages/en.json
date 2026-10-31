@@ -610,7 +610,56 @@
       "sidebarPublishedAt": "Published",
       "sidebarRelated": "Related Articles",
       "sectionTags": "Tags",
-      "backToList": "Back to Reports"
+      "backToList": "Back to Reports",
+      "other": "More reports",
+      "season": "Season"
+    },
+    "nav": {
+      "section": "NCR TREND",
+      "breadcrumb": "Breadcrumb",
+      "menu": "NCR TREND menu",
+      "toc": "On this page",
+      "latest": "Latest",
+      "archive": "Archive",
+      "more": "More in NCR TREND",
+      "event": "Events",
+      "showcase": "Showcase",
+      "admission": "Admissions"
+    },
+    "heroLabels": {
+      "prev": "Previous photo",
+      "next": "Next photo",
+      "pause": "Pause slideshow",
+      "play": "Play slideshow"
+    },
+    "latestPage": {
+      "heroEn": [
+        "NCR",
+        "TREND"
+      ],
+      "heroKo": "최신 리포트",
+      "lead": "Stories reported and written\nby NCR, our student press team.",
+      "region": "Report photos",
+      "emptyCaption": "Reports are on the way",
+      "newest": "Latest",
+      "others": "Earlier reports",
+      "toArchive": "See the full archive",
+      "read": "Read",
+      "readTime": "{time} read",
+      "count": "{n}",
+      "empty": "No reports have been added yet."
+    },
+    "archivePage": {
+      "heroEn": [
+        "ARCHIVE"
+      ],
+      "heroKo": "아카이브",
+      "lead": "Every NCR report,\ngrouped by season.",
+      "region": "Report photos",
+      "emptyCaption": "Reports are on the way",
+      "count": "{n}",
+      "other": "Other",
+      "empty": "No reports have been added yet."
     }
   },
   "info": {
@@ -739,6 +788,60 @@
           "content": "We have designated a privacy officer to oversee all privacy-related matters and handle complaints and remedies.\n\n- Department: New Media Contents\n- Email: nwcn@dba.ac.kr"
         }
       ]
+    },
+    "nav": {
+      "section": "INFO",
+      "breadcrumb": "Breadcrumb",
+      "menu": "INFO menu",
+      "toc": "On this page",
+      "admission": "Admissions",
+      "contact": "Contact",
+      "privacy": "Privacy Policy",
+      "more": "More in INFO",
+      "department": "Department",
+      "curriculum": "Curriculum",
+      "faculty": "Faculty",
+      "showcase": "Showcase"
+    },
+    "heroLabels": {
+      "prev": "Previous photo",
+      "next": "Next photo",
+      "pause": "Pause slideshow",
+      "play": "Play slideshow"
+    },
+    "admissionPage": {
+      "heroEn": [
+        "ADMISSION"
+      ],
+      "heroKo": "입학 안내",
+      "lead": "How to join\nNew Media Contents.",
+      "region": "Department photos",
+      "slides": [
+        {
+          "alt": "Students in front of the Boseong media façade",
+          "caption": "Boseong Media Façade Workshop (2026)"
+        },
+        {
+          "alt": "Students at the RMIT Vietnam global workshop",
+          "caption": "RMIT Global Workshop (2026)"
+        },
+        {
+          "alt": "Students holding the department banner",
+          "caption": "Department MT (2026)"
+        }
+      ],
+      "official": "Admissions office",
+      "officialText": "Check the latest guidelines and schedules\non the university admissions website.",
+      "contactCta": "Ask about admissions"
+    },
+    "contactPage": {
+      "heroEn": [
+        "CONTACT"
+      ],
+      "heroKo": "문의",
+      "lead": "Department and admissions contacts,\nand how to get here.",
+      "contacts": "Contacts",
+      "mapLink": "Open larger map"
     }
   },
   "notFound": {
@@ -746,6 +849,12 @@
     "description1": "We're sorry. The page could not be found.",
     "description2": "The address you entered may be incorrect or the page may have been moved. Please use the buttons below to navigate.",
     "goHome": "Go Home",
-    "goBack": "← Go Back"
+    "goBack": "Go back",
+    "headline": "Page not found",
+    "links": "Popular pages",
+    "department": "Department",
+    "showcase": "Showcase",
+    "event": "Events",
+    "admission": "Admissions"
   }
 }

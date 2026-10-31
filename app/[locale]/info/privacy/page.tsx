@@ -1,90 +1,71 @@
-import SubPageLayout from '@/components/layout/SubPageLayout'
-import InfoHero from '@/components/base/InfoHero'
-import SubNav from '@/components/common/SubNav'
-import { INFO_NAV_ITEMS } from '@/constants/nav-items'
+/**
+ * INFO/Privacy 개인정보처리방침 — E4 틀
+ * 법적 고지라 사진 히어로 없이: 큰 제목 + 최종 수정일 정보표 → 조항마다 번호 · 제목 · 내용 한 줄 → 문의 안내.
+ */
+
+import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import SubPageLayout from '@/components/layout/SubPageLayout'
+import MoreLinks from '@/components/sections/editorial/MoreLinks'
+import { InfoTable } from '@/components/sections/editorial/DetailParts'
+import InfoLocalBar from '@/components/sections/info/InfoLocalBar'
 
-interface Section {
-  title: string
-  content: string
+export const metadata: Metadata = {
+  title: '개인정보처리방침',
+  description: '동아방송예술대학교 뉴미디어콘텐츠과 홈페이지 개인정보처리방침.',
+  alternates: { canonical: '/info/privacy' },
 }
 
-interface PageProps {
-  params: Promise<{ locale: string }>
-}
+const PRIVACY_EMAIL = 'nwcn@dba.ac.kr'
 
-export default async function PrivacyPage({ params }: PageProps) {
+export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'info.privacy' })
-
-  const sections = t.raw('sections') as Section[]
+  const [t, nav] = await Promise.all([
+    getTranslations({ locale, namespace: 'info.privacy' }),
+    getTranslations({ locale, namespace: 'info.nav' }),
+  ])
+  const sections = t.raw('sections') as { title: string; content: string }[]
 
   return (
-    <SubPageLayout>
-      {/* 히어로 */}
-      <InfoHero />
-
-      {/* 서브 탭 */}
-      <SubNav items={INFO_NAV_ITEMS} />
-
-      {/* 섹션 타이틀 */}
-      <div className="bg-white pt-section-sm pb-6 text-center">
-        <p className="section-label">PRIVACY</p>
-      </div>
-
-      <div className="bg-white pb-section-lg">
-        <div className="page-container">
-          {/* 상단 안내 */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-12 pb-8 border-b border-nwcn-neutral-200">
-            <div>
-              <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">LEGAL</p>
-              <h1 className="font-brand font-bold text-page-1 text-nwcn-text-default">{t('heading')}</h1>
+    <SubPageLayout tone="paper">
+      <InfoLocalBar />
+      <div className="mx-auto max-w-page border-t border-nwcn-dark">
+        <div className="editorial-container">
+          <header className="grid grid-cols-12 gap-x-6 gap-y-8 pt-10 lg:pt-14">
+            <h1 className="col-span-12 m-0 break-words font-extrabold text-headline lg:col-span-8">{t('heading')}</h1>
+            <div className="col-span-12 self-end lg:col-span-4">
+              <InfoTable rows={[{ label: t('lastModifiedLabel'), value: t('lastModified') }]} />
             </div>
-            <div className="text-right">
-              <p className="font-body text-caption text-nwcn-neutral-400">{t('lastModifiedLabel')}</p>
-              <p className="font-body text-body-sm font-medium text-nwcn-neutral-500">{t('lastModified')}</p>
-            </div>
-          </div>
+          </header>
 
-          {/* 조항 목록 */}
-          <div className="max-w-prose space-y-6">
-            {sections.map((section, idx) => (
-              <div
-                key={idx}
-                className="border border-nwcn-neutral-200 rounded-panel overflow-hidden hover:border-nwcn-green/20 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn"
-              >
-                {/* 조항 헤더 */}
-                <div className="flex items-center gap-5 px-8 py-5 border-b border-nwcn-neutral-200 bg-nwcn-neutral-50">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-nwcn-green/10 flex items-center justify-center">
-                    <span className="font-brand font-bold text-caption text-nwcn-green">
-                      {String(idx + 1).padStart(2, '0')}
-                    </span>
-                  </span>
-                  <h2 className="font-body font-semibold text-body text-nwcn-text-default">
-                    {section.title}
-                  </h2>
-                </div>
-
-                {/* 내용 */}
-                <div className="px-8 py-6">
-                  <p className="font-body text-body-sm text-nwcn-neutral-600 leading-relaxed whitespace-pre-line">
-                    {section.content}
-                  </p>
-                </div>
-              </div>
+          <ol className="mt-chapter border-b border-nwcn-dark">
+            {sections.map((s, i) => (
+              <li key={i} className="grid grid-cols-12 gap-x-6 gap-y-3 border-t border-nwcn-dark py-7">
+                <span aria-hidden="true" className="col-span-2 font-black tabular-nums text-statement lg:col-span-1">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h2 className="col-span-10 m-0 font-bold text-statement lg:col-span-4">{s.title}</h2>
+                <p className="col-span-12 whitespace-pre-line text-list lg:col-span-7">{s.content}</p>
+              </li>
             ))}
-          </div>
+          </ol>
 
-          {/* 하단 안내 */}
-          <div className="max-w-prose mt-10 p-6 rounded-panel bg-nwcn-neutral-50 border border-nwcn-neutral-200">
-            <p className="font-body text-caption text-nwcn-neutral-500 leading-relaxed">
-              {t('footerNote')}{' '}
-              <a href="mailto:nwcn@dba.ac.kr" className="text-nwcn-green underline underline-offset-2">
-                nwcn@dba.ac.kr
-              </a>
-            </p>
-          </div>
+          <p className="mt-8 max-w-3xl text-list text-nwcn-neutral-600">
+            {t('footerNote')}{' '}
+            <a href={`mailto:${PRIVACY_EMAIL}`} className="editorial-link font-semibold text-nwcn-dark">
+              {PRIVACY_EMAIL}
+            </a>
+          </p>
 
+          <MoreLinks
+            label={nav('more')}
+            links={[
+              { href: '/info/admission', label: nav('admission') },
+              { href: '/info/contact', label: nav('contact') },
+              { href: '/about/department', label: nav('department') },
+              { href: '/work/showcase', label: nav('showcase') },
+            ]}
+          />
         </div>
       </div>
     </SubPageLayout>

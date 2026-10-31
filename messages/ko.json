@@ -610,7 +610,56 @@
       "sidebarPublishedAt": "발행일",
       "sidebarRelated": "관련 아티클",
       "sectionTags": "태그",
-      "backToList": "리포트 목록으로"
+      "backToList": "리포트 목록으로",
+      "other": "다른 리포트",
+      "season": "시즌"
+    },
+    "nav": {
+      "section": "NCR TREND",
+      "breadcrumb": "현재 위치",
+      "menu": "NCR TREND 하위 메뉴",
+      "toc": "이 페이지 목차",
+      "latest": "최신 리포트",
+      "archive": "아카이브",
+      "more": "NCR TREND 다른 페이지",
+      "event": "행사",
+      "showcase": "작품 쇼케이스",
+      "admission": "입학 안내"
+    },
+    "heroLabels": {
+      "prev": "이전 사진",
+      "next": "다음 사진",
+      "pause": "자동 넘김 멈춤",
+      "play": "자동 넘김 시작"
+    },
+    "latestPage": {
+      "heroEn": [
+        "NCR",
+        "TREND"
+      ],
+      "heroKo": "최신 리포트",
+      "lead": "학과 기자단 NCR이 직접 취재하고\n정리한 이야기입니다.",
+      "region": "리포트 사진",
+      "emptyCaption": "리포트를 준비하고 있습니다",
+      "newest": "최신",
+      "others": "지난 리포트",
+      "toArchive": "아카이브 전체 보기",
+      "read": "읽기",
+      "readTime": "{time} 읽기",
+      "count": "{n}편",
+      "empty": "등록된 리포트가 아직 없습니다."
+    },
+    "archivePage": {
+      "heroEn": [
+        "ARCHIVE"
+      ],
+      "heroKo": "아카이브",
+      "lead": "NCR 리포트를 시즌별로\n모두 모았습니다.",
+      "region": "리포트 사진",
+      "emptyCaption": "리포트를 준비하고 있습니다",
+      "count": "{n}편",
+      "other": "기타",
+      "empty": "등록된 리포트가 아직 없습니다."
     }
   },
   "info": {
@@ -739,6 +788,60 @@
           "content": "개인정보 처리에 관한 업무를 총괄하여 처리하고, 개인정보 처리와 관련한 정보주체의 불만처리 및 피해구제 등을 위해 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.\n\n- 담당부서: 뉴미디어콘텐츠과\n- 이메일: nwcn@dba.ac.kr"
         }
       ]
+    },
+    "nav": {
+      "section": "INFO",
+      "breadcrumb": "현재 위치",
+      "menu": "INFO 하위 메뉴",
+      "toc": "이 페이지 목차",
+      "admission": "입학 안내",
+      "contact": "문의",
+      "privacy": "개인정보처리방침",
+      "more": "INFO 다른 페이지",
+      "department": "학과 소개",
+      "curriculum": "교육과정",
+      "faculty": "교수진",
+      "showcase": "작품 쇼케이스"
+    },
+    "heroLabels": {
+      "prev": "이전 사진",
+      "next": "다음 사진",
+      "pause": "자동 넘김 멈춤",
+      "play": "자동 넘김 시작"
+    },
+    "admissionPage": {
+      "heroEn": [
+        "ADMISSION"
+      ],
+      "heroKo": "입학 안내",
+      "lead": "뉴미디어콘텐츠과에 들어오는 길을\n정리했습니다.",
+      "region": "학과 사진",
+      "slides": [
+        {
+          "alt": "보성다향대축제 미디어파사드 앞에 모인 학생들",
+          "caption": "보성다향대축제 미디어파사드 워크숍 (2026)"
+        },
+        {
+          "alt": "베트남 RMIT 대학교 글로벌 워크숍에 참여한 학생들",
+          "caption": "RMIT 글로벌 워크숍 (2026)"
+        },
+        {
+          "alt": "학과 현수막을 들고 모인 학생들",
+          "caption": "뉴미디어콘텐츠과 MT (2026)"
+        }
+      ],
+      "official": "입학처",
+      "officialText": "최신 모집요강과 전형 일정은\n학교 입학처에서 확인하세요.",
+      "contactCta": "입학 문의"
+    },
+    "contactPage": {
+      "heroEn": [
+        "CONTACT"
+      ],
+      "heroKo": "문의",
+      "lead": "학과·입학 문의와\n찾아오는 길입니다.",
+      "contacts": "연락처",
+      "mapLink": "지도 크게 보기"
     }
   },
   "notFound": {
@@ -746,6 +849,12 @@
     "description1": "죄송합니다. 페이지를 찾을 수 없습니다.",
     "description2": "입력하신 주소가 잘못되었거나 변경되어 페이지가 존재하지 않습니다. 아래 버튼을 이용해 이동해 주세요.",
     "goHome": "메인으로",
-    "goBack": "← 이전으로"
+    "goBack": "이전으로",
+    "headline": "페이지를 찾을 수 없습니다",
+    "links": "자주 찾는 곳",
+    "department": "학과 소개",
+    "showcase": "작품 쇼케이스",
+    "event": "행사",
+    "admission": "입학 안내"
   }
 }

@@ -1,18 +1,21 @@
 /**
- * NCR Trend 아티클 세부 페이지: /ncr-trend/[id]
- * Server Component — Supabase에서 단일 리포트 fetch
+ * NCR TREND 기사 상세: /ncr-trend/[id] — E4 틀
+ * 종이 바탕, NCR TREND 위치·하위 메뉴 줄 → 큰 제목(위에 유형·시즌, 아래 설명) + 정보표
+ * → 대표 사진(블러 배경) → 본문 | 태그 → 다른 리포트 3개(관련 기사 먼저).
  */
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import SubPageLayout from '@/components/layout/SubPageLayout'
-import Badge from '@/components/ui/Badge'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { getNcrReportById, getRelatedNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 import { getTranslations } from 'next-intl/server'
+import SubPageLayout from '@/components/layout/SubPageLayout'
+import { Link } from '@/i18n/navigation'
+import NcrLocalBar from '@/components/sections/ncr/NcrLocalBar'
+import { DetailMedia, InfoTable } from '@/components/sections/editorial/DetailParts'
+import { reportDate, typeLabelMap } from '@/components/sections/ncr/report-utils'
+import { getNcrReportById, getNcrReports, getRelatedNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 import { sanitizeArticleHtml, isHtmlContent } from '@/lib/sanitize'
 import { breadcrumbLd } from '@/lib/seo/structured-data'
-import Image from 'next/image'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
@@ -65,61 +68,46 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 }
 
-// 간단한 마크다운 → JSX 변환 (## 헤더, 단락)
+/** 옛 마크다운 본문(## 제목, 단락) → JSX */
 function renderContent(content: string) {
-  const lines = content.split('\n')
-  const elements: React.ReactNode[] = []
-  let key = 0
-
-  for (const line of lines) {
-    if (line.startsWith('## ')) {
-      elements.push(
-        <h2 key={key++} className="font-body font-bold text-section text-nwcn-text-default mt-10 mb-4">
-          {line.replace('## ', '')}
-        </h2>
-      )
-    } else if (line.trim() === '') {
-      elements.push(<div key={key++} className="h-4" />)
-    } else {
-      elements.push(
-        <p key={key++} className="font-body text-body text-nwcn-text-muted leading-[1.85] mb-1">
-          {line}
-        </p>
-      )
-    }
-  }
-
-  return elements
+  return content.split('\n').map((line, i) => {
+    if (line.startsWith('## ')) return <h2 key={i}>{line.replace('## ', '')}</h2>
+    if (line.trim() === '') return null
+    return <p key={i}>{line}</p>
+  })
 }
 
-interface PageProps {
-  params: Promise<{ id: string; locale: string }>
-}
-
-export default async function ArticleDetailPage({ params }: PageProps) {
+export default async function ArticleDetailPage({ params }: { params: Promise<{ id: string; locale: string }> }) {
   const { id, locale } = await params
   const article = await getNcrReportById(id, locale)
   if (!article) notFound()
 
-  const t = await getTranslations({ locale, namespace: 'ncr.detail' })
-  const relatedArticles = await getRelatedNcrReports(article.related_ids ?? [], locale)
-
-  // 타입 레이블 — 유형 관리(설정)에서 등록한 라벨 + 기본 유형은 번역 우선
-  const articleTypes = await getArticleTypes()
-  const TYPE_LABELS: Record<string, string> = Object.fromEntries(
-    articleTypes.map((at) => [at.value, at.label])
-  )
-  TYPE_LABELS.editorial = t('typeEditorial')
-  TYPE_LABELS.trend = t('typeTrend')
-  TYPE_LABELS.card_news = t('typeCardNews')
-
-  // 날짜 포맷
-  const dateLocale = locale === 'en' ? 'en-US' : 'ko-KR'
-  const formattedDate = new Date(article.published_at).toLocaleDateString(dateLocale, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  const [t, tl, related, all, articleTypes] = await Promise.all([
+    getTranslations({ locale, namespace: 'ncr.detail' }),
+    getTranslations({ locale, namespace: 'ncr.latestPage' }),
+    getRelatedNcrReports(article.related_ids ?? [], locale),
+    getNcrReports(locale),
+    getArticleTypes(),
+  ])
+  const types = typeLabelMap(articleTypes, {
+    editorial: t('typeEditorial'),
+    trend: t('typeTrend'),
+    card_news: t('typeCardNews'),
   })
+  const typeLabel = types[article.type] ?? article.type
+
+  // 다른 리포트: 관리자가 고른 관련 기사 먼저, 모자라면 최신 순으로 채워 3개
+  const others = [...related, ...all.filter((r) => !related.some((x) => x.id === r.id))]
+    .filter((r) => r.id !== article.id)
+    .slice(0, 3)
+
+  const rows = [
+    ...(article.author ? [{ label: t('labelAuthor'), value: article.author }] : []),
+    { label: t('labelPublishedAt'), value: <span className="tabular-nums">{reportDate(article.published_at)}</span> },
+    ...(article.read_time ? [{ label: t('labelReadTime'), value: article.read_time }] : []),
+    { label: t('sidebarType'), value: typeLabel },
+    ...(article.season ? [{ label: t('season'), value: article.season }] : []),
+  ]
 
   /** Article JSON-LD 구조화 데이터 */
   const jsonLd = {
@@ -140,226 +128,103 @@ export default async function ArticleDetailPage({ params }: PageProps) {
     url: `${SITE_URL}/ncr-trend/${article.id}`,
     ...(article.thumbnail_url ? { image: article.thumbnail_url } : {}),
     keywords: article.tags?.join(', ') ?? '',
-    articleSection: TYPE_LABELS[article.type] ?? article.type,
+    articleSection: typeLabel,
     inLanguage: locale === 'en' ? 'en-US' : 'ko-KR',
   }
-
-  /** BreadcrumbList JSON-LD — 페이지 계층 경로 */
   const breadcrumbJsonLd = breadcrumbLd([
     { name: 'NCR TREND', path: '/ncr-trend/latest' },
     { name: article.title, path: `/ncr-trend/${article.id}` },
   ])
 
   return (
-    <SubPageLayout>
-      {/* JSON-LD 구조화 데이터 (Article + Breadcrumb) */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
+    <SubPageLayout tone="paper">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <NcrLocalBar />
 
-      {/* ── 아티클 히어로 ── */}
-      <div className="bg-nwcn-dark pt-section-md pb-0">
-        <div className="page-container pt-12 pb-0">
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-caption font-body text-white/30 mb-8">
-            <Link href="/ncr-trend/latest" className="hover:text-white/60 transition-colors duration-fast ease-nwcn">
-              NCR TREND
-            </Link>
-            <span>/</span>
-            <Badge variant="green">{TYPE_LABELS[article.type] ?? article.type}</Badge>
-          </nav>
-
-          {/* 시즌 */}
-          {article.season && (
-            <p className="font-body text-caption text-nwcn-green/60 tracking-widest uppercase mb-4">
-              {article.season}
-            </p>
-          )}
-
-          {/* 제목 */}
-          <h1 className="font-body font-bold text-page-1 text-white leading-[1.15] mb-6 max-w-prose">
-            {article.title}
-          </h1>
-
-          {/* 설명 */}
-          {article.description && (
-            <p className="font-body text-body text-white/50 leading-relaxed max-w-prose mb-10">
-              {article.description}
-            </p>
-          )}
-
-          {/* 메타 정보 */}
-          <div className="flex items-center gap-6 pb-10 border-b border-white/10">
-            {/* 저자 */}
-            {article.author && (
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-nwcn-green/20 flex items-center justify-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-green)" strokeWidth="1.5">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-body text-caption text-white/30">{t('labelAuthor')}</p>
-                  <p className="font-body text-body-sm text-white/80">{article.author}</p>
-                </div>
-              </div>
-            )}
-
-            {/* 날짜 */}
-            <div>
-              <p className="font-body text-caption text-white/30">{t('labelPublishedAt')}</p>
-              <p className="font-body text-body-sm text-white/80">{formattedDate}</p>
+      <div className="mx-auto max-w-page border-t border-nwcn-dark">
+        <div className="editorial-container pb-24">
+          {/* ── 제목 + 정보표 ── */}
+          <header className="grid grid-cols-12 gap-x-6 gap-y-8 pt-5">
+            <div className="col-span-12 flex min-w-0 flex-col lg:col-span-8">
+              <Link href="/ncr-trend/latest" className="editorial-link self-start font-semibold text-body-sm">
+                <span aria-hidden="true">← </span>
+                {t('backToList')}
+              </Link>
+              <p className="mt-10 font-semibold text-list text-nwcn-neutral-600 lg:mt-14">
+                {[typeLabel, article.season].filter(Boolean).join(' · ')}
+              </p>
+              <h1 className="m-0 mt-2 break-words font-extrabold text-headline">{article.title}</h1>
+              {article.description && <p className="mt-6 max-w-2xl font-medium text-lead">{article.description}</p>}
             </div>
+            <div className="col-span-12 self-end lg:col-span-4">
+              <InfoTable rows={rows} />
+            </div>
+          </header>
 
-            {/* 읽기 시간 */}
-            {article.read_time && (
-              <div>
-                <p className="font-body text-caption text-white/30">{t('labelReadTime')}</p>
-                <p className="font-body text-body-sm text-white/80">{article.read_time}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+          {article.thumbnail_url && (
+            <div className="mt-12">
+              <DetailMedia src={article.thumbnail_url} alt={article.title} />
+            </div>
+          )}
 
-      {/* ── 아티클 본문 ── */}
-      <div className="bg-white">
-        <div className="page-container">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 py-16">
-
-            {/* ── 메인 본문 ── */}
-            <article className="lg:col-span-3">
-              {/* 썸네일 이미지 영역 */}
-              <div className="aspect-[16/7] bg-nwcn-neutral-100 rounded-panel mb-12 flex items-center justify-center overflow-hidden relative">
-                {article.thumbnail_url ? (
-                  <Image
-                    src={article.thumbnail_url}
-                    alt={article.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 75vw"
-                    className="object-cover"
-                    priority
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-3 opacity-20">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-muted)" strokeWidth="1.2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" />
-                    </svg>
-                    <span className="font-brand text-section text-nwcn-text-muted">NCR</span>
-                  </div>
-                )}
-              </div>
-
-              {/* 본문 — 블로그 HTML(이미지·영상 임베드) 또는 레거시 마크다운 */}
+          {/* ── 본문 | 태그 ── */}
+          <div className="grid grid-cols-12 gap-x-6 gap-y-10 pt-chapter">
+            <article className="col-span-12 min-w-0 border-t border-nwcn-dark pt-8 lg:col-span-7">
               {article.content ? (
                 isHtmlContent(article.content) ? (
-                  <div
-                    className="article-body max-w-prose"
-                    dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
-                  />
+                  <div className="article-body" dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }} />
                 ) : (
-                  <div className="max-w-prose">{renderContent(article.content)}</div>
+                  <div className="article-body">{renderContent(article.content)}</div>
                 )
               ) : (
-                <p className="font-body text-body text-nwcn-text-muted leading-relaxed max-w-prose">
-                  {article.excerpt}
-                </p>
-              )}
-
-              {/* 태그 */}
-              {article.tags.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-black/10">
-                  <p className="font-body text-caption text-nwcn-text-sub mb-3">{t('sectionTags')}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {article.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="font-body text-caption px-3 py-1.5 border border-nwcn-text-sub/30 text-nwcn-text-muted rounded-full hover:border-nwcn-text-default transition-colors duration-fast ease-nwcn cursor-pointer"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-list">{article.excerpt}</p>
               )}
             </article>
-
-            {/* ── 사이드바 ── */}
-            <aside className="lg:col-span-1">
-              <div className="sticky top-24 space-y-8">
-                {/* 아티클 정보 */}
-                <div className="bg-nwcn-neutral-100 rounded-card p-5">
-                  <p className="font-body text-caption font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
-                    {t('sidebarInfo')}
-                  </p>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarType')}</p>
-                      <p className="font-body text-body-sm text-nwcn-text-muted">{TYPE_LABELS[article.type] ?? article.type}</p>
-                    </div>
-                    {article.season && (
-                      <div>
-                        <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarSeason')}</p>
-                        <p className="font-body text-body-sm text-nwcn-text-muted">{article.season}</p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-body text-caption text-nwcn-text-sub">{t('sidebarPublishedAt')}</p>
-                      <p className="font-body text-body-sm text-nwcn-text-muted">{formattedDate}</p>
-                    </div>
-                  </div>
+            {article.tags.length > 0 && (
+              <aside aria-labelledby="ncr-tags" className="col-span-12 lg:col-span-3 lg:col-start-10">
+                <div className="lg:sticky lg:top-24">
+                  <h2 id="ncr-tags" className="m-0 border-t border-nwcn-dark pt-3.5 font-bold text-section">
+                    {t('sectionTags')}
+                  </h2>
+                  <ul className="mt-4 flex flex-wrap gap-x-3 gap-y-1.5 text-body-sm text-nwcn-neutral-600">
+                    {article.tags.map((tag) => (
+                      <li key={tag}>#{tag}</li>
+                    ))}
+                  </ul>
                 </div>
-
-                {/* 관련 아티클 */}
-                {relatedArticles.length > 0 && (
-                  <div>
-                    <p className="font-body text-caption font-semibold text-nwcn-text-sub uppercase tracking-wider mb-4">
-                      {t('sidebarRelated')}
-                    </p>
-                    <div className="space-y-3">
-                      {relatedArticles.map((rel) => (
-                        <Link
-                          key={rel.id}
-                          href={`/ncr-trend/${rel.id}`}
-                          className="block p-3 rounded-card border border-black/8 hover:border-nwcn-text-sub/40 transition-colors duration-fast ease-nwcn group"
-                        >
-                          <p className="font-body text-caption text-nwcn-green mb-1">
-                            {TYPE_LABELS[rel.type] ?? rel.type}
-                          </p>
-                          <p className="font-body text-body-sm text-nwcn-text-muted group-hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn leading-snug">
-                            {rel.title}
-                          </p>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </aside>
+              </aside>
+            )}
           </div>
-        </div>
-      </div>
 
-      {/* ── 하단 네비게이션 ── */}
-      <div className="bg-white border-t border-black/10 py-8">
-        <div className="page-container flex justify-between items-center">
-          <Link
-            href="/ncr-trend/latest"
-            className="flex items-center gap-2 font-body text-body-sm text-nwcn-text-sub hover:text-nwcn-text-default transition-colors duration-fast ease-nwcn group"
-          >
-            <svg className="w-4 h-4 transition-transform duration-base ease-nwcn group-hover:-translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            {t('backToList')}
-          </Link>
+          {/* ── 다른 리포트 ── */}
+          {others.length > 0 && (
+            <section aria-labelledby="ncr-more" className="pt-chapter">
+              <h2 id="ncr-more" className="m-0 mb-6 font-extrabold text-headline">{t('other')}</h2>
+              <ul className="grid grid-cols-1 gap-x-6 gap-y-8 border-t border-nwcn-dark pt-6 sm:grid-cols-2 lg:grid-cols-3">
+                {others.map((r) => (
+                  <li key={r.id}>
+                    <Link href={`/ncr-trend/${r.id}`} className="group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark">
+                      <span className="relative block aspect-[16/10] overflow-hidden bg-nwcn-dark">
+                        {r.thumbnail_url && (
+                          <Image src={r.thumbnail_url} alt="" fill sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw" className="object-cover transition-transform duration-slow ease-nwcn group-hover:scale-[1.02]" />
+                        )}
+                      </span>
+                      <span className="mt-3 font-semibold tabular-nums text-body-sm text-nwcn-neutral-600">
+                        {[types[r.type] ?? r.type, reportDate(r.published_at)].join(' · ')}
+                      </span>
+                      <span className="mt-1 font-bold text-list decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">
+                        {r.title}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/ncr-trend/archive" className="editorial-link mt-8 inline-block font-semibold text-body-sm">
+                {tl('toArchive')} <span aria-hidden="true">→</span>
+              </Link>
+            </section>
+          )}
         </div>
       </div>
     </SubPageLayout>

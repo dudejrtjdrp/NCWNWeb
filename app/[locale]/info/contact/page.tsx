@@ -1,138 +1,124 @@
-import SubPageLayout from '@/components/layout/SubPageLayout'
-import InfoHero from '@/components/base/InfoHero'
-import SubNav from '@/components/common/SubNav'
-import Button from '@/components/ui/Button'
-import { INFO_NAV_ITEMS } from '@/constants/nav-items'
+/**
+ * INFO/Contact 문의 — E4 틀
+ * 포스터형 히어로(CONTACT / 문의) — 오른쪽 판에 사진 대신 학교 위치 지도.
+ * 제목이 지도 위로 넘어가지 않게 판 시작 위치를 60%로 둔다.
+ * → 연락처 표 → 오시는 길 표 → 아래 바로가기.
+ */
+
+import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import SubPageLayout from '@/components/layout/SubPageLayout'
+import PosterHero from '@/components/sections/about/PosterHero'
+import MoreLinks from '@/components/sections/editorial/MoreLinks'
+import InfoLocalBar from '@/components/sections/info/InfoLocalBar'
 import SchoolMap from '@/components/map/SchoolMap'
 
-interface ContactItem {
-  label: string
-  value: string
-  sub: string
+export const metadata: Metadata = {
+  title: 'CONTACT — 문의',
+  description: '동아방송예술대학교 뉴미디어콘텐츠과 연락처와 오시는 길.',
+  keywords: ['뉴미디어콘텐츠과', '문의', '연락처', '오시는 길', '동아방송예술대학교'],
+  alternates: { canonical: '/info/contact' },
+  openGraph: {
+    type: 'website',
+    title: 'CONTACT — 문의 | NWCN',
+    description: '뉴미디어콘텐츠과 연락처와 오시는 길',
+  },
 }
 
-interface DirectionItem {
-  icon: string
-  label: string
-  value: string
-}
+const MAP_URL = 'https://maps.google.com/?q=%EB%8F%99%EC%95%84%EB%B0%A9%EC%86%A1%EC%98%88%EC%88%A0%EB%8C%80%ED%95%99%EA%B5%90'
 
-interface PageProps {
-  params: Promise<{ locale: string }>
-}
+/** '031-670-6600' 처럼 전화번호면 tel: 링크 */
+const telHref = (v: string) => (/^[\d-]{9,}$/.test(v.trim()) ? `tel:${v.replace(/\D/g, '')}` : null)
 
-const ICONS = [
-  // Phone
-  <svg key="phone" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 0h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 14.92z" />
-  </svg>,
-  // Email
-  <svg key="email" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-    <polyline points="22,6 12,13 2,6" />
-  </svg>,
-  // Address
-  <svg key="address" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>,
-  // Hours
-  <svg key="hours" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>,
-]
-
-export default async function ContactPage({ params }: PageProps) {
+export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'info.contact' })
-
-  const items = t.raw('items') as ContactItem[]
-  const directions = t.raw('directions') as DirectionItem[]
+  const [t, p, nav, h] = await Promise.all([
+    getTranslations({ locale, namespace: 'info.contact' }),
+    getTranslations({ locale, namespace: 'info.contactPage' }),
+    getTranslations({ locale, namespace: 'info.nav' }),
+    getTranslations({ locale, namespace: 'info.heroLabels' }),
+  ])
+  const items = t.raw('items') as { label: string; value: string; sub: string }[]
+  const directions = t.raw('directions') as { label: string; value: string }[]
 
   return (
-    <SubPageLayout>
-      {/* 히어로 */}
-      <InfoHero />
-
-      {/* 서브 탭 */}
-      <SubNav items={INFO_NAV_ITEMS} />
-
-      {/* 섹션 타이틀 */}
-      <div className="bg-white pt-section-sm pb-6 text-center">
-        <p className="section-label">CONTACT</p>
-      </div>
-
-      <div className="bg-white pb-section-lg">
-        <div className="page-container">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-            {/* 연락처 카드 */}
-            <div className="border border-nwcn-neutral-200 rounded-panel p-10 space-y-8">
-              <div>
-                <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">
-                  CONTACT INFO
-                </p>
-                <h2 className="font-brand font-bold text-section text-nwcn-text-default">{t('heading')}</h2>
-              </div>
-
-              <div className="space-y-6">
-                {items.map((item, idx) => (
-                  <div key={item.label} className="flex items-start gap-5">
-                    {/* 아이콘 */}
-                    <div className="flex-shrink-0 w-11 h-11 rounded-panel bg-nwcn-neutral-50 flex items-center justify-center text-nwcn-green">
-                      {ICONS[idx]}
-                    </div>
-                    {/* 텍스트 */}
-                    <div>
-                      <p className="font-body text-caption font-semibold tracking-widest text-nwcn-neutral-400 mb-1">
-                        {item.label}
-                      </p>
-                      <p className="font-body text-body font-medium text-nwcn-text-default mb-0.5">
-                        {item.value}
-                      </p>
-                      <p className="font-body text-caption text-nwcn-neutral-400">{item.sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 오시는 길 카드 */}
-            <div className="border border-nwcn-neutral-200 rounded-panel p-10 flex flex-col gap-6">
-              <div>
-                <p className="font-body text-caption font-semibold tracking-[0.2em] text-nwcn-green mb-2">
-                  DIRECTIONS
-                </p>
-                <h2 className="font-brand font-bold text-section text-nwcn-text-default">{t('directionsHeading')}</h2>
-              </div>
-
-              {/* 지도 */}
-              <div className="flex-1 min-h-[260px] rounded-panel overflow-hidden border border-nwcn-neutral-200">
-                <SchoolMap />
-              </div>
-
-              {/* 교통 안내 */}
-              <div className="space-y-3 pt-2">
-                {directions.map((d) => (
-                  <div key={d.label} className="flex items-center gap-3">
-                    <span className="text-body">{d.icon}</span>
-                    <span className="font-body font-semibold text-caption text-nwcn-neutral-400 w-12">{d.label}</span>
-                    <span className="font-body text-caption text-nwcn-neutral-500">{d.value}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Button href="https://www.dba.ac.kr" external variant="ghost" size="sm">
-                {t('directionsLink')}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
-                </svg>
-              </Button>
-            </div>
-
+    <SubPageLayout tone="paper">
+      <InfoLocalBar />
+      <PosterHero
+        titleEn={p.raw('heroEn') as string[]}
+        titleKo={p('heroKo')}
+        lead={p('lead')}
+        slides={[]}
+        split={60}
+        media={
+          <div className="h-[320px] w-full bg-nwcn-paper sm:h-[400px] lg:h-full">
+            <SchoolMap />
           </div>
+        }
+        labels={{ region: t('directionsHeading'), prev: h('prev'), next: h('next'), pause: h('pause'), play: h('play') }}
+      />
+
+      <div className="mx-auto max-w-page">
+        <div className="editorial-container">
+          {/* ── 연락처 ── */}
+          <section aria-labelledby="contacts-t" className="pt-chapter">
+            <h2 id="contacts-t" className="m-0 mb-6 font-extrabold text-headline">{p('contacts')}</h2>
+            <dl className="border-b border-nwcn-dark">
+              {items.map((item) => {
+                const tel = telHref(item.value)
+                return (
+                  <div key={item.label} className="grid grid-cols-12 items-baseline gap-x-6 gap-y-1 border-t border-nwcn-dark py-5">
+                    <dt className="col-span-12 text-body-sm text-nwcn-neutral-600 sm:col-span-3">{item.label}</dt>
+                    <dd className="col-span-12 font-bold tabular-nums text-statement sm:col-span-9 lg:col-span-5">
+                      {tel ? (
+                        <a href={tel} className="decoration-nwcn-green-darker decoration-2 underline-offset-4 hover:underline">
+                          {item.value}
+                        </a>
+                      ) : (
+                        item.value
+                      )}
+                    </dd>
+                    <dd className="col-span-12 text-body-sm text-nwcn-neutral-600 sm:col-span-9 sm:col-start-4 lg:col-span-4 lg:col-start-auto lg:text-right">
+                      {item.sub}
+                    </dd>
+                  </div>
+                )
+              })}
+            </dl>
+          </section>
+
+          {/* ── 오시는 길 ── */}
+          <section aria-labelledby="directions-t" className="pt-chapter">
+            <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+              <h2 id="directions-t" className="m-0 font-extrabold text-headline">{t('directionsHeading')}</h2>
+              <p className="flex flex-wrap gap-x-6 gap-y-1 font-semibold text-body-sm">
+                <a href={MAP_URL} target="_blank" rel="noopener noreferrer" className="editorial-link">
+                  {p('mapLink')} <span aria-hidden="true">↗</span>
+                </a>
+                <a href="https://www.dba.ac.kr" target="_blank" rel="noopener noreferrer" className="editorial-link">
+                  {t('directionsLink')} <span aria-hidden="true">↗</span>
+                </a>
+              </p>
+            </div>
+            <dl className="border-b border-nwcn-dark">
+              {directions.map((d) => (
+                <div key={d.label} className="grid grid-cols-12 items-baseline gap-x-6 gap-y-1 border-t border-nwcn-dark py-5">
+                  <dt className="col-span-12 text-body-sm text-nwcn-neutral-600 sm:col-span-3">{d.label}</dt>
+                  <dd className="col-span-12 text-list sm:col-span-9">{d.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          <MoreLinks
+            label={nav('more')}
+            links={[
+              { href: '/info/admission', label: nav('admission') },
+              { href: '/about/department', label: nav('department') },
+              { href: '/about/faculty', label: nav('faculty') },
+              { href: '/info/privacy', label: nav('privacy') },
+            ]}
+          />
         </div>
       </div>
     </SubPageLayout>

@@ -1,167 +1,98 @@
+/**
+ * NCR TREND/Latest 최신 리포트 — E4 틀
+ * 포스터형 히어로(NCR TREND / 최신 리포트, 리포트 사진) → 가장 최근 리포트 한 편을 크게
+ * → 지난 리포트 줄 목록 → 아래 바로가기. 내용은 ncr_reports 테이블(관리자 등록)에서 온다.
+ */
+
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import SubPageLayout from '@/components/layout/SubPageLayout'
-import NcrHero from '@/components/base/NcrHero'
-import SubNav from '@/components/common/SubNav'
-import Badge from '@/components/ui/Badge'
-import Link from 'next/link'
-import Image from 'next/image'
-import { NCR_NAV_ITEMS } from '@/constants/nav-items'
+import PosterHero, { type PosterSlide } from '@/components/sections/about/PosterHero'
+import MoreLinks from '@/components/sections/editorial/MoreLinks'
+import { Link } from '@/i18n/navigation'
+import NcrLocalBar from '@/components/sections/ncr/NcrLocalBar'
+import { ReportFeature, ReportRows } from '@/components/sections/ncr/ReportList'
+import { typeLabelMap } from '@/components/sections/ncr/report-utils'
 import { getNcrReports, getArticleTypes } from '@/lib/supabase/queries/ncr'
 
 export const metadata: Metadata = {
-  title: 'NCR TREND — 최신 아티클',
-  description:
-    '뉴미디어콘텐츠과 NCR TREND의 최신 에디토리얼, 트렌드 리포트, 카드뉴스를 만나보세요.',
-  keywords: ['NCR TREND', '뉴미디어콘텐츠과', '에디토리얼', '트렌드 리포트', '미디어 트렌드'],
+  title: 'NCR TREND — 최신 리포트',
+  description: '뉴미디어콘텐츠과 기자단 NCR이 직접 취재한 최신 리포트·카드뉴스를 만나보세요.',
+  keywords: ['NCR TREND', '뉴미디어콘텐츠과', '기자단', '에디토리얼', '카드뉴스'],
   alternates: { canonical: '/ncr-trend/latest' },
   openGraph: {
     type: 'website',
-    title: 'NCR TREND — 최신 아티클 | NWCN',
-    description: '뉴미디어콘텐츠과 NCR TREND의 최신 에디토리얼·트렌드·카드뉴스',
+    title: 'NCR TREND — 최신 리포트 | NWCN',
+    description: '뉴미디어콘텐츠과 기자단 NCR의 최신 리포트',
   },
-}
-
-const TYPE_BADGE: Record<string, 'new' | 'hot' | 'number'> = {
-  editorial: 'new',
-  trend: 'hot',
-  card_news: 'number',
 }
 
 export default async function LatestReportPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const [reports, articleTypes] = await Promise.all([getNcrReports(locale), getArticleTypes()])
+  const [reports, articleTypes, t, nav, h, d] = await Promise.all([
+    getNcrReports(locale),
+    getArticleTypes(),
+    getTranslations({ locale, namespace: 'ncr.latestPage' }),
+    getTranslations({ locale, namespace: 'ncr.nav' }),
+    getTranslations({ locale, namespace: 'ncr.heroLabels' }),
+    getTranslations({ locale, namespace: 'ncr.detail' }),
+  ])
+  const types = typeLabelMap(articleTypes, {
+    editorial: d('typeEditorial'),
+    trend: d('typeTrend'),
+    card_news: d('typeCardNews'),
+  })
+  const labels = { types, read: t('read'), readTime: (time: string) => t('readTime', { time }) }
 
-  // 유형 관리(설정) 기반 라벨 맵 — 등록된 모든 유형 지원
-  const TYPE_LABELS: Record<string, string> = Object.fromEntries(
-    articleTypes.map((at) => [at.value, at.label])
-  )
-
-  const featured = reports[0]
-  const rest = reports.slice(1)
+  const [featured, ...rest] = reports
+  // 히어로는 지난 리포트 사진부터 (바로 아래 큰 칸의 최신 리포트 사진과 겹치지 않게)
+  const slides: PosterSlide[] = [...rest.slice(0, 5), ...(featured ? [featured] : [])]
+    .filter((r) => r.thumbnail_url)
+    .map((r) => ({ src: r.thumbnail_url as string, alt: '', caption: r.title }))
 
   return (
-    <SubPageLayout>
-      {/* NCR 히어로 */}
-      <NcrHero />
-
-      {/* 서브 탭 */}
-      <SubNav items={NCR_NAV_ITEMS} />
-
-      {/* 섹션 타이틀 */}
-      <div className="bg-white pt-section-sm pb-6 text-center">
-        <p className="section-label">LATEST REPORT</p>
-      </div>
-
-      <div className="bg-white pb-section-lg">
-        <div className="page-container">
-
-          {/* 피처드 리포트 (최신) */}
+    <SubPageLayout tone="paper">
+      <NcrLocalBar />
+      <PosterHero
+        titleEn={t.raw('heroEn') as string[]}
+        titleKo={t('heroKo')}
+        lead={t('lead')}
+        slides={slides}
+        emptyCaption={t('emptyCaption')}
+        emptyImage={{ src: '/images/home/crest.png', alt: '' }}
+        labels={{ region: t('region'), prev: h('prev'), next: h('next'), pause: h('pause'), play: h('play') }}
+      />
+      <div className="mx-auto max-w-page">
+        <div className="editorial-container">
           {featured ? (
-            <Link href={`/ncr-trend/${featured.id}`} className="block mb-12 group">
-              <div className="border border-nwcn-neutral-200 rounded-panel overflow-hidden flex flex-col lg:flex-row hover:border-nwcn-green/30 hover:shadow-lift-2 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn">
-                {/* 썸네일 */}
-                <div className="lg:w-[480px] flex-shrink-0 aspect-video lg:aspect-auto bg-nwcn-dark relative overflow-hidden flex items-center justify-center">
-                  {featured.thumbnail_url ? (
-                    <Image
-                      src={featured.thumbnail_url}
-                      alt={featured.title}
-                      fill
-                      priority
-                      sizes="(min-width: 1024px) 60vw, 100vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-slow ease-nwcn"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="font-brand font-black text-hero-1 text-nwcn-green/[0.12] leading-none">NCR</span>
-                      <div className="w-8 h-[2px] bg-nwcn-green/30" />
-                    </div>
-                  )}
-                  {/* FEATURED 라벨 */}
-                  <div className="absolute top-4 left-4 bg-nwcn-green px-3 py-1 rounded-full">
-                    <span className="font-body font-bold text-caption text-nwcn-text-default tracking-widest">FEATURED</span>
-                  </div>
-                </div>
-
-                {/* 내용 */}
-                <div className="flex-1 p-10 flex flex-col justify-center">
-                  <div className="flex items-center gap-3 mb-5">
-                    <Badge variant={TYPE_BADGE[featured.type] ?? 'new'}>{TYPE_LABELS[featured.type] ?? featured.type}</Badge>
-                    {featured.season && (
-                      <span className="font-body text-caption text-nwcn-neutral-400">{featured.season}</span>
-                    )}
-                    {featured.read_time && (
-                      <span className="font-body text-caption text-nwcn-neutral-300">· {featured.read_time} 읽기</span>
-                    )}
-                  </div>
-                  <h2 className="font-body font-bold text-section text-nwcn-text-default leading-snug mb-4 group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn">
-                    {featured.title}
-                  </h2>
-                  <p className="font-body text-body-sm text-nwcn-neutral-600 leading-relaxed mb-6">
-                    {featured.excerpt}
-                  </p>
-                  <p className="font-body text-caption text-nwcn-neutral-400">
-                    {new Date(featured.published_at).toLocaleDateString('ko-KR')}
-                  </p>
-                </div>
-              </div>
-            </Link>
+            <section aria-label={t('newest')} className="pt-chapter">
+              <ReportFeature report={featured} labels={labels} badge={t('newest')} />
+            </section>
           ) : (
-            <div className="flex items-center justify-center py-24">
-              <p className="font-body text-body text-nwcn-neutral-400">등록된 리포트가 없습니다</p>
-            </div>
+            <p className="mt-chapter border-y border-nwcn-dark py-6 font-bold text-statement">{t('empty')}</p>
           )}
 
-          {/* 나머지 카드 그리드 */}
           {rest.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rest.map((report) => (
-                <Link
-                  key={report.id}
-                  href={`/ncr-trend/${report.id}`}
-                  className="block group border border-nwcn-neutral-200 rounded-panel overflow-hidden hover:border-nwcn-green/30 hover:shadow-lift-1 transition-[color,background-color,border-color,transform,box-shadow,opacity] duration-base ease-nwcn"
-                >
-                  {/* 썸네일 */}
-                  <div className="aspect-[16/9] bg-nwcn-dark relative overflow-hidden flex items-center justify-center">
-                    {report.thumbnail_url ? (
-                      <Image
-                        src={report.thumbnail_url}
-                        alt={report.title}
-                        fill
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-slow ease-nwcn"
-                      />
-                    ) : (
-                      <span className="font-brand font-black text-hero-2 text-nwcn-green/[0.1] leading-none">NCR</span>
-                    )}
-                  </div>
-
-                  {/* 내용 */}
-                  <div className="p-6 bg-white">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant={TYPE_BADGE[report.type] ?? 'new'}>{TYPE_LABELS[report.type] ?? report.type}</Badge>
-                      {report.season && (
-                        <span className="font-body text-caption text-nwcn-neutral-400">{report.season}</span>
-                      )}
-                    </div>
-                    <h3 className="font-body font-semibold text-body text-nwcn-text-default leading-snug mb-3 group-hover:text-nwcn-green transition-colors duration-fast ease-nwcn">
-                      {report.title}
-                    </h3>
-                    <p className="font-body text-caption text-nwcn-neutral-500 leading-relaxed mb-4 line-clamp-2">
-                      {report.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="font-body text-caption text-nwcn-neutral-300">
-                        {new Date(report.published_at).toLocaleDateString('ko-KR')}
-                      </p>
-                      {report.read_time && (
-                        <span className="font-body text-caption text-nwcn-neutral-400">{report.read_time} 읽기</span>
-                      )}
-                    </div>
-                  </div>
+            <section aria-labelledby="others-t" className="pt-chapter">
+              <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+                <h2 id="others-t" className="m-0 font-extrabold text-headline">{t('others')}</h2>
+                <Link href="/ncr-trend/archive" className="editorial-link font-semibold text-body-sm">
+                  {t('toArchive')} <span aria-hidden="true">→</span>
                 </Link>
-              ))}
-            </div>
+              </div>
+              <ReportRows reports={rest.slice(0, 6)} labels={labels} />
+            </section>
           )}
+
+          <MoreLinks
+            label={nav('more')}
+            links={[
+              { href: '/ncr-trend/archive', label: nav('archive') },
+              { href: '/ninc/event', label: nav('event') },
+              { href: '/work/showcase', label: nav('showcase') },
+              { href: '/info/admission', label: nav('admission') },
+            ]}
+          />
         </div>
       </div>
     </SubPageLayout>
