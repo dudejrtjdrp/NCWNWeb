@@ -275,7 +275,17 @@
       ],
       "heroKo": "교수진",
       "lead": "The people who lead classes and projects\nat New Media Contents.",
-      "region": "Faculty photos",
+      "region": "Department activity photos",
+      "slides": [
+        {
+          "alt": "Group photo of the global workshop in front of RMIT in Ho Chi Minh City",
+          "caption": "DIMA KR × RMIT VN Global Workshop · Ho Chi Minh City"
+        },
+        {
+          "alt": "Workshop participants posing under a media façade at night",
+          "caption": "Media façade workshop, 2026 Boseong Green Tea Festival"
+        }
+      ],
       "professors": "Professors",
       "assistants": "Teaching Assistant",
       "intro": "{professors} professors and {assistants} teaching assistant run the classes and the department. Select a name to see their career and interview.",

@@ -1,6 +1,7 @@
 /**
  * About/Faculty 교수진 페이지 — 학과 소개 E4 틀
- * 포스터형 히어로(FACULTY / 교수진, 어두운 판 위에 교수진 사진이 차례로) + 목차 줄 + 교수·조교 목록.
+ * 포스터형 히어로(FACULTY / 교수진, 학과 활동 사진 자동 넘김) + 목차 줄 + 교수·조교 목록.
+ * (교수 사진을 히어로에 하나씩 띄우던 안은 어색하다는 피드백으로 학과 활동 사진으로 교체)
  * 카드를 누르면 /about/faculty/[id] 상세로 이동.
  */
 
@@ -10,13 +11,17 @@ import AboutLocalBar from '@/components/sections/about/AboutLocalBar'
 import PosterHero, { type PosterSlide } from '@/components/sections/about/PosterHero'
 import AnchorBar from '@/components/sections/about/AnchorBar'
 import FacultyContent, { FACULTY_SECTIONS } from '@/components/sections/about/faculty/FacultyContent'
-import { facultyRole, type RoleLabels } from '@/components/sections/about/faculty/faculty-role'
-import { FACULTY_LIST } from '@/lib/faculty-data'
 
 export const metadata = {
   title: 'FACULTY | ABOUT | NWCN',
   description: '뉴미디어콘텐츠과를 이끄는 교수진을 소개합니다.',
 }
+
+/** 히어로 사진 — 문구(alt·캡션)는 messages 의 about.faculty.slides (순서 맞출 것) */
+const HERO_PHOTOS: Pick<PosterSlide, 'src' | 'position'>[] = [
+  { src: '/images/department/photos/rmit-global-workshop.webp', position: '50% 55%' },
+  { src: '/images/department/photos/boseong-facade-workshop.webp', position: '50% 60%' },
+]
 
 interface PageProps {
   params: Promise<{ locale: string }>
@@ -28,14 +33,8 @@ export default async function FacultyPage({ params }: PageProps) {
   const hero = await getTranslations({ locale, namespace: 'about.hero' })
   const nav = await getTranslations({ locale, namespace: 'about.nav' })
   const dept = await getTranslations({ locale, namespace: 'about.department' })
-  const roles = t.raw('roles') as RoleLabels
-
-  const slides: PosterSlide[] = FACULTY_LIST.map((f) => ({
-    src: f.photoUrl,
-    alt: t('photoAlt', { name: f.nameKo }),
-    caption: `${f.nameKo} · ${facultyRole(f, roles)}`,
-    fit: 'portrait',
-  }))
+  const copy = t.raw('slides') as { alt: string; caption: string }[]
+  const slides: PosterSlide[] = HERO_PHOTOS.map((photo, i) => ({ ...photo, ...copy[i] }))
   const anchors = FACULTY_SECTIONS.map((id) => ({ id, label: t(id) }))
 
   return (

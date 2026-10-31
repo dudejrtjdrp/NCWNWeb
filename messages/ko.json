@@ -275,7 +275,17 @@
       ],
       "heroKo": "교수진",
       "lead": "뉴미디어콘텐츠과의 수업과 프로젝트를\n함께 이끄는 사람들입니다.",
-      "region": "교수진 사진",
+      "region": "학과 활동 사진",
+      "slides": [
+        {
+          "alt": "호찌민 RMIT 앞에서 찍은 글로벌 워크숍 단체 사진",
+          "caption": "DIMA KR × RMIT VN Global Workshop · 호찌민"
+        },
+        {
+          "alt": "밤에 미디어파사드 아래에서 찍은 워크숍 참가 학생 단체 사진",
+          "caption": "2026 보성다향대축제 미디어파사드 운영 워크숍"
+        }
+      ],
       "professors": "교수",
       "assistants": "조교",
       "intro": "교수 {professors}명과 조교 {assistants}명이 수업과 학과 운영을 맡고 있습니다. 이름을 누르면 경력과 인터뷰를 볼 수 있습니다.",
