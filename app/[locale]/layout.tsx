@@ -104,10 +104,10 @@ export default async function LocaleLayout({
         {/* 뉴미디어콘텐츠과 정체성을 드러내는 커스텀 커서 —
             데스크톱 정밀 포인터에서만, 모션 최소화 설정이면 비활성 */}
         <CircleCursor />
-        {/* DB 없이 저장해 둔 공개 데이터로 띄운 미리보기·로컬이면 왼쪽 아래에 표시 (운영에서는 안 뜸) */}
+        {/* 저장 데이터 + 예시 데이터로 띄운 미리보기·로컬이면 왼쪽 아래에 표시 (운영에서는 안 뜸) */}
         {isSnapshotDb() && (
           <p className="pointer-events-none fixed bottom-3 left-3 z-[200] m-0 bg-nwcn-dark px-2.5 py-1.5 font-semibold text-[12px] text-white">
-            미리보기 · {SNAPSHOT_DATE} 저장 데이터
+            미리보기 · {SNAPSHOT_DATE} 저장 데이터 + 예시
           </p>
         )}
       </ToastProvider>

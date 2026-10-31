@@ -361,7 +361,7 @@
       ],
       "heroKo": "교육과정",
       "lead": "Courses for each semester,\nfrom first year to third year.",
-      "region": "Graduation exhibition posters",
+      "region": "Major courses by year",
       "slides": [
         {
           "alt": "Poster of the 2025 graduation exhibition CONNECTION",
@@ -395,7 +395,8 @@
       },
       "credit": "{n} credits",
       "theory": "theory {n}",
-      "practice": "practice {n}"
+      "practice": "practice {n}",
+      "mediaCaption": "{n} major courses, years 1–3"
     },
     "lab": {
       "title": "LAB",
@@ -785,7 +786,7 @@
         },
         {
           "title": "Privacy Officer",
-          "content": "We have designated a privacy officer to oversee all privacy-related matters and handle complaints and remedies.\n\n- Department: New Media Contents\n- Email: nwcn@dba.ac.kr"
+          "content": "We have designated a privacy officer to oversee all privacy-related matters and handle complaints and remedies.\n\n- Department: New Media Contents\n- Email: minyoopark@dima.ac.kr"
         }
       ]
     },

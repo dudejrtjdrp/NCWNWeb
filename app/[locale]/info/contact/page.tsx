@@ -27,6 +27,9 @@ export const metadata: Metadata = {
 
 const MAP_URL = 'https://maps.google.com/?q=%EB%8F%99%EC%95%84%EB%B0%A9%EC%86%A1%EC%98%88%EC%88%A0%EB%8C%80%ED%95%99%EA%B5%90'
 
+/** 학교 홈페이지 캠퍼스 안내(오시는 길) */
+const DIRECTIONS_URL = 'https://www.dima.ac.kr/?p=42'
+
 /** '031-670-6600' 처럼 전화번호면 tel: 링크 */
 const telHref = (v: string) => (/^[\d-]{9,}$/.test(v.trim()) ? `tel:${v.replace(/\D/g, '')}` : null)
 
@@ -95,7 +98,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                 <a href={MAP_URL} target="_blank" rel="noopener noreferrer" className="editorial-link">
                   {p('mapLink')} <span aria-hidden="true">↗</span>
                 </a>
-                <a href="https://www.dba.ac.kr" target="_blank" rel="noopener noreferrer" className="editorial-link">
+                <a href={DIRECTIONS_URL} target="_blank" rel="noopener noreferrer" className="editorial-link">
                   {t('directionsLink')} <span aria-hidden="true">↗</span>
                 </a>
               </p>

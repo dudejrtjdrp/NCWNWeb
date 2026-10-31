@@ -1,8 +1,8 @@
 /**
  * 스냅샷 클라이언트 — DB 연결 없이 공개 데이터 스냅샷(JSON)으로 Supabase 조회 흉내
  * ────────────────────────────────────────────────────────────
- * 브랜치 미리보기처럼 Supabase 환경변수가 없는 곳에서 화면이 텅 비지 않게,
- * scripts/snapshot-public-data.mjs 로 저장해 둔 실제 데이터를 돌려준다.
+ * 브랜치 미리보기·로컬 개발에서 화면이 텅 비지 않게, scripts/snapshot-public-data.mjs 로 저장해 둔
+ * 실제 공개 데이터에 형식 확인용 예시 데이터(snapshot/mock-data.ts)를 덧붙여 돌려준다.
  * 공개 페이지 조회에 쓰는 것만 지원: select · eq · neq · in · contains · or(ilike/eq) · ilike
  * · is · not(is) · gt/gte/lt/lte · order · limit · range · single · maybeSingle · rpc(작품 랜덤 정렬).
  * 쓰기(insert/update/delete)는 지원하지 않는다(에러를 돌려줌).
@@ -10,11 +10,19 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import snapshot from './snapshot/public-data.json'
+import { MOCK_TABLES } from './snapshot/mock-data'
 
 type Row = Record<string, unknown>
 type Result = { data: unknown; error: { message: string } | null; count: number | null }
 
-const TABLES = (snapshot as { tables: Record<string, Row[]> }).tables
+/** 저장 데이터 + 예시 데이터(제목 끝 '(예시)') */
+const SAVED = (snapshot as { tables: Record<string, Row[]> }).tables
+const TABLES: Record<string, Row[]> = Object.fromEntries(
+  [...new Set([...Object.keys(SAVED), ...Object.keys(MOCK_TABLES)])].map((name) => [
+    name,
+    [...(SAVED[name] ?? []), ...(MOCK_TABLES[name] ?? [])],
+  ])
+)
 
 /** 스냅샷을 찍은 날짜 (YYYY-MM-DD) */
 export const SNAPSHOT_DATE = (snapshot as { takenAt: string }).takenAt.slice(0, 10)

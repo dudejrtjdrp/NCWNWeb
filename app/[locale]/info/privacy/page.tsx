@@ -16,7 +16,8 @@ export const metadata: Metadata = {
   alternates: { canonical: '/info/privacy' },
 }
 
-const PRIVACY_EMAIL = 'nwcn@dba.ac.kr'
+/** 개인정보 문의 — 학과 박민유 조교 */
+const PRIVACY_EMAIL = 'minyoopark@dima.ac.kr'
 
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params

@@ -24,7 +24,8 @@ export const metadata: Metadata = {
   },
 }
 
-const ADMISSION_URL = 'https://www.dba.ac.kr'
+/** 동아방송예술대학교 입시 홈페이지 (학교 홈페이지 상단 '입시 홈페이지' 링크와 같은 주소) */
+const ADMISSION_URL = 'https://ipsi.dima.ac.kr'
 
 /** 히어로 사진 — 문구(alt·캡션)는 messages 의 info.admissionPage.slides (순서 맞출 것) */
 const HERO_PHOTOS: Pick<PosterSlide, 'src' | 'position'>[] = [
