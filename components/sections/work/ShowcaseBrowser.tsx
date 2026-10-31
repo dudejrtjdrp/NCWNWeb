@@ -3,8 +3,8 @@
 /**
  * ShowcaseBrowser — 쇼케이스 작품 목록 (E4)
  * 위: 스크롤하면 헤더 아래 붙는 필터 줄(분야 글자 버튼 + 검색) / 아래: 3열 작품 카드, 무한 스크롤.
- * 데이터 로딩 규칙은 기존 ShowcaseClient 와 같다 — 방문마다 랜덤 순서(시드), 필터·검색 300ms 디바운스,
- * 경쟁 요청은 토큰으로 폐기.
+ * 최근 작품부터(연도 → 작품 날짜 → 등록일) — 졸업생 포트폴리오 프로젝트도 기간순으로 함께 섞인다.
+ * 필터·검색 300ms 디바운스, 경쟁 요청은 토큰으로 폐기.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -32,7 +32,6 @@ export default function ShowcaseBrowser({ filterTags, locale, pageSize = 15 }: P
   const [items, setItems] = useState<WorkListItem[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(true)
-  const [seed] = useState(() => Math.random().toString(36).slice(2, 12))
 
   const reqId = useRef(0)
   const busyRef = useRef(false)
@@ -48,7 +47,7 @@ export default function ShowcaseBrowser({ filterTags, locale, pageSize = 15 }: P
     isFirst.current = false
     const timer = setTimeout(async () => {
       try {
-        const res = await loadShowcaseWorksAction({ locale, seed, tag: activeFilter, q: query, offset: 0, limit: pageSize })
+        const res = await loadShowcaseWorksAction({ locale, tag: activeFilter, q: query, offset: 0, limit: pageSize })
         if (token !== reqId.current) return
         setItems(res.items)
         setHasMore(res.hasMore)
@@ -65,7 +64,7 @@ export default function ShowcaseBrowser({ filterTags, locale, pageSize = 15 }: P
       }
     }, delay)
     return () => clearTimeout(timer)
-  }, [activeFilter, query, locale, seed, pageSize])
+  }, [activeFilter, query, locale, pageSize])
 
   const loadMore = useCallback(async () => {
     if (busyRef.current || !hasMore) return
@@ -73,7 +72,7 @@ export default function ShowcaseBrowser({ filterTags, locale, pageSize = 15 }: P
     const token = ++reqId.current
     setLoading(true)
     try {
-      const res = await loadShowcaseWorksAction({ locale, seed, tag: activeFilter, q: query, offset: items.length, limit: pageSize })
+      const res = await loadShowcaseWorksAction({ locale, tag: activeFilter, q: query, offset: items.length, limit: pageSize })
       if (token !== reqId.current) return
       if (res.items.length === 0) {
         setHasMore(false)
@@ -91,7 +90,7 @@ export default function ShowcaseBrowser({ filterTags, locale, pageSize = 15 }: P
         busyRef.current = false
       }
     }
-  }, [hasMore, locale, seed, activeFilter, query, items.length, pageSize])
+  }, [hasMore, locale, activeFilter, query, items.length, pageSize])
 
   useEffect(() => {
     const el = sentinelRef.current

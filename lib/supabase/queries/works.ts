@@ -47,7 +47,7 @@ export interface WorkItem {
 /** 목록 조회용 타입 (images 컬럼 제외 — 목록에서 불필요) */
 export type WorkListItem = Omit<WorkItem, 'images'>
 
-/** 쇼케이스 전체 목록 — 연도/조회수 내림차순 (캐시 5분) */
+/** 쇼케이스 전체 목록 — 최근 작품부터: 연도 → 작품 날짜(work_date) → 등록일 (캐시 5분) */
 export async function getShowcaseWorks(locale: string = 'ko'): Promise<WorkListItem[]> {
   const fetcher = unstable_cache(
     async (): Promise<WorkListItem[]> => {
@@ -55,15 +55,16 @@ export async function getShowcaseWorks(locale: string = 'ko'): Promise<WorkListI
         const supabase = createClient()
         const cols =
           'id, title, title_en, author, year, description, description_en, type, tech_stack, thumbnail_url, video_embed, model_embed, view_count, created_at'
-        const run = (select: string) =>
-          supabase
-            .from('showcase_works')
-            .select(select)
-            .order('year', { ascending: false })
-            .order('view_count', { ascending: false })
+        const run = (select: string, dated = true) => {
+          let q = supabase.from('showcase_works').select(select).order('year', { ascending: false })
+          if (dated) q = q.order('work_date', { ascending: false, nullsFirst: false })
+          return q.order('created_at', { ascending: false })
+        }
         let { data, error } = await run(`${cols}, creators`)
+        // 작품 날짜 열(work_date, add_portfolio_showcase.sql)이 아직 없으면 연도·등록일 순으로
+        if (error && /work_date/.test(error.message)) ({ data, error } = await run(`${cols}, creators`, false))
         // creators 컬럼이 아직 없으면(마이그레이션 전) 빼고 다시
-        if (error && /creators/.test(error.message)) ({ data, error } = await run(cols))
+        if (error && /creators/.test(error.message)) ({ data, error } = await run(cols, false))
 
         if (error) {
           console.error('[getShowcaseWorks]', error.message)
@@ -97,8 +98,9 @@ export interface ShowcaseWorksPage {
  * - tag: '전체'/빈값이면 전체, 아니면 tech_stack 포함 필터
  * - q: 제목/작가 부분 검색(ilike)
  * - offset/limit: 범위 조회
- * - seed: 지정 시 시드 기반 랜덤 정렬 RPC 사용(같은 seed → 순서 고정 → 페이지네이션 안전)
- *         미지정 시 연도/조회수 내림차순
+ * - seed: 지정 시 시드 기반 랜덤 정렬 RPC 사용(같은 seed → 순서 고정 → 페이지네이션 안전) — 지금 쇼케이스는 쓰지 않음
+ *         미지정 시 최근 작품부터: 연도 → 작품 날짜(work_date) → 등록일
+ *         (졸업생 포트폴리오 프로젝트도 쇼케이스 작품으로 등록되어 기간순으로 자연스럽게 섞인다)
  * - hasMore: 반환 개수 === limit 이면 더 있다고 판단
  */
 export async function getShowcaseWorksPage(params: {
@@ -132,15 +134,18 @@ export async function getShowcaseWorksPage(params: {
       console.warn('[getShowcaseWorksPage:rpc] 폴백:', error.message)
     }
 
-    // 기본: 연도/조회수 내림차순 + 정확한 count
-    let query = supabase.from('showcase_works').select(SHOWCASE_LIST_COLUMNS, { count: 'exact' })
-    if (tag && tag !== '전체') query = query.contains('tech_stack', [tag])
-    if (cleaned) query = query.or(`title.ilike.%${cleaned}%,author.ilike.%${cleaned}%`)
-
-    const { data, error, count } = await query
-      .order('year', { ascending: false })
-      .order('view_count', { ascending: false })
-      .range(offset, offset + limit - 1)
+    // 기본: 최근 작품부터(연도 → 작품 날짜 → 등록일) + 정확한 count
+    const build = (dated: boolean) => {
+      let query = supabase.from('showcase_works').select(SHOWCASE_LIST_COLUMNS, { count: 'exact' })
+      if (tag && tag !== '전체') query = query.contains('tech_stack', [tag])
+      if (cleaned) query = query.or(`title.ilike.%${cleaned}%,author.ilike.%${cleaned}%`)
+      query = query.order('year', { ascending: false })
+      if (dated) query = query.order('work_date', { ascending: false, nullsFirst: false })
+      return query.order('created_at', { ascending: false }).range(offset, offset + limit - 1)
+    }
+    let { data, error, count } = await build(true)
+    // 작품 날짜 열이 아직 없으면(마이그레이션 전) 연도·등록일 순으로
+    if (error && /work_date/.test(error.message)) ({ data, error, count } = await build(false))
 
     if (error) {
       console.error('[getShowcaseWorksPage]', error.message)

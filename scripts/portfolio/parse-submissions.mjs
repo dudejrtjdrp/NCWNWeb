@@ -34,8 +34,9 @@ const BASIC = {
 const VISIBILITY = {
   '이메일 공개': 'emailPublic', '원본 포트폴리오 PDF 다운로드 허용': 'pdfDownload', '홈페이지 게시 동의': 'consent',
 }
+// '기간'(예: 2025.03–2025.06, 진행 중이면 2026.03–)이 새 양식, '연도'는 예전 양식 — 둘 다 받는다
 const PROJECT = {
-  '제목': 'title', '영문 제목': 'titleEn', '연도': 'year', '분야': 'fields', '형태': 'format',
+  '제목': 'title', '영문 제목': 'titleEn', '기간': 'period', '연도': 'year', '분야': 'fields', '형태': 'format',
   '내 역할': 'role', '사용 툴': 'tools', '한 줄 요약': 'summary', '설명': 'description',
   '영문 설명': 'descriptionEn', '핵심 포인트': 'points', '결과·성과': 'outcome', '영상 링크': 'video',
   '이미지 쪽': 'imagePages', '대표 이미지 쪽': 'coverPage',
@@ -132,6 +133,8 @@ function build(sections) {
         else if (key === 'coverPage') p.coverPage = Number(v) || null
         else p[key] = v || ''
       }
+      if (p.period && !p.year) p.year = p.period // 화면에는 기간을 그대로 보여 준다
+      delete p.period
       if (p.title) out.projects.push(p)
     } else if (s.name === '이력') {
       for (const [k, key] of Object.entries(HISTORY)) out.history[key] = s.lists[k] ?? []

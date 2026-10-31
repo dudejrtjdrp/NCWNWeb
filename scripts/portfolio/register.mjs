@@ -7,7 +7,10 @@
  *  2) 프로필 사진을 4:5(1200×1500) webp 로 맞추고
  *  3) 프로젝트 이미지는 학생이 따로 보낸 N-01.jpg 를 쓰고, 없으면 양식의 '이미지 쪽' PDF 쪽을 쓴다
  *  4) R2 `portfolios/{졸업연도}/{slug}/…` 에 올리고
- *  5) students(이름+졸업연도로 찾고 없으면 추가)와 portfolios(slug 기준 덮어쓰기)에 저장한다.
+ *  5) students(이름+졸업연도로 찾고 없으면 추가)와 portfolios(slug 기준 덮어쓰기)에 저장하고
+ *  6) 프로젝트마다 쇼케이스 작품(showcase_works, portfolio_ref='slug#번호')도 만들어 학생 작품에 기간순으로 함께 보이게 한다.
+ *     다시 등록하면 같은 작품을 덮어쓰고, 포트폴리오에서 빠진 프로젝트는 쇼케이스에서도 지운다. 비공개(DRAFT) 등록이면 만들지 않는다.
+ *     (supabase/migrations/add_portfolio_showcase.sql 적용 필요 — 없으면 이 단계만 건너뜀)
  *
  * 공개 원칙: '이메일 공개: 예'일 때만 이메일, 'PDF 다운로드 허용: 예'일 때만 PDF 를 올린다.
  * 게시 동의가 '예'가 아니거나 PDF·프로필 사진이 없으면 건너뛴다.
@@ -90,6 +93,34 @@ async function pdfPages(pdf) {
 }
 
 const supabase = createClient(need('NEXT_PUBLIC_SUPABASE_URL'), need('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false } })
+
+/** 프로젝트 기간 → 쇼케이스 연도·정렬 날짜. '2021.12–2022.10' → 2022, 2022-10-01 / '2026.03–'(진행 중) → 올해·오늘 / '2021' → 2021, 날짜 없음 */
+function workWhen(period, fallbackYear) {
+  const s = String(period ?? '')
+  const marks = [...s.matchAll(/(20\d{2})(?:[.\-/년\s]*(\d{1,2})(?!\d))?/g)].map((m) => ({ y: Number(m[1]), m: m[2] ? Number(m[2]) : null }))
+  const ongoing = /(진행|운영|현재|now|present)/i.test(s) || /[–—~-]\s*$/.test(s.trim())
+  if (ongoing && marks.length) {
+    const now = new Date()
+    return { year: now.getFullYear(), date: now.toISOString().slice(0, 10) }
+  }
+  const last = marks[marks.length - 1]
+  if (!last) return { year: fallbackYear, date: null }
+  const mm = last.m && last.m >= 1 && last.m <= 12 ? String(last.m).padStart(2, '0') : null
+  return { year: last.y, date: mm ? `${last.y}-${mm}-01` : null }
+}
+
+/** 유튜브 주소 → embed 주소 (관리자 작품 입력과 같은 규칙), 그 밖의 http(s)는 그대로 */
+function videoEmbed(raw) {
+  const url = String(raw ?? '').trim()
+  if (!url) return null
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/)
+  if (m) return `https://www.youtube.com/embed/${m[1]}`
+  return /^https?:\/\//i.test(url) ? url : null
+}
+
+/** 분야 → 쇼케이스 유형(video/design/3d) */
+const workType = (fields) =>
+  fields.some((f) => ['영상', '모션'].includes(f)) ? 'video' : fields.some((f) => ['3D', 'XR', '게임'].includes(f)) ? '3d' : 'design'
 const publicBase = need('R2_PUBLIC_URL').replace(/\/$/, '')
 const r2 = APPLY
   ? new S3Client({
@@ -203,4 +234,51 @@ for (const rec of records) {
   const { error: upErr } = await supabase.from('portfolios').upsert({ ...row, student_id: studentId }, { onConflict: 'slug' })
   if (upErr) throw upErr
   console.log(`  ✓ 저장 — /work/portfolio/${slug}${DRAFT ? ' (비공개)' : ''}`)
+
+  // 쇼케이스 — 프로젝트마다 작품 하나 (기간순 정렬용 work_date, 다시 등록하면 portfolio_ref 로 덮어씀)
+  if (DRAFT) continue
+  const refs = []
+  let made = 0
+  for (const [i, p] of projects.entries()) {
+    const when = workWhen(p.year, year)
+    const ref = `${slug}#${i + 1}`
+    refs.push(ref)
+    const work = {
+      portfolio_ref: ref,
+      title: p.title,
+      title_en: p.titleEn || null,
+      author: b.name,
+      creators: [{ name: b.name, student_id: studentId, student_no: null }],
+      year: when.year ?? year,
+      work_date: when.date,
+      description: p.description || p.summary || null,
+      description_en: p.descriptionEn || null,
+      type: workType(p.fields ?? []),
+      tech_stack: p.fields ?? [],
+      thumbnail_url: p.cover ?? p.images[0] ?? null,
+      images: p.images,
+      video_embed: videoEmbed(p.video),
+      model_embed: null,
+      related_links: [],
+    }
+    const { error } = await supabase.from('showcase_works').upsert(work, { onConflict: 'portfolio_ref' })
+    if (error) {
+      if (/portfolio_ref|work_date/.test(error.message)) {
+        console.log('  ! 쇼케이스 연동 건너뜀 — supabase/migrations/add_portfolio_showcase.sql 을 먼저 실행하세요')
+        break
+      }
+      throw error
+    }
+    made++
+  }
+  if (made === projects.length) {
+    const { data: olds, error } = await supabase.from('showcase_works').select('id, portfolio_ref').like('portfolio_ref', `${slug}#%`)
+    if (error) throw error
+    const gone = (olds ?? []).filter((w) => !refs.includes(w.portfolio_ref)).map((w) => w.id)
+    if (gone.length) {
+      const { error: delErr } = await supabase.from('showcase_works').delete().in('id', gone)
+      if (delErr) throw delErr
+    }
+    console.log(`  ✓ 쇼케이스 작품 ${made}개${gone.length ? ` (빠진 프로젝트 ${gone.length}개 삭제)` : ''}`)
+  }
 }

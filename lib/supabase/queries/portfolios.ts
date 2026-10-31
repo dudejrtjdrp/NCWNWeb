@@ -142,17 +142,24 @@ export async function getPortfolioBySlug(slug: string, locale: string = 'ko'): P
   }
 }
 
-/** 이 학생이 제작자로 연결된 쇼케이스 작품 (관리자 작품 입력에서 학생 DB 로 고른 경우) */
+/** 이 학생이 제작자로 연결된 쇼케이스 작품 (관리자 작품 입력에서 학생 DB 로 고른 경우)
+ *  포트폴리오에서 만든 작품(portfolio_ref 있음)은 포트폴리오에 프로젝트로 이미 보이므로 뺀다 */
 export async function getPortfolioWorks(studentId: string | null, locale: string = 'ko'): Promise<WorkListItem[]> {
   if (!studentId) return []
   const fetcher = unstable_cache(
     async (): Promise<WorkListItem[]> => {
       const supabase = createClient()
-      const { data, error } = await supabase
-        .from('showcase_works')
-        .select('id, title, title_en, author, creators, year, description, description_en, type, tech_stack, thumbnail_url, video_embed, model_embed, view_count, created_at')
-        .filter('creators', 'cs', JSON.stringify([{ student_id: studentId }]))
-        .order('year', { ascending: false })
+      const run = (own: boolean) => {
+        let q = supabase
+          .from('showcase_works')
+          .select('id, title, title_en, author, creators, year, description, description_en, type, tech_stack, thumbnail_url, video_embed, model_embed, view_count, created_at')
+          .filter('creators', 'cs', JSON.stringify([{ student_id: studentId }]))
+        if (own) q = q.is('portfolio_ref', null)
+        return q.order('year', { ascending: false })
+      }
+      let { data, error } = await run(true)
+      // portfolio_ref 열이 아직 없으면(add_portfolio_showcase.sql 전) 거르지 않고 다시
+      if (error && /portfolio_ref/.test(error.message)) ({ data, error } = await run(false))
       if (error) {
         if (/creators/.test(error.message)) return []
         throw new Error(error.message)
