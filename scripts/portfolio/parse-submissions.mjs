@@ -222,17 +222,19 @@ if (existsSync(rosterDir)) {
       for (const line of readFileSync(join(rosterDir, f), 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/)) {
         const [name, no, en] = line.split(/\s*[,\t]\s*/)
         if (!name || name === '이름') continue
-        roster.byName.set(name.trim(), { no: (no ?? '').trim() || null, en: (en ?? '').trim() || null })
+        roster.byName.set(name.trim().normalize('NFC'), { no: (no ?? '').trim() || null, en: (en ?? '').trim() || null })
       }
     }
   }
 }
-/** 이름(→학번)으로 명단 사진 찾기 — 같은 이름 사진이 여러 장이면 null */
+/** 이름(→학번)으로 명단 사진 찾기 — 학번_이름.jpg / 학번.jpg / 이름.jpg. 같은 사람 사진이 여러 장이면 null
+ *  (맥·드라이브에서 받은 파일 이름은 한글 자모가 풀려 있을 수 있어 NFC 로 맞춰 비교) */
 function rosterPhoto(name) {
   if (!name) return null
+  name = name.normalize('NFC')
   const no = roster.byName.get(name)?.no
-  const stem = (f) => basename(f, extname(f))
-  const hits = roster.photos.filter((f) => stem(f) === name || (no && stem(f) === no) || stem(f).endsWith(`_${name}`))
+  const stem = (f) => basename(f, extname(f)).normalize('NFC')
+  const hits = roster.photos.filter((f) => stem(f) === name || (no && (stem(f) === no || stem(f).startsWith(`${no}_`))) || stem(f).endsWith(`_${name}`))
   return hits.length === 1 ? `_roster/${hits[0]}` : null
 }
 if (!existsSync(dir)) { console.error(`제출 폴더가 없습니다: ${dir}`); process.exit(1) }
@@ -248,7 +250,8 @@ for (const sub of collect(dir)) {
     const fromRoster = rosterPhoto(data.basic.name)
     if (fromRoster) sub.profile = join(dir, fromRoster)
   }
-  if (!data.basic.nameEn && roster.byName.get(data.basic.name)?.en) data.basic.nameEn = roster.byName.get(data.basic.name).en
+  const rosterEn = data.basic.name && roster.byName.get(data.basic.name.normalize('NFC'))?.en
+  if (!data.basic.nameEn && rosterEn) data.basic.nameEn = rosterEn
   const { errors, warns } = validate(data, sub)
   if (missingStudent.length) errors.unshift(`학생 직접 입력 누락: ${missingStudent.join(', ')}`)
   let id = slug(data.basic.year, data.basic.nameEn, sub.id)
