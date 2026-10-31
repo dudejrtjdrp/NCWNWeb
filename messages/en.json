@@ -442,7 +442,10 @@
         "representative": "Representative Winner",
         "yearFormat": "{year}",
         "yearAndAward": "{year} · {awardName}",
-        "noDescription": "Details are being prepared."
+        "noDescription": "Details are being prepared.",
+        "competition": "Competition",
+        "other": "More awards",
+        "year": "Year"
       }
     },
     "project": {
@@ -463,7 +466,11 @@
         "sectionIntro": "Project Overview",
         "sectionOutcome": "Outcomes & Results",
         "sectionParticipants": "Participating Students",
-        "yearFormat": "{year}"
+        "yearFormat": "{year}",
+        "type": "Type",
+        "year": "Year",
+        "other": "More projects",
+        "count": "{n}"
       }
     },
     "event": {
@@ -476,6 +483,96 @@
       "typeWorkshop": "Workshop",
       "typeCampusTour": "Campus Tour",
       "typeOther": "Other"
+    },
+    "nav": {
+      "section": "NINC",
+      "breadcrumb": "Breadcrumb",
+      "menu": "NINC menu",
+      "toc": "On this page",
+      "awards": "Awards",
+      "project": "Projects",
+      "event": "Events",
+      "more": "More in NINC",
+      "showcase": "Showcase",
+      "admission": "Admissions"
+    },
+    "heroLabels": {
+      "prev": "Previous photo",
+      "next": "Next photo",
+      "pause": "Pause slideshow",
+      "play": "Play slideshow"
+    },
+    "awardsPage": {
+      "heroEn": [
+        "AWARDS"
+      ],
+      "heroKo": "수상",
+      "lead": "Awards our students have won\nat competitions and contests.",
+      "region": "Award photos",
+      "fallbackCaption": "Award ceremony",
+      "empty": "No awards have been added yet.",
+      "yearTitle": "{year}",
+      "count": "{n}",
+      "winners": "Winners",
+      "host": "Hosted by",
+      "category": "Field",
+      "detail": "Details"
+    },
+    "projectPage": {
+      "heroEn": [
+        "PROJECT"
+      ],
+      "heroKo": "프로젝트",
+      "lead": "Industry collaborations and international\nexchanges we made in the field.",
+      "region": "Project photos",
+      "industry": "Industry",
+      "international": "International",
+      "partners": "Partner companies",
+      "partnersIntro": "Companies in an industry–academia partnership with the department.",
+      "empty": "No projects have been added yet.",
+      "detail": "Details",
+      "partner": "Partner",
+      "duration": "Period"
+    },
+    "eventPage": {
+      "heroEn": [
+        "EVENT"
+      ],
+      "heroKo": "행사",
+      "lead": "Special lectures, workshops, campus tours\nand other department dates.",
+      "next": "Next up",
+      "today": "Today",
+      "noUpcoming": "No upcoming events",
+      "list": "List",
+      "calendar": "Calendar",
+      "view": "View",
+      "filter": "Event type",
+      "monthTitle": "{month}/{year}",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "past": "Past",
+      "empty": "No events match.",
+      "weekdays": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ],
+      "upcoming": "Upcoming",
+      "recent": "Most recent",
+      "dday": "D-{n}",
+      "dToday": "Today",
+      "ongoing": "Now",
+      "thisMonth": "Today",
+      "dayTitle": "{month}/{day}",
+      "monthEvents": "This month",
+      "showAll": "Whole month",
+      "more": "+{n}",
+      "count": "{n}",
+      "region": "Next event"
     }
   },
   "ncr": {

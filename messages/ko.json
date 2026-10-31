@@ -442,7 +442,10 @@
         "representative": "대표 수상자",
         "yearFormat": "{year}년",
         "yearAndAward": "{year}년 · {awardName}",
-        "noDescription": "상세 내용이 준비 중입니다."
+        "noDescription": "상세 내용이 준비 중입니다.",
+        "competition": "대회",
+        "other": "다른 수상",
+        "year": "연도"
       }
     },
     "project": {
@@ -463,7 +466,11 @@
         "sectionIntro": "프로젝트 소개",
         "sectionOutcome": "결과물·성과",
         "sectionParticipants": "참여 학생",
-        "yearFormat": "{year}년"
+        "yearFormat": "{year}년",
+        "type": "유형",
+        "year": "연도",
+        "other": "다른 프로젝트",
+        "count": "{n}명"
       }
     },
     "event": {
@@ -476,6 +483,96 @@
       "typeWorkshop": "워크숍",
       "typeCampusTour": "캠퍼스투어",
       "typeOther": "기타"
+    },
+    "nav": {
+      "section": "NINC",
+      "breadcrumb": "현재 위치",
+      "menu": "NINC 하위 메뉴",
+      "toc": "이 페이지 목차",
+      "awards": "수상",
+      "project": "프로젝트",
+      "event": "행사",
+      "more": "NINC 다른 페이지",
+      "showcase": "작품 쇼케이스",
+      "admission": "입학 안내"
+    },
+    "heroLabels": {
+      "prev": "이전 사진",
+      "next": "다음 사진",
+      "pause": "자동 넘김 멈춤",
+      "play": "자동 넘김 시작"
+    },
+    "awardsPage": {
+      "heroEn": [
+        "AWARDS"
+      ],
+      "heroKo": "수상",
+      "lead": "학생들이 공모전과 대회에서\n받은 상을 모았습니다.",
+      "region": "수상 사진",
+      "fallbackCaption": "수상 현장",
+      "empty": "등록된 수상 내역이 아직 없습니다.",
+      "yearTitle": "{year}년",
+      "count": "{n}건",
+      "winners": "수상자",
+      "host": "주최",
+      "category": "분야",
+      "detail": "자세히"
+    },
+    "projectPage": {
+      "heroEn": [
+        "PROJECT"
+      ],
+      "heroKo": "프로젝트",
+      "lead": "산학협력과 해외교류로\n현장에서 함께 만든 프로젝트입니다.",
+      "region": "프로젝트 사진",
+      "industry": "산학협력",
+      "international": "해외교류",
+      "partners": "가족회사",
+      "partnersIntro": "뉴미디어콘텐츠과와 산학협력 가족회사를 맺은 곳입니다.",
+      "empty": "등록된 프로젝트가 아직 없습니다.",
+      "detail": "자세히",
+      "partner": "함께한 곳",
+      "duration": "기간"
+    },
+    "eventPage": {
+      "heroEn": [
+        "EVENT"
+      ],
+      "heroKo": "행사",
+      "lead": "특강·워크숍·캠퍼스투어 등\n학과 일정을 모았습니다.",
+      "next": "다음 일정",
+      "today": "오늘",
+      "noUpcoming": "예정된 일정이 없습니다",
+      "list": "목록",
+      "calendar": "달력",
+      "view": "보기 방식",
+      "filter": "일정 종류",
+      "monthTitle": "{year}년 {month}월",
+      "prevMonth": "이전 달",
+      "nextMonth": "다음 달",
+      "past": "지난 일정",
+      "empty": "해당하는 일정이 없습니다.",
+      "weekdays": [
+        "일",
+        "월",
+        "화",
+        "수",
+        "목",
+        "금",
+        "토"
+      ],
+      "upcoming": "다가오는 일정",
+      "recent": "최근 일정",
+      "dday": "D-{n}",
+      "dToday": "D-DAY",
+      "ongoing": "진행 중",
+      "thisMonth": "이번 달",
+      "dayTitle": "{month}월 {day}일",
+      "monthEvents": "이 달의 일정",
+      "showAll": "달 전체 보기",
+      "more": "+{n}",
+      "count": "{n}건",
+      "region": "다음 일정"
     }
   },
   "ncr": {

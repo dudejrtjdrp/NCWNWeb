@@ -44,6 +44,8 @@ export interface PosterHeroProps {
   emptyCaption?: string
   /** 사진이 없을 때 판 위에 흐리게 올릴 이미지 (예: 학과 엠블럼) */
   emptyImage?: { src: string; alt: string }
+  /** 사진 대신 판에 넣을 내용 (예: 다음 행사 날짜). 주면 slides 는 쓰지 않는다 */
+  media?: React.ReactNode
   id?: string
 }
 
@@ -73,6 +75,7 @@ export default function PosterHero({
   labels,
   emptyCaption,
   emptyImage,
+  media,
   id = 'top',
 }: PosterHeroProps) {
   const count = slides.length
@@ -107,7 +110,15 @@ export default function PosterHero({
       className="relative mx-auto flex max-w-page flex-col overflow-hidden break-keep border-t border-nwcn-dark lg:block lg:h-poster"
       style={{ '--poster-split': `${split}%` } as CSSProperties}
     >
+      {/* ── 사진 대신 직접 넣은 내용 ── */}
+      {media && (
+        <div className="poster-photo relative order-2 overflow-hidden bg-nwcn-dark text-white lg:absolute lg:inset-y-0 lg:right-0">
+          {media}
+        </div>
+      )}
+
       {/* ── 사진 슬라이드 ── */}
+      {!media && (
       <div
         role="group"
         aria-roledescription="carousel"
@@ -211,6 +222,7 @@ export default function PosterHero({
           )}
         </div>
       </div>
+      )}
 
       {/* ── 제목: 검정 (사진 왼쪽만 보이게 잘림) ── */}
       <div className="poster-ink relative z-10 order-1 flex flex-col px-4 pb-8 pt-5 text-nwcn-dark sm:px-8 lg:absolute lg:inset-0 lg:pb-0 lg:pt-6">
