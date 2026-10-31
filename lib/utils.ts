@@ -17,6 +17,8 @@ const twMerge = extendTailwindMerge({
             'hero-1', 'hero-2', 'page-1', 'section', 'card',
             'body', 'body-sm', 'caption', 'label',
             'display-xl', 'display-lg', 'display-md',
+            'poster-en', 'poster-ko', 'lead', 'headline', 'statement',
+            'intro', 'list', 'jump',
           ],
         },
       ],

@@ -12,10 +12,12 @@ import { cn } from '@/lib/utils'
 interface LocaleSwitcherProps {
   /** Header 테마에 따라 텍스트 색상 변경 */
   isLight?: boolean
+  /** paper: 종이 바탕 헤더용 — 초록 대신 검정으로 현재 언어 표시(대비 확보) */
+  tone?: 'default' | 'paper'
   className?: string
 }
 
-export default function LocaleSwitcher({ isLight = true, className }: LocaleSwitcherProps) {
+export default function LocaleSwitcher({ isLight = true, tone = 'default', className }: LocaleSwitcherProps) {
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
@@ -25,9 +27,11 @@ export default function LocaleSwitcher({ isLight = true, className }: LocaleSwit
     router.replace(pathname, { locale: nextLocale })
   }
 
-  const baseText = isLight ? 'text-nwcn-text-muted' : 'text-white/70'
-  const activeText = 'text-nwcn-green font-semibold'
-  const divider = isLight ? 'bg-nwcn-text-muted/30' : 'bg-white/20'
+  const paper = tone === 'paper'
+  const baseText = paper ? 'text-nwcn-neutral-600' : isLight ? 'text-nwcn-text-muted' : 'text-white/70'
+  const activeText = paper ? 'text-nwcn-dark font-semibold' : 'text-nwcn-green font-semibold'
+  const hoverText = paper ? 'hover:text-nwcn-dark' : 'hover:text-nwcn-green'
+  const divider = paper ? 'bg-nwcn-dark/40' : isLight ? 'bg-nwcn-text-muted/30' : 'bg-white/20'
 
   return (
     <div className={cn('flex items-center gap-1 font-body text-caption', className)}>
@@ -35,7 +39,7 @@ export default function LocaleSwitcher({ isLight = true, className }: LocaleSwit
         onClick={() => handleSwitch('ko')}
         className={cn(
           'transition-colors duration-fast ease-nwcn px-1',
-          locale === 'ko' ? activeText : `${baseText} hover:text-nwcn-green`
+          locale === 'ko' ? activeText : `${baseText} ${hoverText}`
         )}
         aria-label="한국어로 전환"
       >
@@ -46,7 +50,7 @@ export default function LocaleSwitcher({ isLight = true, className }: LocaleSwit
         onClick={() => handleSwitch('en')}
         className={cn(
           'transition-colors duration-fast ease-nwcn px-1',
-          locale === 'en' ? activeText : `${baseText} hover:text-nwcn-green`
+          locale === 'en' ? activeText : `${baseText} ${hoverText}`
         )}
         aria-label="Switch to English"
       >

@@ -147,48 +147,126 @@
   },
   "about": {
     "hero": {
-      "imageAlt": "NWCN New Media Contents Department"
+      "imageAlt": "NWCN New Media Contents Department",
+      "photos": "Department photos",
+      "prev": "Previous photo",
+      "next": "Next photo",
+      "pause": "Pause slideshow",
+      "play": "Play slideshow"
+    },
+    "nav": {
+      "section": "ABOUT",
+      "breadcrumb": "Breadcrumb",
+      "menu": "About menu",
+      "toc": "On this page",
+      "department": "Department",
+      "faculty": "Faculty",
+      "curriculum": "Curriculum",
+      "lab": "Lab"
     },
     "department": {
       "title": "DEPARTMENT",
-      "intro": "Introduction",
-      "goal": "Educational Goals",
-      "policy": "Educational Policy",
-      "career": "Career Paths",
-      "certificate": "Certifications",
-      "detailGoal": "Detailed Educational Goals",
-      "imageAlt": "NWCN Symbol Image",
-      "introText1": "Training convergence content professionals who lead the new media industry",
-      "introText2": "2022 Top 3 in New Media Content Production in Korea",
-      "aka": "The Department of New Media Contents at Dong-Ah Institute of Media and Arts (DIMA) is also known as 'NewCon (NWCN)'.",
-      "policyText1": "With the 4th Industrial Revolution and 5G commercialization, we equip students with diverse digital equipment and computers for interactive content (VR/AR, smartphones, tablets),\nproviding field-centered practical education for immediate workplace application.",
-      "policyText2": "We also cultivate programming skills for VR/AR content (Java, Processing, etc.) and web development (HTML5, CSS3, Javascript, JSP, etc.),\ncombining theory and practice. Through education in planning, design, and programming — the foundations of content creation —\nwe nurture convergence talent that quickly adapts to the professional field.",
-      "careerQ1": "What can you do",
-      "careerQ2": "after graduating",
-      "careerQ3": "from NWCN?",
+      "heroEn": [
+        "NEW MEDIA",
+        "CONTENTS"
+      ],
+      "heroKo": "뉴미디어콘텐츠과",
+      "lead": "Training convergence content professionals\nwho will lead the new media industry.",
+      "slides": [
+        {
+          "alt": "Workshop participants posing under a media façade at night",
+          "caption": "Media façade workshop, 2026 Boseong Green Tea Festival"
+        },
+        {
+          "alt": "Detail of the graduation exhibition poster: a face dissolving into particles of light",
+          "caption": "4th Graduation Exhibition 'CONNECTION' · 2025"
+        }
+      ],
+      "anchors": {
+        "intro": "About",
+        "goal": "Goals",
+        "policy": "Policy",
+        "career": "Careers",
+        "certificate": "Certifications"
+      },
+      "admission": "Admissions",
+      "introBody": "The Department of New Media Contents at Dong-ah Institute of Media and Arts (DIMA) is also known as 'NewCon'. Students work across video, design, web, 3D and XR, learning through classes and projects where they plan, design and build things themselves.",
+      "emblemAlt": "New Media Contents department emblem",
+      "facts": [
+        {
+          "label": "School",
+          "value": "Dong-ah Institute of Media and Arts (DIMA)"
+        },
+        {
+          "label": "Department",
+          "value": "New Media Contents · 뉴미디어콘텐츠과"
+        },
+        {
+          "label": "Also known as",
+          "value": "NewCon · NWCN"
+        },
+        {
+          "label": "Recognition",
+          "value": "Top 3 in new media content production in Korea (2022)"
+        },
+        {
+          "label": "Fields",
+          "value": "Virtual reality · Interactive · Immersive · Smart media · Web content"
+        },
+        {
+          "label": "Location",
+          "value": "47 Dongayedae-gil, Samjuk-myeon, Anseong-si, Gyeonggi-do, Korea"
+        }
+      ],
+      "contactLabel": "Contact",
       "goals": [
-        "Training VR Content Production Professionals",
-        "Training Interactive Content Production Professionals",
-        "Training Immersive Content Production Professionals",
-        "Training Smart Media Content Production Professionals",
-        "Training Web-Based Content Production Professionals"
+        "Training virtual reality content production professionals",
+        "Training interactive content production professionals",
+        "Training immersive content production professionals",
+        "Training smart media content production professionals",
+        "Training web-based content production professionals"
+      ],
+      "policyLead": "Field-centered, practical education",
+      "policyPhotoAlt": "Group photo of the global workshop in front of RMIT in Ho Chi Minh City",
+      "policyPhotoCaption": "DIMA KR × RMIT VN Global Workshop · Ho Chi Minh City",
+      "policyItems": [
+        "In step with the 4th Industrial Revolution and 5G, the department is equipped with the digital gear and computers needed to make VR/AR content and interactive content for smartphones and tablets.",
+        "Education is field-centered and practical, so what students learn can be used at work right away.",
+        "Students learn programming for VR/AR content (Java, Processing, etc.) and web development (HTML5, CSS3, JavaScript, JSP, etc.), combining theory and practice.",
+        "By building planning, design and programming skills together, we train convergence talent who adapt quickly to the professional field."
       ],
       "careers": [
-        "Mobile Content Planning & Production Specialist",
-        "App Content Planner",
-        "UI/UX Designer",
-        "UI/UX Planner",
-        "AR/VR Content Production Specialist",
-        "Web Content Developer",
-        "Website Planning & Production",
-        "Web Content Planner",
-        "AR/VR Content Creator",
-        "Media Artist",
-        "App Content Developer",
-        "Internet Broadcasting Content Production Specialist",
-        "Interactive Content Planning & Production",
-        "Interactive Performance Planning & Production"
-      ]
+        "Mobile content planning & production specialist",
+        "App content planner",
+        "App content developer",
+        "UI/UX designer",
+        "UI/UX planner",
+        "Web content developer",
+        "Web content planner",
+        "Website planning & production",
+        "AR/VR content production specialist",
+        "AR/VR content creator",
+        "Interactive content planning & production",
+        "Interactive performance planning & production",
+        "Internet broadcasting content production specialist",
+        "Media artist"
+      ],
+      "certificateNote": "National and private certifications students can earn while enrolled.",
+      "certificates": [
+        "Industrial Engineer Information Processing",
+        "Multimedia Content Production Expert",
+        "GTQ (Graphic Technology Qualification)",
+        "Craftsman Web Design",
+        "Industrial Engineer Colorist",
+        "Industrial Engineer Office Automation",
+        "Internet Information Manager",
+        "Webmaster Expert",
+        "Internet Information Searcher",
+        "Video Specialist (Editing)",
+        "Video Specialist (Cinematography)",
+        "Video Specialist (Directing)"
+      ],
+      "moreLabel": "More about the department"
     },
     "faculty": {
       "title": "FACULTY",

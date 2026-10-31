@@ -1,6 +1,5 @@
 /* 웹폰트 로딩
-   - Pretendard: app/layout.tsx 의 <link> 로 로드 (CSS @import 는 HTML→CSS→CSS→폰트 직렬 체인이라 렌더를 막았다)
-   - Nova Slim: 쓰는 컴포넌트(DepartmentSection)에서 next/font 로 자체 호스팅 */
+   - Pretendard: app/layout.tsx 의 <link> 로 로드 (CSS @import 는 HTML→CSS→CSS→폰트 직렬 체인이라 렌더를 막았다) */
 
 @tailwind base;
 @tailwind components;
@@ -147,6 +146,10 @@
   --color-yellow: #E3E94D;
   --color-yellow-deep: #1D1E00;
   --color-danger: #E5484D;
+
+  /* 에디토리얼(학과 소개 E4) */
+  --color-paper: #F6F7F3;
+  --color-rule: #CFD2CA;
 
   /* 중립 스케일 */
   --color-neutral-0: #ffffff;
@@ -312,6 +315,16 @@ html.lenis body { height: auto; }
 @layer components {
   .page-container {
     @apply max-w-page mx-auto px-4 sm:px-8 lg:px-20;
+  }
+
+  /* 에디토리얼(포스터형) 서브페이지 컨테이너 — 큰 제목이 화면 가장자리 가까이 붙도록 좌우 32px */
+  .editorial-container {
+    @apply max-w-page mx-auto px-4 sm:px-8 break-keep;
+  }
+
+  /* 에디토리얼 링크 — 평소엔 밑줄 없이, 호버하면 학과 초록(진한) 2px 밑줄 */
+  .editorial-link {
+    @apply transition-colors duration-fast ease-nwcn hover:underline hover:decoration-2 hover:underline-offset-4 hover:decoration-nwcn-green-darker focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark focus-visible:ring-offset-2 focus-visible:ring-offset-nwcn-paper;
   }
 
   /* 섹션 상단 라벨 — 전 페이지 공통(기존 8곳 복붙 대체) */
@@ -655,4 +668,34 @@ html.lenis body { height: auto; }
 @media (prefers-reduced-motion: reduce) {
   .fh-cue svg { animation: none; }
   .fh-ink { transition: none; }
+}
+
+/* ── 포스터형 히어로 (학과 소개 E4) ─────────────────
+   같은 제목을 검정·흰색 두 겹으로 그린 뒤, 사진이 시작되는 지점(--poster-split)에서
+   잘라 붙인다. 사진 위로 넘어간 글자만 흰색이 된다. 모바일은 사진이 아래로 내려가
+   겹치지 않으므로 자르지 않는다. */
+@media (min-width: 1024px) {
+  .poster-photo { left: var(--poster-split, 44%); }
+  .poster-ink { clip-path: inset(0 calc(100% - var(--poster-split, 44%)) 0 0); }
+  .poster-light { clip-path: inset(0 0 0 var(--poster-split, 44%)); }
+}
+.poster-slide { transition: opacity 900ms var(--ease-nwcn); }
+.poster-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: inherit;
+  transition: color 150ms var(--ease-nwcn);
+}
+.poster-btn:hover { color: var(--color-green); }
+.poster-btn:focus-visible { outline: 2px solid var(--color-green); outline-offset: -4px; }
+.poster-shade {
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 28%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0.16) 60%, rgba(0, 0, 0, 0.1) 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .poster-slide { transition: none; }
 }

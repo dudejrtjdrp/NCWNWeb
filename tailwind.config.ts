@@ -27,6 +27,10 @@ const config: Config = {
           'yellow-deep': '#1D1E00',
           danger: '#E5484D',
 
+          /* ── 에디토리얼(학과 소개 E4) — 종이 바탕 · 얇은 구분선 ── */
+          paper: '#F6F7F3',
+          rule: '#CFD2CA',
+
           /* ── 중립 스케일 (기존 25종 회색 → 10단계로 압축) ── */
           'neutral-0': '#ffffff',
           'neutral-50': '#fafafa',
@@ -81,6 +85,15 @@ const config: Config = {
         'body-sm': ['14px', { lineHeight: '1.65' }],
         caption: ['12px', { lineHeight: '1.5' }],
         label: ['12px', { lineHeight: '1', letterSpacing: '0.2em' }],
+        /* 에디토리얼(포스터형 서브페이지) — 직각·1px 선 레이아웃 전용 스케일 */
+        'poster-en': ['clamp(52px, 12.4vw, 182px)', { lineHeight: '0.84', letterSpacing: '-0.055em' }],
+        'poster-ko': ['clamp(40px, 7.6vw, 112px)', { lineHeight: '1.05', letterSpacing: '-0.06em' }],
+        lead: ['clamp(18px, 1.7vw, 24px)', { lineHeight: '1.45', letterSpacing: '-0.02em' }],
+        headline: ['clamp(36px, 4.2vw, 56px)', { lineHeight: '1.1', letterSpacing: '-0.055em' }],
+        statement: ['clamp(22px, 2.7vw, 38px)', { lineHeight: '1.25', letterSpacing: '-0.045em' }],
+        intro: ['clamp(17px, 1.5vw, 20px)', { lineHeight: '1.65' }],
+        list: ['clamp(16px, 1.3vw, 18px)', { lineHeight: '1.55' }],
+        jump: ['clamp(22px, 2vw, 28px)', { lineHeight: '1.2', letterSpacing: '-0.03em' }],
         /* 하위 호환 (기존 display-* 사용처) */
         'display-xl': ['clamp(2.5rem, 6vw, 5rem)', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
         'display-lg': ['clamp(1.8rem, 4vw, 3.2rem)', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
@@ -100,6 +113,10 @@ const config: Config = {
         'section-md': 'clamp(64px, 8vw, 96px)',
         'section-lg': 'clamp(80px, 10vw, 128px)',
         gutter: 'clamp(16px, 5vw, 80px)',
+        /* 포스터형 히어로 높이 (1440 기준 660px) */
+        poster: 'clamp(540px, 46vw, 660px)',
+        /* 에디토리얼 섹션 간격 (1440 기준 120px) */
+        chapter: 'clamp(72px, 8.4vw, 120px)',
       },
 
       maxWidth: {

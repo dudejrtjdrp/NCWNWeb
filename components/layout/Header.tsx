@@ -7,6 +7,7 @@
  *   - "light"       → 흰 배경, 다크 텍스트 (서브 페이지 기본)  ← Figma node-id: 376:517
  *   - "dark"        → 다크 배경, 흰 텍스트 (다크 테마 페이지)
  *   - "transparent" → 초기 투명, 스크롤 시 흰 배경으로 전환 (홈 히어로 위)
+ *   - "paper"       → 종이 바탕 + 1px 검정 하단선, 현재 메뉴는 검정 블록 (에디토리얼 서브페이지)
  *
  * 높이: 64px (Figma 스펙)
  * 로고: 중앙 정렬 (Figma 스펙)
@@ -21,7 +22,7 @@ import MobileMenu from './MobileMenu'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher'
 import { NAV_ITEMS } from '@/constants/nav-items'
 
-export type HeaderVariant = 'light' | 'dark' | 'transparent'
+export type HeaderVariant = 'light' | 'dark' | 'transparent' | 'paper'
 
 export interface HeaderProps {
   variant?: HeaderVariant
@@ -74,7 +75,8 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
     pathname.startsWith('/' + href.split('/')[1])
 
   /* ── 테마 상태 계산 ── */
-  const isLight = variant === 'light' || (variant === 'transparent' && scrolled)
+  const isPaper = variant === 'paper'
+  const isLight = variant === 'light' || isPaper || (variant === 'transparent' && scrolled)
   const isDark = variant === 'dark' || (variant === 'transparent' && !scrolled)
 
   return (
@@ -83,7 +85,8 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
       <header
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-colors duration-fast ease-nwcn',
-          isLight && 'bg-white',
+          isLight && !isPaper && 'bg-white',
+          isPaper && 'bg-nwcn-paper border-b border-nwcn-dark',
           variant === 'dark' && 'bg-nwcn-dark/95 backdrop-blur-md border-b border-white/10',
           variant === 'transparent' && !scrolled && 'bg-transparent',
           className
@@ -101,7 +104,7 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
 
           {/* 메뉴 — 우측 정렬 (page-container 패딩 기반) */}
           <nav
-            className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-[79px] items-center"
+            className={cn('hidden lg:flex absolute top-1/2 -translate-y-1/2 items-center', isPaper ? 'right-8 gap-1' : 'right-[79px]')}
           >
             {NAV_ITEMS.map((item) => {
               const active = isTopSection(item.href)
@@ -127,15 +130,20 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                     aria-haspopup={item.children ? 'menu' : undefined}
                     aria-expanded={item.children ? activeDropdown === item.label : undefined}
                     className={cn(
-                      'flex items-center px-3 py-2',
-                      'font-body font-normal text-body leading-normal whitespace-nowrap',
+                      'flex items-center whitespace-nowrap',
                       'transition-colors duration-fast ease-nwcn',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2 rounded',
-                      active
-                        ? 'text-nwcn-green'
-                        : isLight
-                          ? 'text-nwcn-text-muted hover:text-nwcn-green'
-                          : 'text-white/70 hover:text-white'
+                      isPaper
+                        ? 'px-2 py-1 font-body font-semibold text-body-sm tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark focus-visible:ring-offset-2'
+                        : 'px-3 py-2 font-body font-normal text-body leading-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-green focus-visible:ring-offset-2 rounded',
+                      isPaper
+                        ? active
+                          ? 'bg-nwcn-dark text-nwcn-paper'
+                          : 'text-nwcn-dark hover:underline decoration-nwcn-green-darker decoration-2 underline-offset-4'
+                        : active
+                          ? 'text-nwcn-green'
+                          : isLight
+                            ? 'text-nwcn-text-muted hover:text-nwcn-green'
+                            : 'text-white/70 hover:text-white'
                     )}
                   >
                     {item.label}
@@ -152,10 +160,12 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                       )}
                     >
                       <div className={cn(
-                        'border rounded-lg overflow-hidden min-w-max',
-                        isLight
-                          ? 'bg-white border-nwcn-neutral-200 shadow-lift-1'
-                          : 'bg-nwcn-dark-2 border-white/10 shadow-xl shadow-black/50'
+                        'border overflow-hidden min-w-max',
+                        isPaper
+                          ? 'bg-nwcn-paper border-nwcn-dark'
+                          : isLight
+                            ? 'rounded-lg bg-white border-nwcn-neutral-200 shadow-lift-1'
+                            : 'rounded-lg bg-nwcn-dark-2 border-white/10 shadow-xl shadow-black/50'
                       )}>
                         {item.children.map((child) => (
                           <Link
@@ -165,7 +175,11 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
                               'block px-4 py-2.5 font-body text-caption whitespace-nowrap',
                               'transition-colors duration-fast',
                               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-nwcn-green',
-                              pathname === child.href
+                              isPaper
+                                ? pathname === child.href
+                                  ? 'bg-nwcn-dark text-nwcn-paper'
+                                  : 'text-nwcn-dark hover:bg-nwcn-dark/5'
+                                : pathname === child.href
                                 ? 'text-nwcn-green bg-nwcn-green/5'
                                 : isLight
                                   ? 'text-nwcn-text-muted hover:text-nwcn-green hover:bg-nwcn-neutral-50'
@@ -184,8 +198,8 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
           </nav>
 
           {/* 언어 전환 버튼 (데스크탑) */}
-          <div className="hidden lg:flex absolute top-1/2 -translate-y-1/2 left-[79px]">
-            <LocaleSwitcher isLight={isLight} />
+          <div className={cn('hidden lg:flex absolute top-1/2 -translate-y-1/2', isPaper ? 'left-8' : 'left-[79px]')}>
+            <LocaleSwitcher isLight={isLight} tone={isPaper ? 'paper' : 'default'} />
           </div>
 
           {/* 모바일 햄버거 */}
@@ -194,9 +208,9 @@ export default function Header({ variant = 'light', className }: HeaderProps) {
             onClick={() => setMobileOpen(true)}
             aria-label={t('openMenu')}
           >
-            <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
-            <span className={cn('w-6 h-[1.5px] block', isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
-            <span className={cn('w-4 h-[1.5px] block ml-auto', isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
+            <span className={cn('w-6 h-[1.5px] block', isPaper ? 'bg-nwcn-dark' : isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
+            <span className={cn('w-6 h-[1.5px] block', isPaper ? 'bg-nwcn-dark' : isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
+            <span className={cn('w-4 h-[1.5px] block ml-auto', isPaper ? 'bg-nwcn-dark' : isLight ? 'bg-nwcn-text-muted' : 'bg-white')} />
           </button>
         </div>
       </header>
