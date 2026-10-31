@@ -1,61 +1,34 @@
-'use client'
-
 /**
- * BASE 컴포넌트: CurriculumSection
- * Figma node-id: 450:219 (ABOUT/Curriculum/Desktop)
- *
- * ── 구조 ────────────────────────────────────────────
- *  [1] 교육과정 아이콘 + 타이틀 "교육 과정"
- *  [2] 학년 탭 (1학년 / 2학년 / 3학년)
- *       - 활성: 브랜드 그린 (#09F593) + 그림자
- *       - 비활성: 회색 (#B9B8B6)
- *  [3] 커리큘럼 콘텐츠 (선택된 학년 기준)
- *       - 교양필수 섹션 (#848900)
- *       - 전공필수 섹션 (#007042)
- *       - 전공선택 섹션 (#003F7D)
- *       - 각 섹션: 학기 헤더 + 과목 목록
- * ────────────────────────────────────────────────────
- *
- * Figma 디자인 스펙:
- *  - 전체 패딩: px-[188px] py-section-md
- *  - 카테고리 헤더: Pretendard Bold 18px, line-height 27px
- *  - 학기 헤더: Pretendard Bold 18px, #050505
- *  - 과목명: Pretendard Medium 18px, #050505
- *  - 과목 설명: Pretendard Medium 18px, #888, line-height 27px
- *  - 섹션 내 gap: 37px
- *  - 과목 간 gap: 52px
- *  - 학기 간 gap: 95px
- *  - 구분선: 1px, #E8E8E8
+ * 교육과정 데이터 — 서버/클라이언트 공용
+ * 학년 → 이수 구분(교양필수·전공필수·전공선택) → 학기 → 과목.
+ * 과목명 끝 괄호에 학점과 이론·실기 시간이 들어 있다 (예: '웹프로그래밍기초 (3학점 / 이론1 실기2)').
+ * (기존 components/base/CurriculumSection.tsx 에서 데이터만 옮김)
  */
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import AnimateOnScroll from '@/components/common/AnimateOnScroll'
-
 /* ─── 타입 정의 ─── */
-interface Course {
+export interface Course {
   name: string       // 과목명 + 학점/이론/실기
   description?: string
 }
 
-interface Semester {
+export interface Semester {
   label: string      // "1학기" | "2학기"
   courses: Course[]
 }
 
-interface CurriculumCategory {
+export interface CurriculumCategory {
   title: string      // "교양필수" | "전공필수" | "전공선택"
   color: string      // 카테고리 헤더 컬러
   semesters: Semester[]
 }
 
-interface GradeData {
+export interface GradeData {
   grade: number
   categories: CurriculumCategory[]
 }
 
 /* ─── 커리큘럼 데이터 ─── */
-const CURRICULUM_DATA: GradeData[] = [
+export const CURRICULUM_DATA: GradeData[] = [
   /* ══════════════════════ 1학년 ══════════════════════ */
   {
     grade: 1,
@@ -356,256 +329,3 @@ const CURRICULUM_DATA: GradeData[] = [
     ],
   },
 ]
-
-/* ─── 교육과정 아이콘 SVG (Figma Vector 대체) ─── */
-function CurriculumIcon() {
-  return (
-    <svg
-      width="64"
-      height="61"
-      viewBox="0 0 64 61"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      style={{ transform: 'rotate(180deg)' }}
-    >
-      {/* 아이콘 (Figma Vector2 대체: 화살표/별 모양 아이콘) */}
-      <path
-        d="M32 4L36.5 20H53L39.7 29.5L44.2 45.5L32 36L19.8 45.5L24.3 29.5L11 20H27.5L32 4Z"
-        stroke="var(--color-green)"
-        strokeWidth="2"
-        fill="none"
-      />
-      <path
-        d="M32 12L35 22H45.5L37 28L40 38L32 32L24 38L27 28L18.5 22H29L32 12Z"
-        fill="var(--color-green)"
-        opacity="0.3"
-      />
-    </svg>
-  )
-}
-
-/* ─── 과목 아이템 ─── */
-function CourseItem({ course }: { course: Course }) {
-  return (
-    <div className="flex flex-col gap-3 sm:gap-4 lg:gap-[35px]">
-      {/* 과목명 + 학점 */}
-      <p className="m-0 font-body font-medium text-body-sm sm:text-body lg:text-card leading-[1.5] lg:leading-[27px] text-nwcn-text-default">
-        {course.name}
-      </p>
-      {/* 과목 설명 */}
-      {course.description && (
-        <p className="m-0 font-body font-medium text-caption sm:text-body lg:text-card leading-[1.6] lg:leading-[27px] text-nwcn-neutral-500 whitespace-pre-wrap">
-          {course.description}
-        </p>
-      )}
-    </div>
-  )
-}
-
-/* ─── 학기 블록 ─── */
-function SemesterBlock({ semester }: { semester: Semester }) {
-  return (
-    <div className="flex flex-col gap-2">
-      {/* 학기 헤더 */}
-      <p className="m-0 font-body font-bold text-body lg:text-card leading-[27px] text-nwcn-text-default">
-        {semester.label}
-      </p>
-      {/* 과목 목록 */}
-      <div className="flex flex-col gap-8 sm:gap-10 lg:gap-12 mt-2">
-        {semester.courses.map((course, idx) => (
-          <CourseItem key={idx} course={course} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ─── 카테고리 섹션 ─── */
-function CategorySection({ category }: { category: CurriculumCategory }) {
-  return (
-    <>
-      {/* 섹션 구분선 */}
-      <div
-        style={{
-          width: '100%',
-          height: 1,
-          background: 'var(--color-neutral-200)',
-          margin: '0 0 81px 0',
-        }}
-        aria-hidden
-      />
-      {/* 카테고리 컨테이너 */}
-      <div
-        style={{
-          paddingLeft: 188,
-          paddingRight: 188,
-          paddingBottom: 81,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 37,
-        }}
-      >
-        {/* 카테고리 헤더 */}
-        <p
-          style={{
-            margin: 0,
-            fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-            fontWeight: 700,
-            fontSize: 18,
-            lineHeight: '27px',
-            color: category.color,
-          }}
-        >
-          {category.title}
-        </p>
-
-        {/* 학기 목록 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 95 }}>
-          {category.semesters.map((semester, idx) => (
-            <SemesterBlock key={idx} semester={semester} />
-          ))}
-        </div>
-      </div>
-    </>
-  )
-}
-
-/* ══════════════════════════════════════════════════════
-   메인 컴포넌트
-══════════════════════════════════════════════════════ */
-export interface CurriculumSectionProps {
-  className?: string
-}
-
-export default function CurriculumSection({ className }: CurriculumSectionProps) {
-  const [activeGrade, setActiveGrade] = useState<1 | 2 | 3>(1)
-  const t = useTranslations('about.curriculum')
-
-  const currentData = CURRICULUM_DATA.find((d) => d.grade === activeGrade)!
-
-  // 카테고리/학기 레이블 번역 맵
-  const categoryLabelMap: Record<string, string> = {
-    '교양필수': t('required'),
-    '전공필수': t('majorRequired'),
-    '전공선택': t('majorElective'),
-  }
-  const semesterLabelMap: Record<string, string> = {
-    '1학기': t('semester1'),
-    '2학기': t('semester2'),
-  }
-
-  return (
-    <div
-      className={`relative w-full max-w-page mx-auto bg-white ${className ?? ''}`}
-      data-node-id="450:219"
-    >
-      {/* ══════════════════════════════════════════
-          [1] 교육과정 아이콘 + 타이틀
-          ══════════════════════════════════════ */}
-      <AnimateOnScroll variant="fade-up">
-        <div className="pt-14 sm:pt-20 lg:pt-section-md flex flex-col items-center gap-2.5">
-          <CurriculumIcon />
-          <p
-            style={{
-              margin: 0,
-              fontFamily: "'Pretendard Variable', Pretendard, sans-serif",
-              fontWeight: 700,
-              fontSize: 24,
-              lineHeight: 'normal',
-              color: '#444',
-              textAlign: 'center',
-            }}
-          >
-            {t('title')}
-          </p>
-        </div>
-      </AnimateOnScroll>
-
-      {/* ══════════════════════════════════════════
-          [2] 학년 탭
-          ══════════════════════════════════════ */}
-      <AnimateOnScroll variant="fade-up" delay={80}>
-      <div
-        className="flex justify-center gap-4 pt-8 sm:pt-10 lg:pt-section-sm pb-10 sm:pb-14 lg:pb-section-md"
-        role="tablist"
-        aria-label="학년 선택"
-      >
-        {([1, 2, 3] as const).map((grade) => {
-          const isActive = activeGrade === grade
-          return (
-            <button
-              key={grade}
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={`curriculum-panel-${grade}`}
-              onClick={() => setActiveGrade(grade)}
-              className={[
-                'focus-ring cursor-pointer overflow-hidden whitespace-nowrap px-6 py-3',
-                'font-body text-body font-bold text-nwcn-dark',
-                'transition-[background-color,box-shadow,transform] duration-fast ease-nwcn',
-                isActive
-                  ? 'bg-nwcn-green shadow-lift-1'
-                  : 'bg-nwcn-text-sub hover:-translate-y-0.5 hover:bg-nwcn-green/60',
-              ].join(' ')}
-            >
-              {t('grade', { grade })}
-            </button>
-          )
-        })}
-      </div>
-      </AnimateOnScroll>
-
-      {/* ══════════════════════════════════════════
-          [3] 커리큘럼 콘텐츠
-          ══════════════════════════════════════ */}
-      <div
-        id={`curriculum-panel-${activeGrade}`}
-        role="tabpanel"
-        aria-label={t('grade', { grade: activeGrade })}
-      >
-        {currentData.categories.map((category, idx) => (
-          <AnimateOnScroll key={`${activeGrade}-${category.title}`} variant="fade-up" delay={idx * 60} threshold={0.05}>
-          <div>
-            {idx > 0 && (
-              /* 카테고리 간 구분선 */
-              <div
-                className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-nwcn-neutral-200 mb-8 sm:mb-12 lg:mb-[81px]"
-                aria-hidden
-              />
-            )}
-            <div
-              className={`px-4 sm:px-8 lg:px-[188px] ${idx < currentData.categories.length - 1 ? 'pb-0' : 'pb-10 sm:pb-12 lg:pb-section-md'} flex flex-col gap-6 sm:gap-8 lg:gap-[37px]`}
-            >
-              {/* 카테고리 헤더 */}
-              <p
-                className="m-0 font-body font-bold text-body lg:text-card leading-[27px]"
-                style={{ color: category.color }}
-              >
-                {categoryLabelMap[category.title] ?? category.title}
-              </p>
-
-              {/* 학기 목록 */}
-              <div className="flex flex-col gap-10 sm:gap-14 lg:gap-24">
-                {category.semesters.map((semester, sIdx) => {
-                  const translatedSemester = {
-                    ...semester,
-                    label: semesterLabelMap[semester.label] ?? semester.label,
-                  }
-                  return <SemesterBlock key={sIdx} semester={translatedSemester} />
-                })}
-              </div>
-            </div>
-          </div>
-          </AnimateOnScroll>
-        ))}
-      </div>
-
-      {/* 하단 구분선 */}
-      <div
-        className="mx-4 sm:mx-8 lg:mx-[188px] h-px bg-nwcn-neutral-200"
-        aria-hidden
-      />
-    </div>
-  )
-}

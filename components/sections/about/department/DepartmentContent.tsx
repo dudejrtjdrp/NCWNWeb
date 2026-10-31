@@ -8,7 +8,7 @@
 
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
+import { AboutMoreLinks, EditorialHeading } from '@/components/sections/about/Editorial'
 
 interface Fact {
   label: string
@@ -29,36 +29,22 @@ const CONTACT = {
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
-function Heading({ id, children }: { id: string; children: React.ReactNode }) {
-  return (
-    <h2 id={id} className="m-0 font-extrabold text-headline">
-      {children}
-    </h2>
-  )
-}
-
 export default function DepartmentContent() {
   const t = useTranslations('about.department')
-  const nav = useTranslations('about.nav')
   const facts = t.raw('facts') as Fact[]
   const goals = t.raw('goals') as string[]
   const policyItems = t.raw('policyItems') as string[]
   const careers = t.raw('careers') as string[]
   const certificates = t.raw('certificates') as string[]
 
-  const more = [
-    { href: '/about/faculty', label: nav('faculty') },
-    { href: '/about/curriculum', label: nav('curriculum') },
-    { href: '/about/lab', label: nav('lab') },
-    { href: '/info/admission', label: t('admission') },
-  ]
-
   return (
     <div className="editorial-container">
       {/* ── 소개 ── */}
       <section id="intro" aria-labelledby="intro-title" className="grid scroll-mt-36 grid-cols-12 gap-x-6 pt-chapter">
         <div className="col-span-9">
-          <Heading id="intro-title">{t('anchors.intro')}</Heading>
+          <h2 id="intro-title" className="m-0 font-extrabold text-headline">
+            {t('anchors.intro')}
+          </h2>
         </div>
         <Image
           src={IMG.emblem}
@@ -92,9 +78,7 @@ export default function DepartmentContent() {
 
       {/* ── 교육 목표 ── */}
       <section id="goal" aria-labelledby="goal-title" className="scroll-mt-36 pt-chapter">
-        <div className="mb-6">
-          <Heading id="goal-title">{t('anchors.goal')}</Heading>
-        </div>
+        <EditorialHeading id="goal-title">{t('anchors.goal')}</EditorialHeading>
         <ol className="border-b border-nwcn-dark">
           {goals.map((goal, i) => (
             <li key={goal} className="group grid grid-cols-12 items-baseline gap-x-6 border-t border-nwcn-dark pb-6 pt-5">
@@ -109,9 +93,7 @@ export default function DepartmentContent() {
 
       {/* ── 교육 방침 ── */}
       <section id="policy" aria-labelledby="policy-title" className="scroll-mt-36 pt-chapter">
-        <div className="mb-6">
-          <Heading id="policy-title">{t('anchors.policy')}</Heading>
-        </div>
+        <EditorialHeading id="policy-title">{t('anchors.policy')}</EditorialHeading>
         <div className="flex items-center justify-between border-t border-nwcn-dark py-3.5 font-bold text-section">
           <span>{t('policyLead')}</span>
           <span aria-hidden="true">—</span>
@@ -142,9 +124,7 @@ export default function DepartmentContent() {
 
       {/* ── 졸업 후 진로 ── */}
       <section id="career" aria-labelledby="career-title" className="scroll-mt-36 pt-chapter">
-        <div className="mb-6">
-          <Heading id="career-title">{t('anchors.career')}</Heading>
-        </div>
+        <EditorialHeading id="career-title">{t('anchors.career')}</EditorialHeading>
         <ul className="grid grid-cols-1 gap-x-6 border-t border-nwcn-dark text-list sm:grid-cols-2 lg:grid-cols-3">
           {careers.map((career) => (
             <li key={career} className="border-b border-nwcn-rule py-3.5">
@@ -156,9 +136,7 @@ export default function DepartmentContent() {
 
       {/* ── 자격증 (글 목록) ── */}
       <section id="certificate" aria-labelledby="certificate-title" className="scroll-mt-36 pt-chapter">
-        <div className="mb-6">
-          <Heading id="certificate-title">{t('anchors.certificate')}</Heading>
-        </div>
+        <EditorialHeading id="certificate-title">{t('anchors.certificate')}</EditorialHeading>
         <p className="border-t border-nwcn-dark py-3.5 text-list">{t('certificateNote')}</p>
         <ol className="grid grid-cols-1 gap-x-6 border-t border-nwcn-dark text-list sm:grid-cols-2 lg:grid-cols-3">
           {certificates.map((cert, i) => (
@@ -170,21 +148,7 @@ export default function DepartmentContent() {
         </ol>
       </section>
 
-      {/* ── 다른 페이지 바로가기 ── */}
-      <nav aria-label={t('moreLabel')} className="grid grid-cols-1 gap-x-6 pb-24 pt-chapter sm:grid-cols-2 lg:grid-cols-4">
-        {more.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="group flex items-baseline justify-between gap-3 border-t border-nwcn-dark pb-6 pt-5 font-semibold text-jump transition-colors duration-fast ease-nwcn hover:text-nwcn-green-darker focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark"
-          >
-            {link.label}
-            <span aria-hidden="true" className="transition-transform duration-fast ease-nwcn group-hover:translate-x-1">
-              →
-            </span>
-          </Link>
-        ))}
-      </nav>
+      <AboutMoreLinks current="department" />
     </div>
   )
 }

@@ -10,6 +10,8 @@
  * - 6.5초마다 다음 사진으로 넘어가고, 마우스를 올리거나 키보드 포커스가 들어오면 멈춘다.
  * - 멈춤/재생 버튼 제공(WCAG 2.2.2), prefers-reduced-motion 이면 자동 넘김 없음.
  * - 모바일(<lg)은 제목 → 사진 순으로 쌓이고 글자는 모두 검정.
+ * - fit 'portrait': 인물 사진·포스터처럼 잘리면 안 되는 이미지를 어두운 판 위에 통째로(contain)
+ *   올린다. 사진이 없으면(slides=[]) 어두운 판에 emptyCaption 만 보여준다.
  */
 
 import Image from 'next/image'
@@ -22,6 +24,8 @@ export interface PosterSlide {
   caption: string
   /** object-position (예: '50% 40%') */
   position?: string
+  /** cover(기본): 칸을 꽉 채움 / portrait: 잘리지 않게 어두운 판 위에 통째로 */
+  fit?: 'cover' | 'portrait'
 }
 
 export interface PosterHeroProps {
@@ -35,6 +39,10 @@ export interface PosterHeroProps {
   /** 사진이 시작되는 가로 위치(%) — 기본 44 */
   split?: number
   labels: { region: string; prev: string; next: string; pause: string; play: string }
+  /** 사진이 없을 때 판 아래에 보여줄 문구 */
+  emptyCaption?: string
+  /** 사진이 없을 때 판 위에 흐리게 올릴 이미지 (예: 학과 엠블럼) */
+  emptyImage?: { src: string; alt: string }
   id?: string
 }
 
@@ -62,6 +70,8 @@ export default function PosterHero({
   slides,
   split = 44,
   labels,
+  emptyCaption,
+  emptyImage,
   id = 'top',
 }: PosterHeroProps) {
   const count = slides.length
@@ -101,7 +111,7 @@ export default function PosterHero({
         role="group"
         aria-roledescription="carousel"
         aria-label={labels.region}
-        className="poster-photo relative order-2 aspect-video overflow-hidden bg-nwcn-dark text-white lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto"
+        className="poster-photo relative order-2 aspect-[4/3] overflow-hidden bg-nwcn-dark text-white sm:aspect-video lg:absolute lg:inset-y-0 lg:right-0 lg:aspect-auto"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onFocus={() => setHovered(true)}
@@ -115,21 +125,40 @@ export default function PosterHero({
             aria-hidden={i !== index}
             className={cn('poster-slide absolute inset-0', i === index ? 'opacity-100' : 'opacity-0')}
           >
-            <Image
-              src={slide.src}
-              alt={slide.alt}
-              fill
-              priority={i === 0}
-              sizes="(min-width: 1024px) 56vw, 100vw"
-              className="object-cover"
-              style={{ objectPosition: slide.position ?? '50% 50%' }}
-            />
+            {slide.fit === 'portrait' ? (
+              <div className="poster-portrait">
+                <Image
+                  src={slide.src}
+                  alt={slide.alt}
+                  fill
+                  priority={i === 0}
+                  sizes="(min-width: 1024px) 36vw, 70vw"
+                  className="object-contain"
+                  style={{ objectPosition: slide.position ?? '60% 100%' }}
+                />
+              </div>
+            ) : (
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                fill
+                priority={i === 0}
+                sizes="(min-width: 1024px) 56vw, 100vw"
+                className="object-cover"
+                style={{ objectPosition: slide.position ?? '50% 50%' }}
+              />
+            )}
           </div>
         ))}
+        {count === 0 && emptyImage && (
+          <div className="poster-portrait opacity-40">
+            <Image src={emptyImage.src} alt={emptyImage.alt} fill sizes="(min-width: 1024px) 36vw, 70vw" className="object-contain" />
+          </div>
+        )}
         <div aria-hidden="true" className="poster-shade pointer-events-none absolute inset-0" />
 
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 py-1.5 pl-4 pr-2 text-body-sm sm:pl-5">
-          <span className="min-w-0 truncate">{current?.caption}</span>
+          <span className="min-w-0 truncate">{current?.caption ?? emptyCaption}</span>
           {count > 1 && (
             <span className="flex shrink-0 items-center">
               <span className="min-w-12 text-center tabular-nums">

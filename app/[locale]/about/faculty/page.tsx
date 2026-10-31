@@ -1,36 +1,55 @@
 /**
- * TARGET 리팩터링: About/Faculty 교수진 페이지
- * Figma node-id: 427:889 (ABOUT/Faculty/Desktop)
- *
- * ─ 변경 사항 ─────────────────────────────────────────
- * Before: 임시 card-base 카드 (다크 테마, Supabase TODO)
- * After : FacultySection BASE 컴포넌트 통합
- *   - 디자인: Figma 교수 카드 (그린/노란 배경, 수직 이름, 호버 애니메이션)
- *   - 라우팅: 카드 클릭 → /about/faculty/[id] 상세 페이지
- *   - 히어로: ABOUT 타이틀 + 대형 NWCN 로고 (Department 동일 패턴)
- *   - SubNav: FACULTY 탭 활성 (AboutSubNav 재사용)
- *   - 교수진 3열 그리드 + 조교 섹션 유지
- *   - 기존 FACULTY_DATA → FacultySection 내 FACULTY_LIST로 통합 이전
- * ──────────────────────────────────────────────────────
+ * About/Faculty 교수진 페이지 — 학과 소개 E4 틀
+ * 포스터형 히어로(FACULTY / 교수진, 어두운 판 위에 교수진 사진이 차례로) + 목차 줄 + 교수·조교 목록.
+ * 카드를 누르면 /about/faculty/[id] 상세로 이동.
  */
 
+import { getTranslations } from 'next-intl/server'
 import SubPageLayout from '@/components/layout/SubPageLayout'
-import AboutHero from '@/components/base/AboutHero'
-import SubNav from '@/components/common/SubNav'
-import FacultySection from '@/components/base/FacultySection'
-import { ABOUT_NAV_ITEMS } from '@/constants/nav-items'
+import AboutLocalBar from '@/components/sections/about/AboutLocalBar'
+import PosterHero, { type PosterSlide } from '@/components/sections/about/PosterHero'
+import AnchorBar from '@/components/sections/about/AnchorBar'
+import FacultyContent, { FACULTY_SECTIONS } from '@/components/sections/about/faculty/FacultyContent'
+import { facultyRole, type RoleLabels } from '@/components/sections/about/faculty/faculty-role'
+import { FACULTY_LIST } from '@/lib/faculty-data'
 
 export const metadata = {
   title: 'FACULTY | ABOUT | NWCN',
   description: '뉴미디어콘텐츠과를 이끄는 교수진을 소개합니다.',
 }
 
-export default function FacultyPage() {
+interface PageProps {
+  params: Promise<{ locale: string }>
+}
+
+export default async function FacultyPage({ params }: PageProps) {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'about.faculty' })
+  const hero = await getTranslations({ locale, namespace: 'about.hero' })
+  const nav = await getTranslations({ locale, namespace: 'about.nav' })
+  const dept = await getTranslations({ locale, namespace: 'about.department' })
+  const roles = t.raw('roles') as RoleLabels
+
+  const slides: PosterSlide[] = FACULTY_LIST.map((f) => ({
+    src: f.photoUrl,
+    alt: t('photoAlt', { name: f.nameKo }),
+    caption: `${f.nameKo} · ${facultyRole(f, roles)}`,
+    fit: 'portrait',
+  }))
+  const anchors = FACULTY_SECTIONS.map((id) => ({ id, label: t(id) }))
+
   return (
-    <SubPageLayout>
-      <AboutHero />
-      <SubNav items={ABOUT_NAV_ITEMS} />
-      <FacultySection />
+    <SubPageLayout tone="paper">
+      <AboutLocalBar />
+      <PosterHero
+        titleEn={t.raw('heroEn') as string[]}
+        titleKo={t('heroKo')}
+        lead={t('lead')}
+        slides={slides}
+        labels={{ region: t('region'), prev: hero('prev'), next: hero('next'), pause: hero('pause'), play: hero('play') }}
+      />
+      <AnchorBar items={anchors} label={nav('toc')} cta={{ href: '/info/admission', label: dept('admission') }} />
+      <FacultyContent />
     </SubPageLayout>
   )
 }

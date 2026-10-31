@@ -8,12 +8,15 @@
  *   - Figma node-id: 926:430 (ABOUT/Faculty/Detail/배윤경/Desktop)
  *   - 프로필 사진 + CAREER + 이름/이메일 + INTERVIEW Q&A + 인용 문구
  *   - 모든 교수진에게 동일한 템플릿 적용 (interview 데이터 없으면 기본 뷰)
+ * 2026-10: 학과 소개 E4 틀로 교체 — 종이 바탕, ABOUT 위치·하위 메뉴 줄,
+ *   FacultyProfile(큰 이름 + 사진, 이력 정보표, 인터뷰, 이전/다음 교수)
  * ──────────────────────────────────────────────────────
  */
 
 import { notFound } from 'next/navigation'
 import SubPageLayout from '@/components/layout/SubPageLayout'
-import ProfessorDetailSection from '@/components/base/ProfessorDetailSection'
+import AboutLocalBar from '@/components/sections/about/AboutLocalBar'
+import FacultyProfile from '@/components/sections/about/faculty/FacultyProfile'
 import { FACULTY_LIST } from '@/lib/faculty-data'
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbLd } from '@/lib/seo/structured-data'
@@ -58,8 +61,11 @@ export default async function FacultyDetailPage({
   params: Promise<{ id: string; locale: string }>
 }) {
   const { id } = await params
-  const faculty = FACULTY_LIST.find((f) => f.id === id)
-  if (!faculty) notFound()
+  const index = FACULTY_LIST.findIndex((f) => f.id === id)
+  if (index < 0) notFound()
+  const faculty = FACULTY_LIST[index]
+  const prev = index > 0 ? FACULTY_LIST[index - 1] : undefined
+  const next = index < FACULTY_LIST.length - 1 ? FACULTY_LIST[index + 1] : undefined
 
   /** Person + Breadcrumb JSON-LD — 교수진을 학과 소속 인물 엔티티로 표현 */
   const personJsonLd = {
@@ -86,9 +92,10 @@ export default async function FacultyDetailPage({
   ])
 
   return (
-    <SubPageLayout>
+    <SubPageLayout tone="paper">
       <JsonLd data={[personJsonLd, breadcrumbJsonLd]} />
-      <ProfessorDetailSection faculty={faculty} />
+      <AboutLocalBar />
+      <FacultyProfile faculty={faculty} prev={prev} next={next} />
     </SubPageLayout>
   )
 }

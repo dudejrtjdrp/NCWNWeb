@@ -270,25 +270,107 @@
     },
     "faculty": {
       "title": "FACULTY",
+      "heroEn": [
+        "FACULTY"
+      ],
+      "heroKo": "교수진",
+      "lead": "The people who lead classes and projects\nat New Media Contents.",
+      "region": "Faculty photos",
       "professors": "Professors",
-      "assistants": "Assistants",
+      "assistants": "Teaching Assistant",
+      "intro": "{professors} professors and {assistants} teaching assistant run the classes and the department. Select a name to see their career and interview.",
+      "roles": {
+        "professor": "Professor",
+        "assistant": "Teaching Assistant",
+        "chair": "Department Chair",
+        "adjunct": "Adjunct Professor"
+      },
+      "photoAlt": "Photo of {name}",
+      "viewProfile": "View profile",
+      "email": "Email",
       "detail": {
         "backToList": "Back to Faculty",
         "education": "Education",
-        "career": "Career"
+        "career": "Career",
+        "email": "Email",
+        "profile": "Profile",
+        "interview": "Interview",
+        "closing": "Last question",
+        "others": "Other faculty",
+        "prev": "Previous",
+        "next": "Next",
+        "sections": {
+          "PUBLICATION": "Publications",
+          "PERFORMANCE": "Performances",
+          "EXHIBITION": "Exhibitions",
+          "JOURNAL": "Journals"
+        }
       }
     },
     "curriculum": {
       "title": "Curriculum",
+      "heroEn": [
+        "CURRICULUM"
+      ],
+      "heroKo": "교육과정",
+      "lead": "Courses for each semester,\nfrom first year to third year.",
+      "region": "Graduation exhibition posters",
+      "slides": [
+        {
+          "alt": "Poster of the 2025 graduation exhibition CONNECTION",
+          "caption": "Graduation exhibition 'CONNECTION' · 2025"
+        },
+        {
+          "alt": "Poster of the 2024 graduation exhibition",
+          "caption": "Graduation exhibition '미(美)감·의·미(味)' · 2024"
+        },
+        {
+          "alt": "Poster of the 2023 graduation exhibition",
+          "caption": "Graduation exhibition '가치의 재생' · 2023"
+        },
+        {
+          "alt": "Poster of the 2022 graduation exhibition NEWMEDIA UNIVERSE",
+          "caption": "Graduation exhibition 'NEWMEDIA UNIVERSE' · 2022"
+        }
+      ],
+      "intro": "Courses and credits by year and semester. Credits and theory/practice hours are listed under each course name.",
       "grade": "Year {grade}",
+      "gradeSummary": "{courses} courses · {credits} credits",
       "semester1": "Semester 1",
       "semester2": "Semester 2",
       "required": "General Education",
       "majorRequired": "Major Required",
-      "majorElective": "Major Elective"
+      "majorElective": "Major Elective",
+      "headers": {
+        "category": "Type",
+        "course": "Course",
+        "description": "Description"
+      },
+      "credit": "{n} credits",
+      "theory": "theory {n}",
+      "practice": "practice {n}"
     },
     "lab": {
-      "title": "LAB"
+      "title": "LAB",
+      "heroEn": [
+        "LAB"
+      ],
+      "heroKo": "실습실",
+      "lead": "The studios and equipment\nused in classes and projects.",
+      "region": "Lab photos",
+      "emptyMedia": "Lab photos coming soon",
+      "anchors": {
+        "status": "Notice",
+        "contact": "Contact"
+      },
+      "preparing": "The lab page is being prepared.",
+      "preparingBody": "Information on the labs and equipment will be posted here soon. Until then, please contact the department office with any questions.",
+      "contactRows": {
+        "tel": "Phone",
+        "email": "Email",
+        "address": "Location"
+      },
+      "address": "47 Dongayedae-gil, Samjuk-myeon, Anseong-si, Gyeonggi-do, Korea"
     }
   },
   "ninc": {

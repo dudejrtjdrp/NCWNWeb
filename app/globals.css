@@ -680,6 +680,11 @@ html.lenis body { height: auto; }
   .poster-light { clip-path: inset(0 0 0 var(--poster-split, 44%)); }
 }
 .poster-slide { transition: opacity 900ms var(--ease-nwcn); }
+/* 인물 사진·포스터를 자르지 않고 올려 두는 칸 — 캡션 줄(아래 44px) 위에 앉는다 */
+.poster-portrait { position: absolute; left: 18%; right: 6%; top: 8%; bottom: 44px; }
+@media (min-width: 1024px) {
+  .poster-portrait { left: 30%; right: 6%; top: 20%; bottom: 52px; }
+}
 .poster-btn {
   display: inline-flex;
   align-items: center;

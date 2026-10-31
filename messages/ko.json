@@ -270,25 +270,107 @@
     },
     "faculty": {
       "title": "FACULTY",
-      "professors": "교수진",
+      "heroEn": [
+        "FACULTY"
+      ],
+      "heroKo": "교수진",
+      "lead": "뉴미디어콘텐츠과의 수업과 프로젝트를\n함께 이끄는 사람들입니다.",
+      "region": "교수진 사진",
+      "professors": "교수",
       "assistants": "조교",
+      "intro": "교수 {professors}명과 조교 {assistants}명이 수업과 학과 운영을 맡고 있습니다. 이름을 누르면 경력과 인터뷰를 볼 수 있습니다.",
+      "roles": {
+        "professor": "교수",
+        "assistant": "조교",
+        "chair": "학과장",
+        "adjunct": "겸임교수"
+      },
+      "photoAlt": "{name} 사진",
+      "viewProfile": "프로필 보기",
+      "email": "이메일",
       "detail": {
         "backToList": "교수진으로 돌아가기",
         "education": "학력",
-        "career": "경력"
+        "career": "경력",
+        "email": "이메일",
+        "profile": "이력",
+        "interview": "인터뷰",
+        "closing": "마무리 질문",
+        "others": "다른 교수진",
+        "prev": "이전",
+        "next": "다음",
+        "sections": {
+          "PUBLICATION": "논문",
+          "PERFORMANCE": "공연",
+          "EXHIBITION": "전시",
+          "JOURNAL": "학술지"
+        }
       }
     },
     "curriculum": {
       "title": "교육 과정",
+      "heroEn": [
+        "CURRICULUM"
+      ],
+      "heroKo": "교육과정",
+      "lead": "1학년부터 3학년까지\n학기마다 배우는 과목입니다.",
+      "region": "졸업전시 포스터",
+      "slides": [
+        {
+          "alt": "2025 졸업전시 CONNECTION 포스터",
+          "caption": "졸업전시 〈CONNECTION〉 · 2025"
+        },
+        {
+          "alt": "2024 졸업전시 미(美)감·의·미(味) 포스터",
+          "caption": "졸업전시 〈미(美)감·의·미(味)〉 · 2024"
+        },
+        {
+          "alt": "2023 졸업전시 가치의 재생 포스터",
+          "caption": "졸업전시 〈가치의 재생〉 · 2023"
+        },
+        {
+          "alt": "2022 졸업전시 NEWMEDIA UNIVERSE 포스터",
+          "caption": "졸업전시 〈NEWMEDIA UNIVERSE〉 · 2022"
+        }
+      ],
+      "intro": "학년·학기별 과목과 학점을 정리했습니다. 과목 이름 아래에 학점과 이론·실기 시간을 적었습니다.",
       "grade": "{grade}학년",
+      "gradeSummary": "{courses}과목 · {credits}학점",
       "semester1": "1학기",
       "semester2": "2학기",
       "required": "교양필수",
       "majorRequired": "전공필수",
-      "majorElective": "전공선택"
+      "majorElective": "전공선택",
+      "headers": {
+        "category": "이수 구분",
+        "course": "과목",
+        "description": "내용"
+      },
+      "credit": "{n}학점",
+      "theory": "이론 {n}",
+      "practice": "실기 {n}"
     },
     "lab": {
-      "title": "LAB"
+      "title": "LAB",
+      "heroEn": [
+        "LAB"
+      ],
+      "heroKo": "실습실",
+      "lead": "수업과 프로젝트에 쓰는\n실습 공간과 장비를 소개합니다.",
+      "region": "실습실 사진",
+      "emptyMedia": "실습실 사진 준비 중",
+      "anchors": {
+        "status": "안내",
+        "contact": "문의"
+      },
+      "preparing": "실습실 소개를 준비하고 있습니다.",
+      "preparingBody": "실습실과 장비 안내는 정리되는 대로 이곳에 올립니다. 그 전에 궁금한 점은 학과 사무실로 문의해 주세요.",
+      "contactRows": {
+        "tel": "전화",
+        "email": "이메일",
+        "address": "위치"
+      },
+      "address": "경기도 안성시 삼죽면 동아예대길 47"
     }
   },
   "ninc": {
