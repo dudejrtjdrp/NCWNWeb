@@ -3,7 +3,7 @@
  * ────────────────────────────────────────────────────────────
  * 브랜치 미리보기·로컬 개발에서 화면이 텅 비지 않게, scripts/snapshot-public-data.mjs 로 저장해 둔
  * 실제 공개 데이터에 형식 확인용 예시 데이터(snapshot/mock-data.ts)를 덧붙여 돌려준다.
- * 공개 페이지 조회에 쓰는 것만 지원: select · eq · neq · in · contains · or(ilike/eq) · ilike
+ * 공개 페이지 조회에 쓰는 것만 지원: select · eq · neq · in · contains · filter(cs) · or(ilike/eq) · ilike
  * · is · not(is) · gt/gte/lt/lte · order · limit · range · single · maybeSingle · rpc(작품 랜덤 정렬).
  * 쓰기(insert/update/delete)는 지원하지 않는다(에러를 돌려줌).
  */
@@ -35,6 +35,14 @@ const cmp = (a: unknown, b: unknown) => {
   if (a === null || a === undefined) return 1
   if (b === null || b === undefined) return -1
   return (a as number | string) < (b as number | string) ? -1 : 1
+}
+
+/** 배열 원소 x 가 v 를 포함하는가 — 객체면 v 의 키가 모두 같을 때 (jsonb @> 흉내) */
+const matches = (x: unknown, v: unknown): boolean => {
+  if (v && typeof v === 'object' && x && typeof x === 'object') {
+    return Object.entries(v as Record<string, unknown>).every(([k, val]) => (x as Record<string, unknown>)[k] === val)
+  }
+  return x === v
 }
 
 class SnapshotQuery implements PromiseLike<Result> {
@@ -72,7 +80,16 @@ class SnapshotQuery implements PromiseLike<Result> {
     return this
   }
   contains(col: string, vals: unknown[]) {
-    this.filters.push((r) => Array.isArray(r[col]) && vals.every((v) => (r[col] as unknown[]).includes(v)))
+    this.filters.push((r) => Array.isArray(r[col]) && vals.every((v) => (r[col] as unknown[]).some((x) => matches(x, v))))
+    return this
+  }
+  /** filter(col, 'cs', '[{"student_id":"…"}]') 처럼 jsonb 포함 검사만 지원 */
+  filter(col: string, op: string, val: unknown) {
+    if (op === 'cs') {
+      const parsed = typeof val === 'string' ? JSON.parse(val) : val
+      return this.contains(col, Array.isArray(parsed) ? parsed : [parsed])
+    }
+    if (op === 'eq') return this.eq(col, val)
     return this
   }
   /** 'title.ilike.%검색%,author.ilike.%검색%' 꼴만 지원 */

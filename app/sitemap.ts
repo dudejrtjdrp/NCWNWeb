@@ -64,6 +64,21 @@ async function getAwardIds(): Promise<{ id: string; updated_at: string }[]> {
   }
 }
 
+/** 공개된 졸업생 포트폴리오 slug 조회 (표가 아직 없으면 빈 목록) */
+async function getPortfolioSlugs(): Promise<{ slug: string; updated_at: string }[]> {
+  try {
+    const supabase = createDbClient()
+    const { data } = await supabase
+      .from('portfolios')
+      .select('slug, updated_at')
+      .eq('is_published', true)
+      .order('year', { ascending: false })
+    return (data ?? []).map((r) => ({ slug: r.slug, updated_at: r.updated_at }))
+  } catch {
+    return []
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date().toISOString()
 
@@ -82,6 +97,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/work/showcase`,    lastModified: now, changeFrequency: 'weekly',  priority: 0.8, alternates: alt('/work/showcase') },
     { url: `${SITE_URL}/work/archive`,     lastModified: now, changeFrequency: 'weekly',  priority: 0.7, alternates: alt('/work/archive') },
     { url: `${SITE_URL}/work/exhibition`,  lastModified: now, changeFrequency: 'monthly', priority: 0.7, alternates: alt('/work/exhibition') },
+    { url: `${SITE_URL}/work/portfolio`,   lastModified: now, changeFrequency: 'monthly', priority: 0.8, alternates: alt('/work/portfolio') },
     { url: `${SITE_URL}/info/admission`,   lastModified: now, changeFrequency: 'monthly', priority: 0.8, alternates: alt('/info/admission') },
     { url: `${SITE_URL}/info/contact`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.5, alternates: alt('/info/contact') },
     { url: `${SITE_URL}/info/privacy`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.3, alternates: alt('/info/privacy') },
@@ -96,10 +112,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: alt(`/about/faculty/${f.id}`),
   }))
 
-  const [ncrIds, workIds, awardIds] = await Promise.all([
+  const [ncrIds, workIds, awardIds, portfolioSlugs] = await Promise.all([
     getNcrIds(),
     getWorkIds(),
     getAwardIds(),
+    getPortfolioSlugs(),
   ])
 
   const ncrPages: MetadataRoute.Sitemap = ncrIds.map(({ id, updated_at }) => ({
@@ -126,5 +143,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: alt(`/ninc/awards/${id}`),
   }))
 
-  return [...staticPages, ...facultyPages, ...ncrPages, ...workPages, ...awardPages]
+  const portfolioPages: MetadataRoute.Sitemap = portfolioSlugs.map(({ slug, updated_at }) => ({
+    url: `${SITE_URL}/work/portfolio/${slug}`,
+    lastModified: updated_at,
+    changeFrequency: 'yearly',
+    priority: 0.7,
+    alternates: alt(`/work/portfolio/${slug}`),
+  }))
+
+  return [...staticPages, ...facultyPages, ...ncrPages, ...workPages, ...awardPages, ...portfolioPages]
 }

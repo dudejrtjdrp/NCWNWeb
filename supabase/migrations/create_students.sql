@@ -1,6 +1,7 @@
 -- 학생(졸업생) 인원 DB + 작품 제작자 연결
 -- ─────────────────────────────────────────────────────────────
--- students: 졸업생 포트폴리오를 올릴 때 한 사람당 한 줄. 학번으로 구분한다.
+-- students: 학생(졸업생) 한 사람당 한 줄. 학번으로 구분한다. 학번이 있어 관리자(로그인)만 읽을 수 있다.
+--   사이트에서 학생 이름을 포트폴리오로 잇는 건 공개 표 portfolios(student_id, slug)로 한다(create_portfolios.sql).
 -- showcase_works.creators: 작품 제작자 목록 (여러 명). 관리자 작품 입력에서 학생을 검색해
 --   고르면 student_id 로 연결되고, 학생 DB 에 없는 사람은 이름만 적는다.
 --   [{ "name": "홍길동", "student_id": "uuid 또는 null", "student_no": "학번 또는 null" }]
@@ -14,7 +15,7 @@ create table if not exists public.students (
   student_no       text unique,                     -- 학번
   name_en          text,
   graduation_year  integer,
-  slug             text unique,                     -- 포트폴리오 주소 /portfolio/[slug] (포트폴리오를 올리면 채움)
+  slug             text unique,                     -- 포트폴리오 주소 /work/portfolio/[slug] (포트폴리오를 올리면 채움)
   created_at       timestamptz not null default now()
 );
 
@@ -22,9 +23,12 @@ create index if not exists students_name_idx on public.students (name);
 
 alter table public.students enable row level security;
 
+-- 학번은 공개하지 않는다 — 관리자(로그인 사용자)만 읽기
 drop policy if exists "students are readable by everyone" on public.students;
-create policy "students are readable by everyone"
+drop policy if exists "students are readable by signed-in users" on public.students;
+create policy "students are readable by signed-in users"
   on public.students for select
+  to authenticated
   using (true);
 
 -- 작품 제작자 목록

@@ -4,7 +4,7 @@
  * 실제 DB에 아직 없거나 적은 칸(수상 0건, 작품 1건, 다가오는 행사 0건 등)을 채워
  * 화면 형식을 확인하기 위한 것. 운영(Production)에서는 절대 쓰이지 않는다(lib/supabase/db.ts).
  * - 제목 끝에 '(예시)'를 붙여 실제 데이터와 구분한다.
- * - 이미지는 public/images/mock/mock-01~08.webp (예시 이미지 표시가 들어간 자리 표시용)
+ * - 이미지는 public/images/mock/ (mock-01~08, 포트폴리오 mock-profile-1~4 · mock-cover-1~4) — '예시' 표시가 들어간 자리 표시용
  * - 행사 날짜는 오늘(한국 시간) 기준으로 만들어서 '다가오는 일정'이 늘 보인다.
  */
 
@@ -46,6 +46,14 @@ const awards = [
   description_en: null,
 }))
 
+/** 예시 졸업생 — 이름 → student_id (예시 작품 제작자와 예시 포트폴리오를 잇는다) */
+const MOCK_STUDENT_IDS: Record<string, string> = {
+  김하늘: id('f', 1),
+  이서연: id('f', 2),
+  최민준: id('f', 3),
+  한지우: id('f', 4),
+}
+
 const works = [
   { n: 1, title: '도시의 소리를 모으는 인터랙티브 지도', type: 'design', tags: ['Web', 'Graphic'], people: ['김하늘', '박서준'], year: 2026, img: 5, views: 128 },
   { n: 2, title: '새벽 3시의 편의점', type: 'video', tags: ['Video', 'Motion'], people: ['이서연'], year: 2026, img: 6, views: 342 },
@@ -59,7 +67,7 @@ const works = [
   id: id('b', w.n),
   title: `${w.title} (예시)`,
   author: w.people.join(', '),
-  creators: w.people.map((name) => ({ name, student_id: null, student_no: null })),
+  creators: w.people.map((name) => ({ name, student_id: MOCK_STUDENT_IDS[name] ?? null, student_no: null })),
   year: w.year,
   description: `${w.title}의 작품 소개가 들어가는 자리입니다.\n제작 의도, 사용한 도구, 맡은 역할 등을 두세 문단으로 적습니다.`,
   type: w.type,
@@ -160,6 +168,98 @@ const events = [
   description_en: null,
 }))
 
+const PROFILE = (n: number) => `/images/mock/mock-profile-${n}.webp`
+const COVER = (n: number) => `/images/mock/mock-cover-${n}.webp`
+
+const portfolioProject = (title: string, fields: string[], img: number, extra: Partial<Record<string, unknown>> = {}) => ({
+  title: `${title} (예시)`,
+  titleEn: '',
+  year: '2026',
+  fields,
+  format: '팀 3명',
+  role: '기획, 인터랙션 개발',
+  tools: ['Figma', 'TouchDesigner'],
+  summary: `${title}의 한 줄 요약이 들어갑니다.`,
+  description: `${title} 프로젝트 설명입니다. 무엇을, 왜, 어떻게 만들었는지 3~5문장으로 정리한 내용이 들어갑니다. 양식의 글자 수 제한(300자) 안에서 담백한 서술형으로 씁니다.`,
+  descriptionEn: '',
+  points: ['핵심 포인트 하나가 들어갑니다', '두 번째 포인트는 이 정도 길이입니다', '세 번째 포인트'],
+  outcome: '결과·성과가 있으면 여기에 (예: 졸업전시 출품)',
+  video: '',
+  images: [IMG(img), IMG((img % 6) + 1), IMG(((img + 1) % 6) + 1)],
+  cover: IMG(img),
+  ...extra,
+})
+
+const portfolios = [
+  {
+    n: 1, name: '김하늘', name_en: 'Kim Haneul', year: 2026, fields: ['인터랙티브', '웹'],
+    tagline: '도시의 소리와 움직임을 화면으로 옮기는 인터랙션 디자이너',
+    projects: [
+      portfolioProject('도시의 소리를 모으는 인터랙티브 지도', ['인터랙티브', '웹'], 5),
+      portfolioProject('졸업전시 〈.ZIP〉 인터랙티브 설치', ['인터랙티브'], 1, { format: '팀 5명', role: '센서 인터랙션 개발' }),
+      portfolioProject('학과 홈페이지 리디자인', ['웹', 'UX/UI'], 3, { format: '개인', role: '디자인·개발 전체' }),
+    ],
+  },
+  {
+    n: 2, name: '이서연', name_en: 'Lee Seoyeon', year: 2026, fields: ['영상', '모션'],
+    tagline: '짧은 영상 안에 하루의 온도를 담는 영상 디자이너',
+    projects: [
+      portfolioProject('새벽 3시의 편의점', ['영상'], 6, { format: '개인', role: '연출·촬영·편집', tools: ['Premiere Pro', 'After Effects'] }),
+      portfolioProject('브랜드 숏폼 캠페인', ['영상', '모션'], 4, { tools: ['After Effects'] }),
+    ],
+  },
+  {
+    n: 3, name: '최민준', name_en: 'Choi Minjun', year: 2026, fields: ['3D', 'XR', '게임'],
+    tagline: '기억을 걸어 다닐 수 있는 공간으로 만드는 3D 아티스트',
+    projects: [
+      portfolioProject('기억의 방 — VR 전시 공간', ['3D', 'XR'], 1, { tools: ['Unity', 'Blender'] }),
+      portfolioProject('리듬 탈출 — 2D 플랫폼 게임', ['게임'], 4, { format: '팀 2명', tools: ['Unity'] }),
+      portfolioProject('가상 전시장 모델링 연습', ['3D'], 2, { format: '개인', role: '모델링' }),
+      portfolioProject('XR 캠퍼스 투어', ['XR'], 3),
+    ],
+  },
+  {
+    n: 4, name: '한지우', name_en: 'Han Jiwoo', year: 2025, fields: ['그래픽', 'UX/UI'],
+    tagline: '정보를 단정한 그래픽으로 정리하는 디자이너',
+    projects: [
+      portfolioProject('뉴콘 브랜드 아이덴티티 리디자인', ['그래픽'], 6, { year: '2025', format: '개인', role: '브랜딩 전체', tools: ['Illustrator', 'Figma'] }),
+      portfolioProject('학사 일정 앱 UX 개선', ['UX/UI'], 5, { year: '2025' }),
+    ],
+  },
+].map((p) => ({
+  id: id('g', p.n),
+  student_id: id('f', p.n),
+  slug: `${p.year}-${p.name_en.toLowerCase().replace(/\s+/g, '-')}`,
+  year: p.year,
+  name: p.name,
+  name_en: p.name_en,
+  fields: p.fields,
+  tagline: `${p.tagline} (예시)`,
+  tagline_en: null,
+  bio: `${p.name}의 자기소개가 들어가는 자리입니다. 무엇을 만드는 사람인지, 어떤 방식으로 작업하는지 3~4문장(250자 이내)으로 정리합니다. 이 내용은 예시입니다.`,
+  bio_en: null,
+  interests: p.fields,
+  tools: ['Figma', 'After Effects', 'Unity'],
+  email: p.n % 2 ? `example${p.n}@example.com` : null,
+  website: 'https://example.com',
+  instagram: '@nwcn_example',
+  other_links: p.n === 1 ? ['https://github.com/example'] : [],
+  profile_url: PROFILE(p.n),
+  cover_url: COVER(p.n),
+  pages: [COVER(p.n), IMG(1), IMG(2), IMG(3), IMG(4), IMG(5), IMG(6), IMG(1), IMG(2)],
+  pdf_url: null,
+  projects: p.projects,
+  history: {
+    awards: p.n <= 2 ? ['2025 대한민국 콘텐츠 공모전 대상 (예시)'] : [],
+    exhibitions: ['2026 졸업전시 〈.ZIP〉 (예시)', '학과 작품 발표회 (예시)'],
+    experience: p.n === 3 ? [] : ['가족회사 현장실습 (예시)'],
+  },
+  is_published: true,
+  sort_order: p.n,
+  created_at: created(p.n),
+  updated_at: created(p.n),
+}))
+
 /** 표 이름 → 덧붙일 예시 행 */
 export const MOCK_TABLES: Record<string, Record<string, unknown>[]> = {
   awards,
@@ -167,4 +267,5 @@ export const MOCK_TABLES: Record<string, Record<string, unknown>[]> = {
   ncr_reports: reports,
   projects,
   events,
+  portfolios,
 }

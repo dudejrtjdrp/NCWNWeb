@@ -10,6 +10,7 @@
 import { createDbClient as createClient } from '@/lib/supabase/db'
 import { unstable_cache } from 'next/cache'
 import { applyLocale, applyLocaleList } from './_locale'
+import { getPortfolioSlugs } from './portfolios'
 import { splitCreators, creatorRefs } from '@/lib/work-creators'
 
 export { splitCreators, creatorRefs }
@@ -224,40 +225,18 @@ export async function getRelatedWorks(
 
 export interface WorkCreator {
   name: string
-  /** 학번 (학생 DB 와 연결된 경우) */
-  studentNo: string | null
-  /** 포트폴리오 주소용 slug — 학생 DB 와 연결되고 포트폴리오가 있을 때 */
+  /** 공개 포트폴리오 주소용 slug — 관리자 작품 입력에서 학생 DB 로 고른 제작자가 포트폴리오를 올렸을 때 */
   studentSlug: string | null
 }
 
-/** 작품 제작자 + 학생 DB 연동 (캐시 5분, tag: students) */
+/**
+ * 작품 제작자 + 졸업생 포트폴리오 연결
+ * 학생 DB(students)는 학번이 있어 관리자만 읽으므로, 공개 페이지는 portfolios(student_id → slug)로 잇는다.
+ */
 export async function getWorkCreators(work: Pick<WorkListItem, 'author' | 'creators'>): Promise<WorkCreator[]> {
   const refs = creatorRefs(work)
-  const ids = refs.map((r) => r.student_id).filter((v): v is string => !!v)
-  const plain = refs.map((r) => ({ name: r.name, studentNo: r.student_no ?? null, studentSlug: null }))
-  if (ids.length === 0) return plain
-
-  const fetcher = unstable_cache(
-    async (): Promise<WorkCreator[]> => {
-      try {
-        const supabase = createClient()
-        const { data, error } = await supabase.from('students').select('id, name, student_no, slug').in('id', ids)
-        if (error) return plain // 학생 DB 가 아직 없으면 이름만
-        const byId = new Map((data ?? []).map((st: { id: string; name: string; student_no: string | null; slug: string | null }) => [st.id, st]))
-        return refs.map((r) => {
-          const st = r.student_id ? byId.get(r.student_id) : undefined
-          return st
-            ? { name: st.name, studentNo: st.student_no, studentSlug: st.slug }
-            : { name: r.name, studentNo: r.student_no ?? null, studentSlug: null }
-        })
-      } catch {
-        return plain
-      }
-    },
-    ['work-creators', ids.join('|')],
-    { revalidate: 300, tags: ['students', 'works'] }
-  )
-  return fetcher()
+  const slugs = await getPortfolioSlugs(refs.map((r) => r.student_id).filter((v): v is string => !!v))
+  return refs.map((r) => ({ name: r.name, studentSlug: (r.student_id && slugs.get(r.student_id)) || null }))
 }
 
 /** 두 작품이 같은 제작자를 공유하는지 — 학생 DB 연결이 있으면 그것으로, 없으면 이름으로 */

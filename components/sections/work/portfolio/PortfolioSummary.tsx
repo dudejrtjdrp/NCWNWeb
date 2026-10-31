@@ -1,0 +1,241 @@
+/**
+ * PortfolioSummary — 개인 페이지 '학과 정리본' (E4)
+ * 소개 → 프로젝트 목차 → 프로젝트(최대 6) → 원본 미리보기 줄 → 이력 → 연락 → 쇼케이스 작품.
+ * 모든 졸업생이 같은 형식이라 서로 비교해 보기 쉽고, 개성은 원본 쪽에서 본다.
+ */
+
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { InfoTable } from '@/components/sections/editorial/DetailParts'
+import WorkCard from '@/components/sections/work/WorkCard'
+import { normalizeVideoEmbed } from '@/lib/youtube'
+import type { PortfolioItem, PortfolioProject } from '@/lib/supabase/queries/portfolios'
+import type { WorkListItem, WorkType } from '@/lib/supabase/queries/works'
+
+const num = (n: number) => String(n).padStart(2, '0')
+const safeUrl = (u?: string | null) => (u && /^https?:\/\//.test(u) ? u : null)
+const instagramUrl = (v: string) => (/^https?:\/\//.test(v) ? v : `https://instagram.com/${v.replace(/^@/, '')}`)
+
+function Project({ p, n }: { p: PortfolioProject; n: number }) {
+  const t = useTranslations('work.portfolio.detail')
+  const video = normalizeVideoEmbed(p.video)
+  const cover = p.cover || p.images[0] || null
+  const rest = p.images.filter((src) => src !== cover)
+  const rows = [
+    ...(p.year ? [{ label: t('year'), value: <span className="tabular-nums">{p.year}</span> }] : []),
+    ...(p.fields.length ? [{ label: t('fields'), value: p.fields.join(' · ') }] : []),
+    ...(p.format ? [{ label: t('format'), value: p.format }] : []),
+    ...(p.role ? [{ label: t('role'), value: p.role }] : []),
+    ...(p.tools.length ? [{ label: t('tools'), value: p.tools.join(', ') }] : []),
+  ]
+  return (
+    <section id={`p${n}`} aria-labelledby={`p${n}-t`} className="scroll-mt-36 pt-chapter">
+      <div className="grid grid-cols-12 gap-x-6 gap-y-8 border-t border-nwcn-dark pt-5">
+        <div className="col-span-12 flex flex-col lg:col-span-4">
+          <p className="m-0 font-black tabular-nums leading-none text-headline">{num(n)}</p>
+          <h3 id={`p${n}-t`} className="m-0 mt-4 break-words font-extrabold text-statement">{p.title}</h3>
+          {rows.length > 0 && (
+            <div className="mt-6">
+              <InfoTable rows={rows} />
+            </div>
+          )}
+        </div>
+        <div className="col-span-12 min-w-0 lg:col-span-8">
+          {cover && (
+            <div className="relative aspect-[16/10] overflow-hidden bg-nwcn-dark">
+              <Image src={cover} alt={p.title} fill sizes="(min-width: 1024px) 60vw, 100vw" className="object-contain" />
+            </div>
+          )}
+          {p.summary && <p className="mt-6 font-semibold text-lead">{p.summary}</p>}
+          {p.description && <p className="mt-4 whitespace-pre-line text-list">{p.description}</p>}
+          {p.points.length > 0 && (
+            <div className="mt-8">
+              <p className="m-0 border-t border-nwcn-dark pt-3 font-bold text-body-sm">{t('points')}</p>
+              <ul className="mt-2">
+                {p.points.map((pt, i) => (
+                  <li key={i} className="flex gap-4 border-b border-nwcn-rule py-2.5 text-list last:border-b-0">
+                    <span aria-hidden="true" className="font-semibold tabular-nums text-nwcn-neutral-600">{num(i + 1)}</span>
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {p.outcome && (
+            <p className="mt-6 border-t border-nwcn-dark pt-3 text-list">
+              <span className="mr-3 font-bold text-body-sm">{t('outcome')}</span>
+              {p.outcome}
+            </p>
+          )}
+          {video && (
+            <div className="mt-8 aspect-video w-full overflow-hidden bg-black">
+              <iframe
+                src={video}
+                title={`${p.title} — ${t('video')}`}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
+          {rest.length > 0 && (
+            <ul className="mt-6 grid grid-cols-2 gap-3">
+              {rest.map((src) => (
+                <li key={src} className="relative aspect-[16/10] overflow-hidden bg-nwcn-dark">
+                  <Image src={src} alt="" fill sizes="(min-width: 1024px) 30vw, 50vw" className="object-contain" />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default function PortfolioSummary({
+  item,
+  works,
+  typeLabel,
+}: {
+  item: PortfolioItem
+  works: WorkListItem[]
+  typeLabel: Record<WorkType, string>
+}) {
+  const t = useTranslations('work.portfolio.detail')
+  const projects = item.projects.slice(0, 6)
+  const history = [
+    { key: 'awards', label: t('awards'), list: item.history.awards ?? [] },
+    { key: 'exhibitions', label: t('exhibitions'), list: item.history.exhibitions ?? [] },
+    { key: 'experience', label: t('experience'), list: item.history.experience ?? [] },
+  ].filter((h) => h.list.length > 0)
+  const contacts = [
+    ...(item.email ? [{ label: t('email'), href: `mailto:${item.email}`, text: item.email }] : []),
+    ...(safeUrl(item.website) ? [{ label: t('website'), href: item.website as string, text: (item.website as string).replace(/^https?:\/\//, '') }] : []),
+    ...(item.instagram ? [{ label: t('instagram'), href: instagramUrl(item.instagram), text: item.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '@') }] : []),
+    ...item.other_links.filter((u) => safeUrl(u)).map((u) => ({ label: t('links'), href: u, text: u.replace(/^https?:\/\//, '') })),
+  ]
+  const infoRows = [
+    ...(item.fields.length ? [{ label: t('fields'), value: item.fields.join(' · ') }] : []),
+    ...(item.interests.length ? [{ label: t('interests'), value: item.interests.join(' · ') }] : []),
+    ...(item.tools.length ? [{ label: t('tools'), value: item.tools.join(', ') }] : []),
+  ]
+
+  return (
+    <div className="pb-8">
+      {/* ── 소개 ── */}
+      <section id="intro" aria-labelledby="intro-t" className="scroll-mt-36 pt-chapter">
+        <div className="grid grid-cols-12 gap-x-6 gap-y-8">
+          <div className="col-span-12 lg:col-span-7">
+            <h2 id="intro-t" className="m-0 border-t border-nwcn-dark pt-3.5 font-bold text-section">{t('intro')}</h2>
+            {item.bio && <p className="mt-5 whitespace-pre-line font-medium text-lead">{item.bio}</p>}
+          </div>
+          {infoRows.length > 0 && (
+            <div className="col-span-12 self-end lg:col-span-4 lg:col-start-9">
+              <InfoTable rows={infoRows} />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── 프로젝트 목차 ── */}
+      {projects.length > 1 && (
+        <nav aria-labelledby="toc-t" className="pt-chapter">
+          <h2 id="toc-t" className="m-0 mb-4 font-extrabold text-headline">{t('projects')}</h2>
+          <ol className="grid grid-cols-1 border-t border-nwcn-dark sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((p, i) => (
+              <li key={i} className="border-b border-nwcn-rule">
+                <a href={`#p${i + 1}`} className="group flex items-baseline gap-4 py-3.5 pr-4 text-list">
+                  <span className="font-semibold tabular-nums text-nwcn-neutral-600">{num(i + 1)}</span>
+                  <span className="min-w-0 font-semibold decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">{p.title}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+
+      {projects.map((p, i) => (
+        <Project key={i} p={p} n={i + 1} />
+      ))}
+
+      {/* ── 원본 미리보기 ── */}
+      {item.pages.length > 0 && (
+        <section aria-labelledby="orig-t" className="pt-chapter">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <h2 id="orig-t" className="m-0 font-extrabold text-headline">{t('originalPreview')}</h2>
+            <a href="#original" className="editorial-link font-semibold text-body-sm">
+              {t('originalAll', { n: item.pages.length })} <span aria-hidden="true">→</span>
+            </a>
+          </div>
+          <ul className="-mx-4 flex gap-3 overflow-x-auto border-t border-nwcn-dark px-4 pb-2 pt-4 sm:mx-0 sm:px-0">
+            {item.pages.slice(0, 10).map((src, i) => (
+              <li key={src} className="shrink-0">
+                <a href="#original" className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark">
+                  <span className="relative block aspect-[16/10] w-56 overflow-hidden bg-nwcn-dark sm:w-64">
+                    <Image src={src} alt="" fill sizes="256px" className="object-contain" />
+                  </span>
+                  <span className="mt-1.5 block font-semibold tabular-nums text-caption text-nwcn-neutral-600">{t('page', { n: i + 1 })}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* ── 이력 ── */}
+      {history.length > 0 && (
+        <section aria-labelledby="hist-t" className="pt-chapter">
+          <h2 id="hist-t" className="m-0 mb-6 font-extrabold text-headline">{t('history')}</h2>
+          <div className="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3">
+            {history.map((h) => (
+              <div key={h.key}>
+                <h3 className="m-0 border-t border-nwcn-dark pt-3 font-bold text-body-sm">{h.label}</h3>
+                <ul className="mt-2">
+                  {h.list.map((x, i) => (
+                    <li key={i} className="border-b border-nwcn-rule py-2.5 text-list last:border-b-0">{x}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 연락 ── */}
+      {contacts.length > 0 && (
+        <section aria-labelledby="contact-t" className="pt-chapter">
+          <h2 id="contact-t" className="m-0 mb-6 font-extrabold text-headline">{t('contact')}</h2>
+          <ul className="border-b border-nwcn-dark">
+            {contacts.map((c) => (
+              <li key={c.href} className="border-t border-nwcn-dark">
+                <a href={c.href} target={c.href.startsWith('mailto:') ? undefined : '_blank'} rel="noopener noreferrer" className="group grid grid-cols-12 items-baseline gap-x-6 py-4">
+                  <span className="col-span-12 text-body-sm text-nwcn-neutral-600 sm:col-span-3">{c.label}</span>
+                  <span className="col-span-12 flex min-w-0 items-baseline justify-between gap-4 font-semibold text-statement sm:col-span-9">
+                    <span className="min-w-0 break-all decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">{c.text}</span>
+                    <span aria-hidden="true">↗</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* ── 쇼케이스 작품 ── */}
+      {works.length > 0 && (
+        <section aria-labelledby="works-t" className="pt-chapter">
+          <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+            <h2 id="works-t" className="m-0 font-extrabold text-headline">{t('works')}</h2>
+            <p className="text-body-sm text-nwcn-neutral-600">{t('worksHint')}</p>
+          </div>
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {works.map((w) => (
+              <WorkCard key={w.id} work={w} typeLabel={typeLabel} />
+            ))}
+          </ul>
+        </section>
+      )}
+    </div>
+  )
+}

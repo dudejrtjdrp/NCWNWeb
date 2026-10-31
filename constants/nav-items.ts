@@ -21,6 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       { label: 'SHOWCASE', href: '/work/showcase' },
       { label: 'EXHIBITION', href: '/work/exhibition' },
+      { label: 'PORTFOLIO', href: '/work/portfolio' },
     ],
   },
   {

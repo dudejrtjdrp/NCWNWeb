@@ -141,7 +141,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
           {creators.map((c) => (
             <li key={c.name}>
               {c.studentSlug ? (
-                <Link href={`/portfolio/${c.studentSlug}`} className="underline decoration-1 underline-offset-4 editorial-link">
+                <Link href={`/work/portfolio/${c.studentSlug}`} className="underline decoration-1 underline-offset-4 editorial-link">
                   {c.name}
                 </Link>
               ) : (
