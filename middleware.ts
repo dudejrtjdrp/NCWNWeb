@@ -114,6 +114,14 @@ export async function middleware(request: NextRequest) {
       return supabaseResponse
     }
 
+    // API 라우트: 로케일 처리를 건너뛴다. next-intl 이 /api/... 를 /ko/api/... 로 바꿔
+    // 모든 API 가 404 가 되던 문제(조회수 증가 등) 수정.
+    if (pathname.startsWith('/api/')) {
+      const response = NextResponse.next({ request })
+      applySecurityHeaders(response)
+      return response
+    }
+
     // 일반 경로: next-intl 로케일 처리 + 보안 헤더
     const response = intlMiddleware(request)
     applySecurityHeaders(response)
