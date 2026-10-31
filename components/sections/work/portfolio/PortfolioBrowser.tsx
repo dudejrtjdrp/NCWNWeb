@@ -3,7 +3,7 @@
 /**
  * PortfolioBrowser — 졸업생 목록 (E4)
  * 위: 분야 거르개(전체 · 영상 · 모션 …, 포트폴리오에 있는 분야만) / 아래: 졸업 연도별 묶음, 카드 4열(태블릿 3열, 휴대폰 2열).
- * 포트폴리오가 공개된 학생 카드만 개인 페이지로 이어진다.
+ * 카드는 모두 졸업생 상세로 이어진다(포트폴리오가 있으면 포트폴리오, 없으면 사진·이름·연결된 작품).
  */
 
 import { useState } from 'react'
@@ -73,7 +73,7 @@ export default function PortfolioBrowser({ items }: { items: GraduateCard[] }) {
                     key={p.key}
                     item={p}
                     priority={i < 4}
-                    labels={{ profileAlt: t('profileAlt', { name: p.name }), coverHint: t('coverHint'), preparing: t('preparing') }}
+                    labels={{ profileAlt: t('profileAlt', { name: p.name }), coverHint: t('coverHint') }}
                   />
                 ))}
               </ul>

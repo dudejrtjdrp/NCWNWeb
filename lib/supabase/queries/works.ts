@@ -10,7 +10,7 @@
 import { createDbClient as createClient } from '@/lib/supabase/db'
 import { unstable_cache } from 'next/cache'
 import { applyLocale, applyLocaleList } from './_locale'
-import { getPortfolioSlugs } from './portfolios'
+import { getStudentSlugs } from './portfolios'
 import { splitCreators, creatorRefs } from '@/lib/work-creators'
 
 export { splitCreators, creatorRefs }
@@ -230,12 +230,12 @@ export interface WorkCreator {
 }
 
 /**
- * 작품 제작자 + 졸업생 포트폴리오 연결
- * 학생 DB(students)는 학번이 있어 관리자만 읽으므로, 공개 페이지는 portfolios(student_id → slug)로 잇는다.
+ * 작품 제작자 + 졸업생 상세 연결
+ * 학생 DB(students)는 학번이 있어 관리자만 읽으므로, 공개 함수 get_graduates·portfolios 로 만든 졸업생 주소로 잇는다.
  */
 export async function getWorkCreators(work: Pick<WorkListItem, 'author' | 'creators'>): Promise<WorkCreator[]> {
   const refs = creatorRefs(work)
-  const slugs = await getPortfolioSlugs(refs.map((r) => r.student_id).filter((v): v is string => !!v))
+  const slugs = await getStudentSlugs(refs.map((r) => r.student_id).filter((v): v is string => !!v))
   return refs.map((r) => ({ name: r.name, studentSlug: (r.student_id && slugs.get(r.student_id)) || null }))
 }
 

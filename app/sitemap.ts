@@ -8,6 +8,7 @@
 import type { MetadataRoute } from 'next'
 import { createDbClient } from '@/lib/supabase/db'
 import { FACULTY_LIST } from '@/lib/faculty-data'
+import { getGraduates } from '@/lib/supabase/queries/portfolios'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
@@ -64,16 +65,17 @@ async function getAwardIds(): Promise<{ id: string; updated_at: string }[]> {
   }
 }
 
-/** 공개된 졸업생 포트폴리오 slug 조회 (표가 아직 없으면 빈 목록) */
+/** 졸업생 상세 주소 — 공개 포트폴리오(수정 시각 포함) + 포트폴리오가 아직 없는 명단 졸업생 */
 async function getPortfolioSlugs(): Promise<{ slug: string; updated_at: string }[]> {
   try {
     const supabase = createDbClient()
-    const { data } = await supabase
-      .from('portfolios')
-      .select('slug, updated_at')
-      .eq('is_published', true)
-      .order('year', { ascending: false })
-    return (data ?? []).map((r) => ({ slug: r.slug, updated_at: r.updated_at }))
+    const [{ data }, graduates] = await Promise.all([
+      supabase.from('portfolios').select('slug, updated_at').eq('is_published', true),
+      getGraduates(),
+    ])
+    const updated = new Map(((data ?? []) as { slug: string; updated_at: string }[]).map((r) => [r.slug, r.updated_at]))
+    const now = new Date().toISOString()
+    return graduates.map((g) => ({ slug: g.slug, updated_at: updated.get(g.slug) ?? now }))
   } catch {
     return []
   }
