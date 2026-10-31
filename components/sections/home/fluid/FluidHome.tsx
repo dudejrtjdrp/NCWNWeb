@@ -11,6 +11,8 @@
  *
  * 커서가 움직이는 동안은 커서만 잉크를 움직이고, 커서가 없거나 멈추면 보이지 않는 붓 하나가 잔잔하게 휘저어 멈추지 않는다.
  * 마우스 기기에서는 커서가 지금 보이는 작품에 맞는 도구로 바뀐다(상자의 data-cursor — 붓 링·빛무리·매·펜촉·바늘).
+ * NCR 칸에서는 누른 채 움직이면 펜으로 글씨가 써지고, 2초 뒤 쓴 순서대로 모래처럼 부서져 사라진다(engines/pen).
+ * 데스크톱에서 휠을 멈추면 가까운 섹션 머리에 자석처럼 달라붙는다(첫 화면 ↔ 01 은 방향대로 끝까지).
  * prefers-reduced-motion(동작 줄이기)이면 붓을 더 느리고 옅게 하고 섹션 물결을 끈다. 스크롤 전환은 스크롤을 그대로 따라간다.
  * 매 프레임 setState를 하지 않고 상자·히어로·헤더 스타일을 ref로 직접 갱신한다(끊김 방지).
  */
@@ -23,6 +25,9 @@ import { BrushEngine } from './engines/brush'
 import { FlockEngine } from './engines/flock'
 import { BubbleEngine } from './engines/bubbles'
 import { CrestPanel } from './engines/crest'
+import { PenEngine } from './engines/pen'
+import type Lenis from 'lenis'
+import type { VirtualScrollData } from 'lenis'
 
 /** 잉크 색 — 사이트 토큰(nwcn-green / yellow / green-darker / neutral-900) */
 const INKS = ['#09F593', '#E3E94D', '#058F56', '#151515'] as const
@@ -61,6 +66,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
   const flockRef = useRef<HTMLCanvasElement>(null)
   const lettersRef = useRef<HTMLCanvasElement>(null)
   const bubblesRef = useRef<HTMLCanvasElement>(null)
+  const penRef = useRef<HTMLCanvasElement>(null)
   const layerRef = useRef<LayerKey>('fluid')
   const enginesRef = useRef<Partial<Record<LayerKey, PanelEngine | null>>>({})
   const heroRef = useRef<HTMLDivElement>(null)
@@ -170,6 +176,74 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
     let lastCursor = ''
     let lastP: { x: number; y: number } | null = null
     const amb: ({ x: number; y: number } | null)[] = [null]
+    let pen: PenEngine | null = null
+
+    /* 스크롤 자석 — 데스크톱에서 휠을 멈추면(마지막 휠 0.17초 뒤) 가는 방향의 가까운 섹션 머리로 부드럽게 달라붙는다.
+       섹션 머리는 패널 윗선(88px)에 맞추고, 화면보다 긴 섹션은 끝(아래가 다 보이는 곳)에도 한 번 멈춘다.
+       첫 화면 ↔ 01 사이는 중간에 멈추지 않고 방향대로 끝까지 넘긴다. 키보드·스크롤바·터치는 건드리지 않는다.
+       Lenis 는 바깥 SmoothScroll 의 effect 에서 조금 늦게 만들어지므로 생길 때까지 기다렸다 붙는다. */
+    const SNAP_TOP = 88
+    const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4)
+    const getLenis = () => (window as Window & { __lenis?: Lenis }).__lenis
+    let snapTimer = 0
+    let snapDir = 0
+    let snapWait = 0
+    let snapWaitRaf = 0
+    let offSnap: (() => void) | null = null
+    const snapPoints = () => {
+      const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+      const pts: number[] = [0, maxY]
+      colRef.current?.querySelectorAll<HTMLElement>('[data-fluid-section]').forEach((el) => {
+        const r = el.getBoundingClientRect()
+        const top = r.top + window.scrollY - SNAP_TOP
+        const end = r.bottom + window.scrollY - window.innerHeight + 24
+        pts.push(top)
+        if (end - top > 60) pts.push(end)
+      })
+      return [...new Set(pts.map((v) => Math.round(clamp(v, 0, maxY))))].sort((a, b) => a - b)
+    }
+    const snapDecide = () => {
+      const lenis = getLenis()
+      if (!lenis || window.innerWidth < 768) return
+      const y = lenis.targetScroll
+      const pts = snapPoints()
+      const first = pts.find((v) => v > 0) ?? 0
+      let target: number | null = null
+      if (y > 0 && y < first) {
+        // 내려갈 땐 조금만 굴려도 01 로, 올라갈 땐 01 에서 4분의 1 넘게 올라와야 첫 화면으로(01 을 지나치지 않게)
+        target = snapDir > 0 ? (y > 30 ? first : 0) : first - y > Math.max(30, first * 0.25) ? 0 : first
+      } else {
+        const T = window.innerHeight * 0.28
+        let prev = -Infinity
+        let next = Infinity
+        for (const v of pts) {
+          if (v <= y) prev = v
+          else { next = v; break }
+        }
+        const dPrev = y - prev
+        const dNext = next - y
+        if (snapDir >= 0) target = dNext <= T ? next : dPrev <= T * 0.35 ? prev : null
+        else target = dPrev <= T ? prev : dNext <= T * 0.35 ? next : null
+      }
+      if (target === null || Math.abs(target - y) < 2) return
+      const dist = Math.abs(target - lenis.scroll)
+      lenis.scrollTo(target, { duration: Math.min(1.5, 0.55 + dist / 1600), easing: easeOutQuart })
+    }
+    const onVirtual = (e: VirtualScrollData) => {
+      if (e.event.type.startsWith('touch')) return
+      if (e.deltaY !== 0) snapDir = Math.sign(e.deltaY)
+      window.clearTimeout(snapTimer)
+      snapTimer = window.setTimeout(snapDecide, 170)
+    }
+    const attachSnap = () => {
+      const lenis = getLenis()
+      if (lenis) {
+        offSnap = lenis.on('virtual-scroll', onVirtual)
+        return
+      }
+      if (snapWait++ < 180) snapWaitRaf = requestAnimationFrame(attachSnap)
+    }
+    attachSnap()
 
     const drop = (amount: number) => {
       if (!sim) return
@@ -271,6 +345,16 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         eng.frame({ now, dt, w: R.w, h: R.h, dpr: dpr2, pointer: pp, idleMs: pp ? idleMs : 1e9, reduce })
       }
 
+      /* NCR 칸 펜 — 글자 붓결 위 투명 캔버스. 칸이 바뀌어도 남은 선·알갱이가 다 사라질 때까지 돌린다 */
+      const penEl = penRef.current
+      if (penEl && (op.letters > 0.001 || pen?.busy)) {
+        if (!pen) {
+          try { pen = new PenEngine(penEl) } catch { pen = null }
+        }
+        penEl.style.opacity = String(op.letters)
+        pen?.frame({ now, dt, w: R.w, h: R.h, dpr: dpr2, pointer: want === 'letters' ? pointer.current : null, idleMs, reduce })
+      }
+
       if (!sim || op.fluid <= 0.001) return
       const base = Math.floor(now / 2200) + act + 1
       const m = map.current
@@ -323,6 +407,9 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
 
     return () => {
       cancelAnimationFrame(raf)
+      cancelAnimationFrame(snapWaitRaf)
+      window.clearTimeout(snapTimer)
+      offSnap?.()
       mq.removeEventListener('change', onMq)
       io.disconnect()
       window.removeEventListener('resize', onResize)
@@ -353,6 +440,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         <canvas ref={brushRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={flockRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={lettersRef} className="fh-layer" aria-hidden="true" />
+        <canvas ref={penRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={bubblesRef} className="fh-layer" aria-hidden="true" />
       </div>
 
