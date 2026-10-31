@@ -18,8 +18,8 @@
 create table if not exists public.portfolios (
   id            uuid primary key default gen_random_uuid(),
   student_id    uuid references public.students(id) on delete set null,
-  slug          text not null unique,               -- 주소 /work/portfolio/[slug] (예: 2026-hong-gildong)
-  year          integer not null,                   -- 졸업 연도
+  slug          text not null unique,               -- 주소 /work/portfolio/[slug] (예: 2027-hong-gildong)
+  year          integer not null,                   -- 졸업 연도 (졸업식 연도, 예: 2027년 2월 졸업 → 2027)
   name          text not null,
   name_en       text,
   fields        text[] not null default '{}',       -- 주력 분야 1~3개

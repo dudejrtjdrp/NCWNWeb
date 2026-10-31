@@ -1684,7 +1684,7 @@ export async function updatePortfolio(id: string, formData: FormData): Promise<A
   const slug = str('slug', 80)
   const year = parseYear(formData.get('year'))
   if (!name) return { error: '이름을 입력해주세요.' }
-  if (!slug || !PORTFOLIO_SLUG_RE.test(slug)) return { error: '주소(slug)는 영문 소문자·숫자·하이픈만 쓸 수 있어요. 예: 2026-hong-gildong' }
+  if (!slug || !PORTFOLIO_SLUG_RE.test(slug)) return { error: '주소(slug)는 영문 소문자·숫자·하이픈만 쓸 수 있어요. 예: 2027-hong-gildong' }
   if (!year) return { error: '졸업 연도를 확인해주세요.' }
   const website = str('website', 300)
   if (website && !/^https?:\/\//.test(website)) return { error: '웹사이트는 http(s):// 로 시작해야 합니다.' }

@@ -7,8 +7,8 @@
  * DB·스토리지에는 아무것도 쓰지 않는다 (업로드는 별도 단계).
  *
  * 폴더 구조 (둘 다 허용)
- *   submissions/2026_홍길동.txt + 2026_홍길동.pdf + 2026_홍길동_사진.jpg (프로필 사진 필수)
- *   submissions/2026_홍길동/ 안에 txt · pdf · 2026_홍길동_사진.jpg · 1-01.jpg 같은 원본 이미지
+ *   submissions/2027_홍길동.txt + 2027_홍길동.pdf + 2027_홍길동_사진.jpg (프로필 사진 필수)
+ *   submissions/2027_홍길동/ 안에 txt · pdf · 2027_홍길동_사진.jpg · 1-01.jpg 같은 원본 이미지
  *
  * 학과가 받은 졸업생 사진·명단 (선택)
  *   submissions/_roster/명단.csv          이름,학번,영문이름 (한 줄에 한 명, 첫 줄 머리글 가능)
@@ -113,6 +113,7 @@ function build(sections) {
       for (const [k, key] of Object.entries(BASIC)) {
         const v = valueOf(s.kv[k])
         if (v === null) missingStudent.push(k)
+        if (key === 'year') { out.basic.year = (v || '').match(/20\d{2}/)?.[0] ?? (v || ''); continue } // '2027 (졸업식 연도…)' 처럼 안내가 남아도 연도만
         out.basic[key] = ['fields', 'interests', 'tools'].includes(key) ? list(v) : (v || '')
       }
     } else if (s.name === '공개 설정') {

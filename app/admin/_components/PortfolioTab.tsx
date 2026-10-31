@@ -55,7 +55,11 @@ interface PortfolioRow {
 }
 
 const btn = 'px-3 py-1.5 bg-white/5 border border-white/10 text-white/50 rounded-lg font-body text-xs hover:text-white hover:border-white/20 transition-colors'
-const thisYear = new Date().getFullYear()
+/** 기본 졸업 연도 — 졸업식(2월) 기준. 3월부터는 다음 해 2월에 졸업하는 학년이 '올해 졸업생' (예: 2026년 10월 → 2027) */
+const thisYear = (() => {
+  const now = new Date()
+  return now.getMonth() >= 2 ? now.getFullYear() + 1 : now.getFullYear()
+})()
 
 /* ─────────────────────────── 명단 ─────────────────────────── */
 

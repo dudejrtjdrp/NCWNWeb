@@ -192,7 +192,7 @@ const portfolioProject = (title: string, fields: string[], img: number, extra: P
 
 const portfolios = [
   {
-    n: 1, name: '김하늘', name_en: 'Kim Haneul', year: 2026, fields: ['인터랙티브', '웹'],
+    n: 1, name: '김하늘', name_en: 'Kim Haneul', year: 2027, fields: ['인터랙티브', '웹'],
     tagline: '도시의 소리와 움직임을 화면으로 옮기는 인터랙션 디자이너',
     projects: [
       portfolioProject('도시의 소리를 모으는 인터랙티브 지도', ['인터랙티브', '웹'], 5),
@@ -201,7 +201,7 @@ const portfolios = [
     ],
   },
   {
-    n: 2, name: '이서연', name_en: 'Lee Seoyeon', year: 2026, fields: ['영상', '모션'],
+    n: 2, name: '이서연', name_en: 'Lee Seoyeon', year: 2027, fields: ['영상', '모션'],
     tagline: '짧은 영상 안에 하루의 온도를 담는 영상 디자이너',
     projects: [
       portfolioProject('새벽 3시의 편의점', ['영상'], 6, { format: '개인', role: '연출·촬영·편집', tools: ['Premiere Pro', 'After Effects'] }),
@@ -209,7 +209,7 @@ const portfolios = [
     ],
   },
   {
-    n: 3, name: '최민준', name_en: 'Choi Minjun', year: 2026, fields: ['3D', 'XR', '게임'],
+    n: 3, name: '최민준', name_en: 'Choi Minjun', year: 2027, fields: ['3D', 'XR', '게임'],
     tagline: '기억을 걸어 다닐 수 있는 공간으로 만드는 3D 아티스트',
     projects: [
       portfolioProject('기억의 방 — VR 전시 공간', ['3D', 'XR'], 1, { tools: ['Unity', 'Blender'] }),
@@ -219,7 +219,7 @@ const portfolios = [
     ],
   },
   {
-    n: 4, name: '한지우', name_en: 'Han Jiwoo', year: 2025, fields: ['그래픽', 'UX/UI'],
+    n: 4, name: '한지우', name_en: 'Han Jiwoo', year: 2026, fields: ['그래픽', 'UX/UI'],
     tagline: '정보를 단정한 그래픽으로 정리하는 디자이너',
     projects: [
       portfolioProject('뉴콘 브랜드 아이덴티티 리디자인', ['그래픽'], 6, { year: '2025', format: '개인', role: '브랜딩 전체', tools: ['Illustrator', 'Figma'] }),
@@ -251,7 +251,7 @@ const portfolios = [
   projects: p.projects,
   history: {
     awards: p.n <= 2 ? ['2025 대한민국 콘텐츠 공모전 대상 (예시)'] : [],
-    exhibitions: ['2026 졸업전시 〈.ZIP〉 (예시)', '학과 작품 발표회 (예시)'],
+    exhibitions: [p.year === 2027 ? '2026 졸업전시 〈.ZIP〉 (예시)' : '2025 졸업전시 〈CONNECTION〉 (예시)', '학과 작품 발표회 (예시)'],
     experience: p.n === 3 ? [] : ['가족회사 현장실습 (예시)'],
   },
   is_published: true,
