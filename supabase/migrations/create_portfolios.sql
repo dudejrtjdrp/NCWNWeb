@@ -55,8 +55,10 @@ create policy "published portfolios are readable by everyone"
   on public.portfolios for select
   using (is_published = true);
 
+-- 관리자(로그인 사용자)는 비공개 포함 전부 읽고 쓰기 (다른 관리 표와 같은 admin_all)
 drop policy if exists "signed-in users read all portfolios" on public.portfolios;
-create policy "signed-in users read all portfolios"
-  on public.portfolios for select
+drop policy if exists admin_all on public.portfolios;
+create policy admin_all
+  on public.portfolios for all
   to authenticated
-  using (true);
+  using (true) with check (true);

@@ -23,13 +23,14 @@ create index if not exists students_name_idx on public.students (name);
 
 alter table public.students enable row level security;
 
--- 학번은 공개하지 않는다 — 관리자(로그인 사용자)만 읽기
+-- 학번은 공개하지 않는다 — 관리자(로그인 사용자)만 읽고 쓰기 (다른 관리 표와 같은 admin_all)
 drop policy if exists "students are readable by everyone" on public.students;
 drop policy if exists "students are readable by signed-in users" on public.students;
-create policy "students are readable by signed-in users"
-  on public.students for select
+drop policy if exists admin_all on public.students;
+create policy admin_all
+  on public.students for all
   to authenticated
-  using (true);
+  using (true) with check (true);
 
 -- 작품 제작자 목록
 alter table public.showcase_works
