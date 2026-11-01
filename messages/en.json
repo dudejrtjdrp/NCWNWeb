@@ -236,7 +236,8 @@
         "noPages": "No original pages yet.",
         "others": "Other graduates",
         "toc": "On this page",
-        "summaryOf": "{name}'s portfolio, summarized in the department format."
+        "summaryOf": "{name}'s portfolio, summarized in the department format.",
+        "team": "Team"
       }
     }
   },

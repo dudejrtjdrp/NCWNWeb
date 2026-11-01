@@ -11,7 +11,14 @@ import { applyLocale } from './_locale'
 import type { WorkListItem } from './works'
 import { nameSlug } from '@/lib/romanize'
 
+/** 프로젝트 팀원 — 졸업생 DB 이름과 한 명만 같으면 등록 스크립트가 student_id 로 잇는다 */
+export interface PortfolioTeamMember {
+  name: string
+  student_id: string | null
+}
+
 export interface PortfolioProject {
+  team?: PortfolioTeamMember[]
   title: string
   titleEn?: string
   year?: string
@@ -143,30 +150,31 @@ export async function getPortfolioBySlug(slug: string, locale: string = 'ko'): P
 }
 
 /** 이 학생이 제작자로 연결된 쇼케이스 작품 (관리자 작품 입력에서 학생 DB 로 고른 경우)
- *  포트폴리오에서 만든 작품(portfolio_ref 있음)은 포트폴리오에 프로젝트로 이미 보이므로 뺀다 */
-export async function getPortfolioWorks(studentId: string | null, locale: string = 'ko'): Promise<WorkListItem[]> {
+ *  이 학생 포트폴리오에서 만든 작품(portfolio_ref 가 'ownSlug#…')은 프로젝트로 이미 보이므로 뺀다.
+ *  팀원 포트폴리오에서 만들어져 이 학생이 제작자로 이어진 작품은 그대로 보여 준다. */
+export async function getPortfolioWorks(studentId: string | null, locale: string = 'ko', ownSlug?: string): Promise<WorkListItem[]> {
   if (!studentId) return []
   const fetcher = unstable_cache(
     async (): Promise<WorkListItem[]> => {
       const supabase = createClient()
-      const run = (own: boolean) => {
-        let q = supabase
+      const cols = 'id, title, title_en, author, creators, year, description, description_en, type, tech_stack, thumbnail_url, video_embed, model_embed, view_count, created_at'
+      const run = (select: string) =>
+        supabase
           .from('showcase_works')
-          .select('id, title, title_en, author, creators, year, description, description_en, type, tech_stack, thumbnail_url, video_embed, model_embed, view_count, created_at')
+          .select(select)
           .filter('creators', 'cs', JSON.stringify([{ student_id: studentId }]))
-        if (own) q = q.is('portfolio_ref', null)
-        return q.order('year', { ascending: false })
-      }
-      let { data, error } = await run(true)
-      // portfolio_ref 열이 아직 없으면(add_portfolio_showcase.sql 전) 거르지 않고 다시
-      if (error && /portfolio_ref/.test(error.message)) ({ data, error } = await run(false))
+          .order('year', { ascending: false })
+      let { data, error } = await run(`${cols}, portfolio_ref`)
+      // portfolio_ref 열이 아직 없으면(add_portfolio_showcase.sql 전) 빼고 다시
+      if (error && /portfolio_ref/.test(error.message)) ({ data, error } = await run(cols))
       if (error) {
         if (/creators/.test(error.message)) return []
         throw new Error(error.message)
       }
-      return (data ?? []) as unknown as WorkListItem[]
+      const rows = (data ?? []) as unknown as (WorkListItem & { portfolio_ref?: string | null })[]
+      return rows.filter((w) => !(ownSlug && w.portfolio_ref?.startsWith(`${ownSlug}#`)))
     },
-    ['portfolio-works', studentId],
+    ['portfolio-works', studentId, ownSlug ?? ''],
     { revalidate: 300, tags: ['portfolios', 'works'] }
   )
   try {

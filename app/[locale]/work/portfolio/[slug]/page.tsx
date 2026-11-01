@@ -24,6 +24,7 @@ import {
   getGraduates,
   getPortfolioBySlug,
   getPortfolioWorks,
+  getStudentSlugs,
   otherGraduates,
   type GraduateCard,
 } from '@/lib/supabase/queries/portfolios'
@@ -131,7 +132,8 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
     )
   }
 
-  const works = await getPortfolioWorks(item.student_id, locale)
+  const teamIds = item.projects.flatMap((p) => (p.team ?? []).map((m) => m.student_id)).filter((v): v is string => !!v)
+  const [works, teamSlugs] = await Promise.all([getPortfolioWorks(item.student_id, locale, item.slug), getStudentSlugs(teamIds)])
   // 다른 졸업생: 목록에서 이 사람 다음 사람부터 4명
   const others = otherGraduates(all, item.slug)
 
@@ -172,7 +174,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
 
           <PortfolioTabs
             labels={{ view: t('viewLabel'), summary: t('viewSummary'), original: t('viewOriginal') }}
-            summary={<PortfolioSummary item={item} works={works} typeLabel={typeLabel} />}
+            summary={<PortfolioSummary item={item} works={works} typeLabel={typeLabel} teamSlugs={Object.fromEntries(teamSlugs)} />}
             original={<PortfolioOriginal item={item} />}
           />
 

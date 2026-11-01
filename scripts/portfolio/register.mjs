@@ -11,6 +11,9 @@
  *  6) 프로젝트마다 쇼케이스 작품(showcase_works, portfolio_ref='slug#번호')도 만들어 학생 작품에 기간순으로 함께 보이게 한다.
  *     다시 등록하면 같은 작품을 덮어쓰고, 포트폴리오에서 빠진 프로젝트는 쇼케이스에서도 지운다. 비공개(DRAFT) 등록이면 만들지 않는다.
  *     (supabase/migrations/add_portfolio_showcase.sql 적용 필요 — 없으면 이 단계만 건너뜀)
+ *  7) 프로젝트 '팀원' 이름이 졸업생 DB(students) 이름과 한 명만 같으면 그 학생과 자동으로 잇는다 —
+ *     쇼케이스 작품 제작자(creators)에 학생으로 들어가 그 학생 페이지에도 작품이 보이고, 포트폴리오 표의 팀원 이름이 링크가 된다.
+ *     동명이인이면 잇지 않고 알려 준다. 팀원이 먼저 올린 포트폴리오에 같은 제목 작품이 있으면 쇼케이스에 또 만들지 않는다.
  *
  * 공개 원칙: '이메일 공개: 예'일 때만 이메일, 'PDF 다운로드 허용: 예'일 때만 PDF 를 올린다.
  * 게시 동의가 '예'가 아니거나 PDF·프로필 사진이 없으면 건너뛴다.
@@ -223,6 +226,26 @@ async function flush() {
   }
 }
 
+/* 팀원 이름 → 졸업생 DB 연결 (이름이 딱 한 명과 같을 때만) */
+const nameKey = (v) => String(v ?? '').normalize('NFC').replace(/\s+/g, '').toLowerCase()
+const byName = new Map()
+{
+  const { data, error } = await supabase.from('students').select('id, name')
+  if (error) throw error
+  for (const st of data ?? []) byName.set(nameKey(st.name), [...(byName.get(nameKey(st.name)) ?? []), st.id])
+}
+function linkTeam(names, ownerName) {
+  const team = []
+  const note = { linked: [], unknown: [], twins: [] }
+  for (const n of names ?? []) {
+    if (nameKey(n) === nameKey(ownerName)) continue
+    const ids = byName.get(nameKey(n)) ?? []
+    team.push({ name: n, student_id: ids.length === 1 ? ids[0] : null })
+    ;(ids.length === 1 ? note.linked : ids.length > 1 ? note.twins : note.unknown).push(n)
+  }
+  return { team, note }
+}
+
 const records = fs
   .readdirSync(parsedDir)
   .filter((f) => f.endsWith('.json'))
@@ -260,6 +283,7 @@ for (const rec of records) {
   const pdfUrl = v.pdfDownload === true ? putFile(`${base}/portfolio.pdf`, fs.readFileSync(pdf), 'application/pdf') : null
 
   const projects = []
+  const teamNotes = []
   for (const [i, p] of (rec.projects ?? []).slice(0, 6).entries()) {
     const own = (rec.source?.images ?? []).filter((f) => f.startsWith(`${i + 1}-`))
     let images
@@ -274,7 +298,10 @@ for (const rec of records) {
       images = (p.imagePages ?? []).map((n) => pageUrls[n - 1]).filter(Boolean)
     }
     const cover = (p.coverPage && pageUrls[p.coverPage - 1] && !own.length ? pageUrls[p.coverPage - 1] : images[0]) ?? null
+    const tl = linkTeam(p.team, b.name)
+    teamNotes.push(...tl.note.linked.map((n) => `${n}(연결)`), ...tl.note.twins.map((n) => `${n}(동명이인 — 안 이음)`), ...tl.note.unknown.map((n) => `${n}(명단에 없음)`))
     projects.push({
+      team: tl.team,
       title: p.title, titleEn: p.titleEn, year: p.year, fields: p.fields ?? [], format: p.format, role: p.role,
       tools: p.tools ?? [], summary: p.summary, description: p.description, descriptionEn: p.descriptionEn,
       points: p.points ?? [], outcome: p.outcome, video: p.video, images, cover,
@@ -295,6 +322,7 @@ for (const rec of records) {
   const total = uploads.reduce((n, u) => n + u.bytes, 0)
   console.log(`• ${b.name} (${slug}) — 원본 ${pages.length}쪽 · 프로젝트 ${projects.length}개 · 올릴 파일 ${uploads.length}개 ${(total / 1024 / 1024).toFixed(1)}MB${row.email ? ' · 이메일 공개' : ''}${pdfUrl ? ' · PDF 공개' : ''}`)
   if (pages.masked?.length) console.log(`  · 원본 쪽 개인정보 가림: ${pages.masked.join(', ')}`)
+  if (teamNotes.length) console.log(`  · 팀원: ${[...new Set(teamNotes)].join(', ')}`)
   if (!APPLY) {
     uploads.length = 0
     continue
@@ -322,16 +350,31 @@ for (const rec of records) {
   if (DRAFT) continue
   const refs = []
   let made = 0
+  let skipped = 0
+  const { data: mine, error: mineErr } = await supabase
+    .from('showcase_works')
+    .select('id, title, portfolio_ref')
+    .filter('creators', 'cs', JSON.stringify([{ student_id: studentId }]))
+    .not('portfolio_ref', 'is', null)
+  if (mineErr && !/portfolio_ref/.test(mineErr.message)) throw mineErr
   for (const [i, p] of projects.entries()) {
     const when = workWhen(p.year, year)
     const ref = `${slug}#${i + 1}`
+    // 팀원이 먼저 올린 포트폴리오에 같은 작품(이 학생이 제작자로 이어져 있고 제목이 같음)이 있으면 또 만들지 않는다
+    const same = (mine ?? []).find((w) => !w.portfolio_ref.startsWith(`${slug}#`) && nameKey(w.title) === nameKey(p.title))
+    if (same) {
+      console.log(`  · '${p.title}' — 팀원 포트폴리오(${same.portfolio_ref.split('#')[0]})로 이미 쇼케이스에 있어 건너뜀`)
+      skipped++
+      continue
+    }
     refs.push(ref)
+    const team = p.team ?? []
     const work = {
       portfolio_ref: ref,
       title: p.title,
       title_en: p.titleEn || null,
-      author: b.name,
-      creators: [{ name: b.name, student_id: studentId, student_no: null }],
+      author: [b.name, ...team.map((m) => m.name)].join(', '),
+      creators: [{ name: b.name, student_id: studentId, student_no: null }, ...team.map((m) => ({ name: m.name, student_id: m.student_id, student_no: null }))],
       year: when.year ?? year,
       work_date: when.date,
       description: p.description || p.summary || null,
@@ -354,7 +397,7 @@ for (const rec of records) {
     }
     made++
   }
-  if (made === projects.length) {
+  if (made + skipped === projects.length) {
     const { data: olds, error } = await supabase.from('showcase_works').select('id, portfolio_ref').like('portfolio_ref', `${slug}#%`)
     if (error) throw error
     const gone = (olds ?? []).filter((w) => !refs.includes(w.portfolio_ref)).map((w) => w.id)

@@ -36,7 +36,7 @@ const VISIBILITY = {
 }
 // '기간'(예: 2025.03–2025.06, 진행 중이면 2026.03–)이 새 양식, '연도'는 예전 양식 — 둘 다 받는다
 const PROJECT = {
-  '제목': 'title', '영문 제목': 'titleEn', '기간': 'period', '연도': 'year', '분야': 'fields', '형태': 'format',
+  '제목': 'title', '영문 제목': 'titleEn', '기간': 'period', '연도': 'year', '분야': 'fields', '형태': 'format', '팀원': 'team',
   '내 역할': 'role', '사용 툴': 'tools', '한 줄 요약': 'summary', '설명': 'description',
   '영문 설명': 'descriptionEn', '핵심 포인트': 'points', '결과·성과': 'outcome', '영상 링크': 'video',
   '이미지 쪽': 'imagePages', '대표 이미지 쪽': 'coverPage',
@@ -129,6 +129,8 @@ function build(sections) {
         const v = valueOf(s.kv[k])
         if (key === 'points') p.points = (s.lists[k] ?? []).filter(Boolean)
         else if (key === 'fields' || key === 'tools') p[key] = list(v)
+        // 팀원: 이름만 (괄호 속 역할·'본인'·'외 N명' 같은 말은 뺌)
+        else if (key === 'team') p.team = list(v).map((x) => x.replace(/\(.*?\)|（.*?）/g, '').replace(/\s*외\s*\d+\s*명$/, '').trim()).filter((x) => x && !/^(본인|나|없음|-)$/.test(x))
         else if (key === 'imagePages') p.imagePages = list(v).map(Number).filter(Number.isFinite)
         else if (key === 'coverPage') p.coverPage = Number(v) || null
         else p[key] = v || ''

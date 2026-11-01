@@ -5,8 +5,10 @@
  */
 
 import Image from 'next/image'
+import { Fragment } from 'react'
 import { useTranslations } from 'next-intl'
 import { InfoTable } from '@/components/sections/editorial/DetailParts'
+import { Link } from '@/i18n/navigation'
 import WorkCard from '@/components/sections/work/WorkCard'
 import { normalizeVideoEmbed } from '@/lib/youtube'
 import type { PortfolioItem, PortfolioProject } from '@/lib/supabase/queries/portfolios'
@@ -16,7 +18,7 @@ const num = (n: number) => String(n).padStart(2, '0')
 const safeUrl = (u?: string | null) => (u && /^https?:\/\//.test(u) ? u : null)
 const instagramUrl = (v: string) => (/^https?:\/\//.test(v) ? v : `https://instagram.com/${v.replace(/^@/, '')}`)
 
-function Project({ p, n }: { p: PortfolioProject; n: number }) {
+function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlugs: Record<string, string> }) {
   const t = useTranslations('work.portfolio.detail')
   const video = normalizeVideoEmbed(p.video)
   const cover = p.cover || p.images[0] || null
@@ -25,6 +27,33 @@ function Project({ p, n }: { p: PortfolioProject; n: number }) {
     ...(p.year ? [{ label: t('year'), value: <span className="tabular-nums">{p.year}</span> }] : []),
     ...(p.fields.length ? [{ label: t('fields'), value: p.fields.join(' · ') }] : []),
     ...(p.format ? [{ label: t('format'), value: p.format }] : []),
+    // 팀원 — 졸업생 DB 와 이어진 사람은 그 졸업생 페이지로
+    ...(p.team?.length
+      ? [
+          {
+            label: t('team'),
+            value: (
+              <span>
+                {p.team.map((m, i) => {
+                  const slug = m.student_id ? teamSlugs[m.student_id] : undefined
+                  return (
+                    <Fragment key={`${m.name}-${i}`}>
+                      {i > 0 && ', '}
+                      {slug ? (
+                        <Link href={`/work/portfolio/${slug}`} className="editorial-link underline decoration-1 underline-offset-4">
+                          {m.name}
+                        </Link>
+                      ) : (
+                        m.name
+                      )}
+                    </Fragment>
+                  )
+                })}
+              </span>
+            ),
+          },
+        ]
+      : []),
     ...(p.role ? [{ label: t('role'), value: p.role }] : []),
     ...(p.tools.length ? [{ label: t('tools'), value: p.tools.join(', ') }] : []),
   ]
@@ -97,10 +126,13 @@ export default function PortfolioSummary({
   item,
   works,
   typeLabel,
+  teamSlugs = {},
 }: {
   item: PortfolioItem
   works: WorkListItem[]
   typeLabel: Record<WorkType, string>
+  /** 팀원 student_id → 졸업생 상세 주소 */
+  teamSlugs?: Record<string, string>
 }) {
   const t = useTranslations('work.portfolio.detail')
   const projects = item.projects.slice(0, 6)
@@ -156,7 +188,7 @@ export default function PortfolioSummary({
       )}
 
       {projects.map((p, i) => (
-        <Project key={i} p={p} n={i + 1} />
+        <Project key={i} p={p} n={i + 1} teamSlugs={teamSlugs} />
       ))}
 
       {/* ── 원본 미리보기 ── */}

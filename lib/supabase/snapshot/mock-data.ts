@@ -195,7 +195,7 @@ const portfolios = [
     n: 1, name: '김하늘', name_en: 'Kim Haneul', year: 2027, fields: ['인터랙티브', '웹'],
     tagline: '도시의 소리와 움직임을 화면으로 옮기는 인터랙션 디자이너',
     projects: [
-      portfolioProject('도시의 소리를 모으는 인터랙티브 지도', ['인터랙티브', '웹'], 5),
+      portfolioProject('도시의 소리를 모으는 인터랙티브 지도', ['인터랙티브', '웹'], 5, { format: '팀 2명', team: [{ name: '박서준', student_id: id('f', 5) }] }),
       portfolioProject('졸업전시 〈.ZIP〉 인터랙티브 설치', ['인터랙티브'], 1, { format: '팀 5명', role: '센서 인터랙션 개발' }),
       portfolioProject('학과 홈페이지 리디자인', ['웹', 'UX/UI'], 3, { format: '개인', role: '디자인·개발 전체' }),
     ],
