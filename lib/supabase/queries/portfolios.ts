@@ -253,7 +253,7 @@ async function getGraduateRows(): Promise<GraduateRow[]> {
   }
 }
 
-/** 졸업생 목록 — 졸업 연도 최신순 → 포트폴리오 공개한 사람 먼저 → 정렬 순서 → 이름 */
+/** 졸업생 목록 — 졸업 연도 최신순 → 이름 가나다순 (포트폴리오를 올렸는지와 상관없이 자리 고정) */
 export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[]> {
   const [rows, portfolios] = await Promise.all([getGraduateRows(), getPortfolios(locale)])
   const byStudent = new Map(portfolios.filter((p) => p.student_id).map((p) => [p.student_id as string, p]))
@@ -286,13 +286,7 @@ export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[
   for (const c of cards) used.set(c.slug, (used.get(c.slug) ?? 0) + 1)
   for (const c of cards) if (!c.hasPortfolio && (used.get(c.slug) ?? 0) > 1 && c.studentId) c.slug = `${c.slug}-${c.studentId.slice(0, 4)}`
 
-  return cards.sort(
-    (a, b) =>
-      b.year - a.year ||
-      Number(b.hasPortfolio) - Number(a.hasPortfolio) ||
-      a.sort - b.sort ||
-      a.name.localeCompare(b.name, 'ko')
-  )
+  return cards.sort((a, b) => b.year - a.year || a.name.localeCompare(b.name, 'ko'))
 }
 
 /** 상세 주소로 졸업생 찾기 (포트폴리오가 없는 졸업생 상세용) */
