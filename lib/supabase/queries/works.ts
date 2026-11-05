@@ -251,27 +251,46 @@ function shareCreator(a: WorkCreatorRef[], b: WorkCreatorRef[]): boolean {
   )
 }
 
+/** 상세 페이지 하단 "다른 작품" 후보 한 개 — 실제로 몇 개를 고를지는 화면(MoreWorks)에서 방문자마다 정한다 */
+export interface MoreWorkCandidate {
+  work: WorkListItem
+  /** 지금 작품과 제작자가 겹침 */
+  sameCreator: boolean
+  /** 제작자 이름 키 — 추천 안에서 같은 사람 작품이 겹치지 않게 */
+  creators: string[]
+  /** 지금 작품과 분야·유형이 비슷한 정도 (0~) — 뽑힐 확률을 조금 올린다 */
+  score: number
+}
+
+const creatorKey = (name: string) => name.normalize('NFC').replace(/\s+/g, '').toLowerCase()
+
 /**
- * 상세 페이지 하단 "다른 작품" — 같은 제작자가 만든 작품을 먼저, 모자라면 분야·유형이 비슷한 작품으로 채운다.
+ * 상세 페이지 하단 "다른 작품" 후보 — 같은 제작자 작품(최대 12) + 분야·유형이 비슷한 순으로 다른 작품(최대 poolSize).
+ * 같은 제작자 작품은 하나만, 나머지는 제작자가 겹치지 않게 랜덤으로, 이미 본 작품은 덜 나오게 — 고르는 건 MoreWorks.
  */
-export async function getMoreWorks(
-  id: string,
-  locale: string = 'ko',
-  limit = 3
-): Promise<{ work: WorkListItem; sameCreator: boolean }[]> {
+export async function getMoreWorks(id: string, locale: string = 'ko', poolSize = 30): Promise<MoreWorkCandidate[]> {
   const [all, current] = await Promise.all([getShowcaseWorks(locale), getWorkById(id, locale)])
-  const pool = all.filter((w) => w.id !== id)
-  if (!current) return pool.slice(0, limit).map((work) => ({ work, sameCreator: false }))
-
-  const mine = creatorRefs(current)
-  const same = pool.filter((w) => shareCreator(mine, creatorRefs(w)))
-  const sameIds = new Set(same.map((w) => w.id))
-  const rest = (await getRelatedWorks(id, locale, limit + same.length)).filter((w) => !sameIds.has(w.id))
-
-  return [
-    ...same.map((work) => ({ work, sameCreator: true })),
-    ...rest.map((work) => ({ work, sameCreator: false })),
-  ].slice(0, limit)
+  const mine = current ? creatorRefs(current) : []
+  const curTags = new Set(current?.tech_stack ?? [])
+  const cands = all
+    .filter((w) => w.id !== id)
+    .map((w) => {
+      const refs = creatorRefs(w)
+      const overlap = (w.tech_stack ?? []).filter((t) => curTags.has(t)).length
+      return {
+        // 카드에 안 쓰는 긴 설명은 빼고 넘긴다 (화면으로 가는 데이터 줄이기)
+        work: { ...w, description: null, description_en: null },
+        sameCreator: current ? shareCreator(mine, refs) : false,
+        creators: [...new Set(refs.map((r) => creatorKey(r.name)))],
+        score: current ? overlap * 2 + (w.type === current.type ? 1 : 0) : 0,
+      }
+    })
+  const same = cands.filter((c) => c.sameCreator).slice(0, 12)
+  const others = cands
+    .filter((c) => !c.sameCreator)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, poolSize)
+  return [...same, ...others]
 }
 
 /** 기존 하드코딩 필터값 — settings에 데이터 없을 때 fallback (마이그레이션 보호) */

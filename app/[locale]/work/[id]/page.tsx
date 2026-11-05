@@ -10,7 +10,7 @@ import type { Metadata } from 'next'
 import SubPageLayout from '@/components/layout/SubPageLayout'
 import { Link } from '@/i18n/navigation'
 import WorkLocalBar from '@/components/sections/work/WorkLocalBar'
-import WorkCard from '@/components/sections/work/WorkCard'
+import MoreWorks from '@/components/sections/work/MoreWorks'
 import { notFound } from 'next/navigation'
 import { getWorkById, getMoreWorks, getWorkCreators, type WorkType } from '@/lib/supabase/queries/works'
 import { getTranslations } from 'next-intl/server'
@@ -124,7 +124,7 @@ interface PageProps {
 
 export default async function WorkDetailPage({ params }: PageProps) {
   const { id, locale } = await params
-  const [work, more] = await Promise.all([getWorkById(id, locale), getMoreWorks(id, locale, 3)])
+  const [work, more] = await Promise.all([getWorkById(id, locale), getMoreWorks(id, locale)])
   if (!work) notFound()
   const creators = await getWorkCreators(work)
 
@@ -132,6 +132,8 @@ export default async function WorkDetailPage({ params }: PageProps) {
   const TYPE_LABEL: Record<WorkType, string> = { design: t('typeDesign'), video: t('typeVideo'), '3d': t('type3d') }
   const tags = (work.tech_stack ?? []).filter(Boolean)
   const links = (work.related_links ?? []).filter((l) => l.url)
+  const images = work.images ?? []
+  const videoEmbed = normalizeVideoEmbed(work.video_embed)
 
   const rows: { label: string; value: React.ReactNode }[] = [
     {
@@ -186,14 +188,15 @@ export default async function WorkDetailPage({ params }: PageProps) {
           </header>
 
           {/* ── 작품 ── */}
-          <div className="mt-12">
-            {work.type === 'video' && (
-              <VideoViewer embed={normalizeVideoEmbed(work.video_embed)} title={work.title} placeholder={t('videoPlaceholder')} />
+          {/* 영상·3D 작품도 이미지가 있으면 함께 보여 준다 (포트폴리오에서 온 게임·영상 작품은 임베드 없이 이미지만 있기도 함) */}
+          <div className="mt-12 flex flex-col gap-10">
+            {work.type === 'video' && (videoEmbed || !images.length) && (
+              <VideoViewer embed={videoEmbed} title={work.title} placeholder={t('videoPlaceholder')} />
             )}
-            {work.type === 'design' && <DesignViewer images={work.images ?? []} title={work.title} />}
-            {work.type === '3d' && (
+            {work.type === '3d' && (work.model_embed || !images.length) && (
               <ThreeDViewer embed={work.model_embed} title={work.title} placeholder={t('threeDPlaceholder')} hint={t('threeDHint')} />
             )}
+            {(work.type === 'design' || images.length > 0) && <DesignViewer images={images} title={work.title} />}
           </div>
 
           {/* ── 작품 소개 · 관련 링크 ── */}
@@ -234,43 +237,15 @@ export default async function WorkDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* ── 다른 작품: 큰 칸 1 + 작은 칸 2 (같은 제작자의 작품 먼저) ── */}
-          {more.length > 0 && (
-            <section aria-labelledby="work-more" className="pt-chapter">
-              <div className="mb-6 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                <h2 id="work-more" className="m-0 font-extrabold text-headline">
-                  {t('relatedTitle')}
-                </h2>
-                {more.some((m) => m.sameCreator) && (
-                  <p className="text-body-sm text-nwcn-neutral-600">{t('relatedHint')}</p>
-                )}
-              </div>
-              <div className="grid grid-cols-1 gap-x-6 gap-y-10 border-t border-nwcn-dark pt-6 lg:grid-cols-12">
-                <WorkCard
-                  as="div"
-                  variant="feature"
-                  work={more[0].work}
-                  typeLabel={TYPE_LABEL}
-                  badge={more[0].sameCreator ? t('relatedSame') : undefined}
-                  className="lg:col-span-7"
-                />
-                {more.length > 1 && (
-                  <div className="flex flex-col gap-10 lg:col-span-5">
-                    {more.slice(1).map((m) => (
-                      <WorkCard
-                        key={m.work.id}
-                        as="div"
-                        variant="compact"
-                        work={m.work}
-                        typeLabel={TYPE_LABEL}
-                        badge={m.sameCreator ? t('relatedSame') : undefined}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
+          {/* ── 다른 작품: 같은 제작자 작품 하나 + 다른 제작자 작품 랜덤 (이미 본 건 덜) ── */}
+          <MoreWorks
+            workId={work.id}
+            candidates={more}
+            typeLabel={TYPE_LABEL}
+            title={t('relatedTitle')}
+            hint={t('relatedHint')}
+            badge={t('relatedSame')}
+          />
         </div>
       </div>
     </SubPageLayout>
