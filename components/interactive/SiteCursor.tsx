@@ -27,9 +27,13 @@ type Art = (typeof ARTS)[number]
 type Mode = 'default' | 'link' | 'text' | 'art' | 'hidden'
 
 /** 도구 그림의 클릭 지점(px, 그림 왼쪽 위 기준)과 기울기 방식 */
-const ART_SPEC: Record<Art, { hx: number; hy: number; tilt: 'drag' | 'heading' | 'none' }> = {
+/** 바늘 그림의 기본 방향 — 귀(위 오른쪽)에서 끝(아래 왼쪽)으로, 화면 각도(→ 0°, ↓ 90°) */
+const NEEDLE_TIP_DEG = 128
+
+const ART_SPEC: Record<Art, { hx: number; hy: number; tilt: 'drag' | 'heading' | 'aim' | 'none' }> = {
   brush: { hx: 24, hy: 24, tilt: 'none' },
-  needle: { hx: 10.5, hy: 43.5, tilt: 'drag' },
+  // 바늘: 끝이 움직이는 방향을 향한다 (끝을 축으로 돌림)
+  needle: { hx: 10.5, hy: 43.5, tilt: 'aim' },
   nib: { hx: 10.5, hy: 43.5, tilt: 'drag' },
   glow: { hx: 48, hy: 48, tilt: 'none' },
   hawk: { hx: 24, hy: 24, tilt: 'heading' },
@@ -72,6 +76,7 @@ export default function SiteCursor() {
     const trail = { x: 0, y: 0 }
     const vel = { x: 0, y: 0 }
     let heading = -90
+    let aim = NEEDLE_TIP_DEG
     let seen = false
     let mode: Mode = 'hidden'
     let art: Art | '' = ''
@@ -171,7 +176,7 @@ export default function SiteCursor() {
       if (pinRef.current) pinRef.current.style.transform = `translate3d(${px}px, ${py}px, 0)`
       if (barRef.current) barRef.current.style.transform = `translate3d(${px}px, ${py}px, 0)`
 
-      // 도구 커서: 클릭 지점을 포인터에 맞추고, 끌리는 방향으로 살짝 기울이거나(붓·바늘·펜촉) 나는 방향을 본다(매)
+      // 도구 커서: 클릭 지점을 포인터에 맞추고, 끌리는 방향으로 살짝 기울이거나(펜촉) 나는 방향을 보거나(매) 끝이 움직이는 쪽을 향한다(바늘)
       const mvx = (pos.x - prev.x) / Math.max(dt, 1 / 240)
       const mvy = (pos.y - prev.y) / Math.max(dt, 1 / 240)
       prev = { x: pos.x, y: pos.y }
@@ -190,6 +195,15 @@ export default function SiteCursor() {
             heading += diff * Math.min(1, dt * 8)
           }
           rot = heading + 90
+        }
+        if (spec.tilt === 'aim') {
+          if (Math.hypot(vel.x, vel.y) > 80) {
+            const want = (Math.atan2(vel.y, vel.x) * 180) / Math.PI
+            let diff = ((want - aim + 540) % 360) - 180
+            if (still) diff = 0
+            aim = (aim + diff * Math.min(1, dt * 7) + 360) % 360
+          }
+          rot = aim - NEEDLE_TIP_DEG
         }
         const s = artRef.current.style
         s.transformOrigin = `${spec.hx}px ${spec.hy}px`

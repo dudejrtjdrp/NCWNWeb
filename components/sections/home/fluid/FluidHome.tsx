@@ -67,6 +67,7 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
   const lettersRef = useRef<HTMLCanvasElement>(null)
   const bubblesRef = useRef<HTMLCanvasElement>(null)
   const penRef = useRef<HTMLCanvasElement>(null)
+  const drawRef = useRef<HTMLSpanElement>(null)
   const layerRef = useRef<LayerKey>('fluid')
   const enginesRef = useRef<Partial<Record<LayerKey, PanelEngine | null>>>({})
   const heroRef = useRef<HTMLDivElement>(null)
@@ -345,6 +346,10 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         eng.frame({ now, dt, w: R.w, h: R.h, dpr: dpr2, pointer: pp, idleMs: pp ? idleMs : 1e9, reduce })
       }
 
+      /* NCR 칸 위 'Draw Something' — 펜 칸과 같이 나타나고 사라짐 */
+      const drawEl = drawRef.current
+      if (drawEl && drawEl.style.opacity !== String(op.letters)) drawEl.style.opacity = String(op.letters)
+
       /* NCR 칸 펜 — 글자 붓결 위 투명 캔버스. 칸이 바뀌어도 남은 선·알갱이가 다 사라질 때까지 돌린다 */
       const penEl = penRef.current
       if (penEl && (op.letters > 0.001 || pen?.busy)) {
@@ -442,6 +447,13 @@ export default function FluidHome({ brand, headline, scroll, inkLabel, inkNames,
         <canvas ref={lettersRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={penRef} className="fh-layer" aria-hidden="true" />
         <canvas ref={bubblesRef} className="fh-layer" aria-hidden="true" />
+        {/* NCR 칸(펜으로 그리기) 안내 — 손글씨(Caveat, 이 문구 글자만 담은 8KB 파일) */}
+        <span ref={drawRef} className="fh-draw" aria-hidden="true">
+          Draw Something
+          <svg viewBox="0 0 240 14" preserveAspectRatio="none" focusable="false">
+            <path d="M3 9 C 40 3, 70 12, 110 7 S 180 3, 237 8" />
+          </svg>
+        </span>
       </div>
 
       <div ref={heroRef} className="fh-hero">
