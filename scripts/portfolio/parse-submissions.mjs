@@ -47,7 +47,8 @@ const VISIBILITY = {
 const PROJECT = {
   '제목': 'title', '영문 제목': 'titleEn', '기간': 'period', '연도': 'year', '분야': 'fields', '형태': 'format', '팀원': 'team',
   '내 역할': 'role', '사용 툴': 'tools', '한 줄 요약': 'summary', '설명': 'description',
-  '영문 설명': 'descriptionEn', '핵심 포인트': 'points', '결과·성과': 'outcome', '영상 링크': 'video',
+  '영문 설명': 'descriptionEn', '영문 한 줄 요약': 'summaryEn', '영문 내 역할': 'roleEn',
+  '핵심 포인트': 'points', '영문 핵심 포인트': 'pointsEn', '결과·성과': 'outcome', '영문 결과·성과': 'outcomeEn', '영상 링크': 'video',
   '관련 링크': 'links', '이미지 쪽': 'imagePages', '대표 이미지 쪽': 'coverPage',
 }
 /** 프로젝트 하나에 올리는 상세 이미지 최대 장수 (register.mjs 와 같게) */
@@ -162,7 +163,7 @@ function build(sections) {
       const p = {}
       for (const [k, key] of Object.entries(PROJECT)) {
         const v = valueOf(s.kv[k])
-        if (key === 'points') p.points = (s.lists[k] ?? []).filter(Boolean)
+        if (key === 'points' || key === 'pointsEn') p[key] = (s.lists[k] ?? []).filter(Boolean)
         else if (key === 'fields' || key === 'tools') p[key] = list(v)
         // 팀원: 이름만 (괄호 속 역할·'본인'·'외 N명' 같은 말은 뺌)
         else if (key === 'team') p.team = list(v).map((x) => x.replace(/\(.*?\)|（.*?）/g, '').replace(/\s*외\s*\d+\s*명$/, '').trim()).filter((x) => x && !/^(본인|나|없음|-)$/.test(x))

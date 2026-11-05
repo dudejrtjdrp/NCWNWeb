@@ -327,6 +327,7 @@ for (const rec of records) {
       team: tl.team,
       title: p.title, titleEn: p.titleEn, year: p.year, fields: p.fields ?? [], format: p.format, role: p.role,
       tools: p.tools ?? [], summary: p.summary, description: p.description, descriptionEn: p.descriptionEn,
+      summaryEn: p.summaryEn, roleEn: p.roleEn, pointsEn: p.pointsEn ?? [], outcomeEn: p.outcomeEn,
       points: p.points ?? [], outcome: p.outcome, video: p.video, links: p.links ?? [], images, cover,
     })
   }
