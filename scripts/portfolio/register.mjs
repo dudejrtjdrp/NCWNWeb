@@ -5,7 +5,7 @@
  * submissions/_parsed/<id>.json(점검 통과분)과 원본 파일을 읽어
  *  1) 원본 PDF 를 쪽 이미지(webp, 긴 변 2000px)로 바꾸고(전화번호·생년월일은 자동으로 가림)  ← poppler 의 pdftoppm·pdftotext 필요 (맥: brew install poppler)
  *  2) 프로필 사진을 4:5(1200×1500) webp 로 맞추고
- *  3) 프로젝트 이미지는 학생이 보낸 프로젝트 폴더(N_제목/썸네일.jpg + 01.jpg…, 예전 방식 N-01.jpg)를 쓰고(긴 변 2000px, 최대 10장),
+ *  3) 프로젝트 이미지는 학생이 보낸 프로젝트 폴더(N_제목/썸네일.jpg + 01.jpg…, 예전 방식 N-01.jpg)를 쓰고(긴 변 2000px, 최대 6장),
  *     없으면 양식의 '이미지 쪽' PDF 쪽을 쓴다. 썸네일이 있으면 그게 프로젝트 대표·쇼케이스 썸네일이 된다
  *     올리는 파일 이름에 내용 해시를 붙여, 다시 등록해 이미지가 바뀌어도 캐시된 옛 이미지가 보이지 않게 한다
  *  4) R2 `portfolios/{졸업연도}/{slug}/…` 에 올리고
@@ -229,7 +229,7 @@ const putFile = (key, body, type) => {
   uploads.push({ key, body, type, bytes: body.length })
   return `${publicBase}/${key}`
 }
-const MAX_IMAGES = 10
+const MAX_IMAGES = 6
 async function flush() {
   for (const u of uploads.splice(0)) {
     await r2.send(new PutObjectCommand({ Bucket: need('R2_BUCKET_NAME'), Key: u.key, Body: u.body, ContentType: u.type, CacheControl: 'public, max-age=31536000, immutable' }))

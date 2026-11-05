@@ -52,7 +52,7 @@ const PROJECT = {
   '관련 링크': 'links', '이미지 쪽': 'imagePages', '대표 이미지 쪽': 'coverPage',
 }
 /** 프로젝트 하나에 올리는 상세 이미지 최대 장수 (register.mjs 와 같게) */
-const MAX_IMAGES = 10
+const MAX_IMAGES = 6
 const HISTORY = {
   '수상': 'awards', '전시·발표': 'exhibitions', '경력·대외활동': 'experience',
   '영문 수상': 'awardsEn', '영문 전시·발표': 'exhibitionsEn', '영문 경력·대외활동': 'experienceEn',
@@ -258,6 +258,7 @@ function listFiles(d) {
   const out = []
   for (const e of readdirSync(d, { withFileTypes: true })) {
     if (SKIP(e.name)) continue
+    if (e.isDirectory() && e.name.startsWith('_')) continue // '_제외' 같은 폴더는 올리지 않는 사진 보관용
     const f = join(d, e.name)
     if (e.isDirectory()) out.push(...listFiles(f))
     else out.push(f)
