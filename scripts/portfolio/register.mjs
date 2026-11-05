@@ -5,7 +5,9 @@
  * submissions/_parsed/<id>.json(점검 통과분)과 원본 파일을 읽어
  *  1) 원본 PDF 를 쪽 이미지(webp, 긴 변 2000px)로 바꾸고(전화번호·생년월일은 자동으로 가림)  ← poppler 의 pdftoppm·pdftotext 필요 (맥: brew install poppler)
  *  2) 프로필 사진을 4:5(1200×1500) webp 로 맞추고
- *  3) 프로젝트 이미지는 학생이 따로 보낸 N-01.jpg 를 쓰고, 없으면 양식의 '이미지 쪽' PDF 쪽을 쓴다
+ *  3) 프로젝트 이미지는 학생이 보낸 프로젝트 폴더(N_제목/썸네일.jpg + 01.jpg…, 예전 방식 N-01.jpg)를 쓰고(긴 변 2000px, 최대 10장),
+ *     없으면 양식의 '이미지 쪽' PDF 쪽을 쓴다. 썸네일이 있으면 그게 프로젝트 대표·쇼케이스 썸네일이 된다
+ *     올리는 파일 이름에 내용 해시를 붙여, 다시 등록해 이미지가 바뀌어도 캐시된 옛 이미지가 보이지 않게 한다
  *  4) R2 `portfolios/{졸업연도}/{slug}/…` 에 올리고
  *  5) students(이름+졸업연도로 찾고 없으면 추가)와 portfolios(slug 기준 덮어쓰기)에 저장하고
  *  6) 프로젝트마다 쇼케이스 작품(showcase_works, portfolio_ref='slug#번호')도 만들어 학생 작품에 기간순으로 함께 보이게 한다.
@@ -27,6 +29,7 @@
  */
 
 import fs from 'node:fs'
+import crypto from 'node:crypto'
 import os from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
@@ -217,9 +220,13 @@ const r2 = APPLY
 /** 올릴 파일을 모아 두고 주소를 돌려준다 (실제 업로드는 flush 에서, APPLY 일 때만) */
 const uploads = []
 const putFile = (key, body, type) => {
+  // 캐시를 1년 두므로(immutable) 같은 이름에 다른 내용을 덮어쓰면 옛 파일이 보인다 → 내용 해시를 이름에 붙임
+  const hash = crypto.createHash('sha1').update(body).digest('hex').slice(0, 8)
+  key = key.replace(/(\.[a-z0-9]+)$/i, `-${hash}$1`)
   uploads.push({ key, body, type, bytes: body.length })
   return `${publicBase}/${key}`
 }
+const MAX_IMAGES = 10
 async function flush() {
   for (const u of uploads.splice(0)) {
     await r2.send(new PutObjectCommand({ Bucket: need('R2_BUCKET_NAME'), Key: u.key, Body: u.body, ContentType: u.type, CacheControl: 'public, max-age=31536000, immutable' }))
@@ -284,27 +291,43 @@ for (const rec of records) {
 
   const projects = []
   const teamNotes = []
-  for (const [i, p] of (rec.projects ?? []).slice(0, 6).entries()) {
-    const own = (rec.source?.images ?? []).filter((f) => f.startsWith(`${i + 1}-`))
-    let images
-    if (own.length) {
-      images = []
-      for (const f of own) {
-        const file = findFile(f)
-        if (!file) continue
-        images.push(putFile(`${base}/projects/${path.basename(f, path.extname(f))}.webp`, await toWebp(fs.readFileSync(file), { width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true }), 'image/webp'))
-      }
-    } else {
-      images = (p.imagePages ?? []).map((n) => pageUrls[n - 1]).filter(Boolean)
+  const imageNotes = []
+  /** 학생이 보낸 이미지 한 장 → webp (긴 변 2000px) 업로드. 너무 작으면 알려 준다 */
+  const putImage = async (f, key) => {
+    const file = findFile(f)
+    if (!file) {
+      imageNotes.push(`${f} 없음`)
+      return null
     }
-    const cover = (p.coverPage && pageUrls[p.coverPage - 1] && !own.length ? pageUrls[p.coverPage - 1] : images[0]) ?? null
+    const buf = fs.readFileSync(file)
+    const meta = await sharp(buf).metadata().catch(() => null)
+    if (!meta) {
+      imageNotes.push(`${path.basename(f)} 읽을 수 없는 이미지`)
+      return null
+    }
+    if (Math.max(meta.width ?? 0, meta.height ?? 0) < 1200) imageNotes.push(`${path.basename(f)} ${meta.width}×${meta.height} (작음)`)
+    return putFile(`${base}/projects/${key}.webp`, await toWebp(buf, { width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true }), 'image/webp')
+  }
+  for (const [i, p] of (rec.projects ?? []).slice(0, 6).entries()) {
+    const n = i + 1
+    // 프로젝트 폴더(parse 결과 source.projects) → 없으면 예전 방식 낱장(N-01.jpg)
+    const src = rec.source?.projects?.[n] ?? { thumb: null, images: (rec.source?.images ?? []).filter((f) => f.startsWith(`${n}-`)) }
+    const own = src.images.slice(0, MAX_IMAGES)
+    const images = []
+    for (const [j, f] of own.entries()) {
+      const url = await putImage(f, `${n}-${String(j + 1).padStart(2, '0')}`)
+      if (url) images.push(url)
+    }
+    const thumb = src.thumb ? await putImage(src.thumb, `${n}-thumb`) : null
+    if (!images.length) images.push(...(p.imagePages ?? []).map((k) => pageUrls[k - 1]).filter(Boolean))
+    const cover = thumb ?? (p.coverPage && pageUrls[p.coverPage - 1] && !own.length ? pageUrls[p.coverPage - 1] : images[0]) ?? null
     const tl = linkTeam(p.team, b.name)
     teamNotes.push(...tl.note.linked.map((n) => `${n}(연결)`), ...tl.note.twins.map((n) => `${n}(동명이인 — 안 이음)`), ...tl.note.unknown.map((n) => `${n}(명단에 없음)`))
     projects.push({
       team: tl.team,
       title: p.title, titleEn: p.titleEn, year: p.year, fields: p.fields ?? [], format: p.format, role: p.role,
       tools: p.tools ?? [], summary: p.summary, description: p.description, descriptionEn: p.descriptionEn,
-      points: p.points ?? [], outcome: p.outcome, video: p.video, images, cover,
+      points: p.points ?? [], outcome: p.outcome, video: p.video, links: p.links ?? [], images, cover,
     })
   }
 
@@ -323,6 +346,7 @@ for (const rec of records) {
   console.log(`• ${b.name} (${slug}) — 원본 ${pages.length}쪽 · 프로젝트 ${projects.length}개 · 올릴 파일 ${uploads.length}개 ${(total / 1024 / 1024).toFixed(1)}MB${row.email ? ' · 이메일 공개' : ''}${pdfUrl ? ' · PDF 공개' : ''}`)
   if (pages.masked?.length) console.log(`  · 원본 쪽 개인정보 가림: ${pages.masked.join(', ')}`)
   if (teamNotes.length) console.log(`  · 팀원: ${[...new Set(teamNotes)].join(', ')}`)
+  if (imageNotes.length) console.log(`  · 이미지 확인: ${imageNotes.join(', ')}`)
   if (!APPLY) {
     uploads.length = 0
     continue
@@ -385,7 +409,7 @@ for (const rec of records) {
       images: p.images,
       video_embed: videoEmbed(p.video),
       model_embed: null,
-      related_links: [],
+      related_links: (p.links ?? []).map((l) => ({ label: l.label, url: l.url })),
     }
     const { error } = await supabase.from('showcase_works').upsert(work, { onConflict: 'portfolio_ref' })
     if (error) {

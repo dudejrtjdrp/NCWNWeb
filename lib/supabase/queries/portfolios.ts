@@ -32,6 +32,8 @@ export interface PortfolioProject {
   points: string[]
   outcome?: string
   video?: string
+  /** 프로젝트 관련 사이트 (여러 개) — 제출 양식 '관련 링크' */
+  links?: { label: string; url: string }[]
   images: string[]
   cover?: string | null
 }

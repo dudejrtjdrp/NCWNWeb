@@ -23,6 +23,7 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
   const video = normalizeVideoEmbed(p.video)
   const cover = p.cover || p.images[0] || null
   const rest = p.images.filter((src) => src !== cover)
+  const links = (p.links ?? []).filter((l) => safeUrl(l.url))
   const rows = [
     ...(p.year ? [{ label: t('year'), value: <span className="tabular-nums">{p.year}</span> }] : []),
     ...(p.fields.length ? [{ label: t('fields'), value: p.fields.join(' · ') }] : []),
@@ -95,6 +96,28 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
               <span className="mr-3 font-bold text-body-sm">{t('outcome')}</span>
               {p.outcome}
             </p>
+          )}
+          {links.length > 0 && (
+            <div className="mt-8">
+              <p className="m-0 border-t border-nwcn-dark pt-3 font-bold text-body-sm">{t('projectLinks')}</p>
+              <ul className="mt-1">
+                {links.map((l, i) => (
+                  <li key={`${l.url}-${i}`} className="border-b border-nwcn-rule last:border-b-0">
+                    <a
+                      href={l.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-baseline justify-between gap-3 py-2.5 text-list"
+                    >
+                      <span className="min-w-0 truncate decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">
+                        {l.label || l.url}
+                      </span>
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           {video && (
             <div className="mt-8 aspect-video w-full overflow-hidden bg-black">

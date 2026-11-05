@@ -237,7 +237,8 @@
         "others": "Other graduates",
         "toc": "On this page",
         "summaryOf": "{name}'s portfolio, summarized in the department format.",
-        "team": "Team"
+        "team": "Team",
+        "projectLinks": "Links"
       }
     }
   },

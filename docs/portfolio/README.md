@@ -1,6 +1,6 @@
 # 졸업생 포트폴리오 수집·등록
 
-관리자(학과)가 등록한다. 졸업 연도는 졸업식 연도로 쓴다(예: 2027년 2월 졸업 → 2027). 학생은 양식 txt + 원본 PDF + 프로필 사진(필수 3개)을 낸다.
+관리자(학과)가 등록한다. 졸업 연도는 졸업식 연도로 쓴다(예: 2027년 2월 졸업 → 2027). 학생은 `2027_이름/` 폴더 하나에 양식 txt + 원본 PDF + 프로젝트별 이미지 폴더(`1_제목/썸네일.jpg, 01.jpg…`)를 낸다(프로필 사진은 학과 촬영본이 기본).
 
 ## 학생에게 보낼 것
 - `NWCN_졸업생포트폴리오_양식.txt` — 학생이 포트폴리오 PDF와 함께 AI에 첨부한다.
@@ -12,21 +12,27 @@
 - `submissions/_roster/<학번_이름 · 학번 · 이름>.jpg` — 학과가 받은 프로필 사진. 학생이 사진을 안 냈을 때 포트폴리오에도 대신 쓴다 (4:5로 자를 때 위쪽 기준)
 - 명단 DB 반영: 관리자 페이지 `졸업생 > 명단 한꺼번에 넣기` 또는 `APPLY=1 node scripts/portfolio/import-roster.mjs <졸업연도>`
 - 사진 올리기: `APPLY=1 node scripts/portfolio/upload-roster-photos.mjs` — R2 `graduates/{졸업연도}/{학생 id}-{해시}.webp`(주소에 학번·이름 없음) + `students.photo_url`
-- 명단에 넣은 학생은 사이트 `WORK > 졸업생`(/work/portfolio)에 사진과 함께 나오고, 포트폴리오를 공개하면 카드가 개인 페이지로 이어진다(그 전엔 '포트폴리오 준비 중'). 학번은 공개하지 않는다(`get_graduates` 함수, `supabase/migrations/add_graduates.sql`).
+- 명단에 넣은 학생은 사이트 `WORK > 졸업생`(/work/portfolio)에 사진과 함께 나오고, 포트폴리오를 공개하면 카드가 개인 페이지로 이어진다(포트폴리오가 없어도 이름·사진·연결된 작품이 있는 개인 페이지). 학번은 공개하지 않는다(`get_graduates` 함수, `supabase/migrations/add_graduates.sql`).
 - 관리자 작품 입력의 '제작자' 검색에도 나온다(이름 + 회색 학번)
 
 ## 받은 뒤
-1. 제출물을 저장소 루트의 `submissions/`에 그대로 넣는다 (학생별 폴더 또는 `2027_이름.txt`·`2027_이름.pdf`·`2027_이름_사진.jpg`).
+1. 제출물을 저장소 루트의 `submissions/`에 그대로 넣는다 — 학생 폴더째, zip 이면 zip 그대로(점검 때 같은 이름 폴더로 자동으로 풀고, 윈도우 zip 의 한글 이름도 맞춤 · python3 필요).
    `submissions/`는 개인정보가 있어 git에 올라가지 않는다(.gitignore).
+   - 프로젝트 폴더: 앞 번호(`1_`, `01.`, `프로젝트1`)가 양식의 [프로젝트 N]. 번호가 없으면 폴더 이름을 프로젝트 제목과 맞춰 본다
+   - 폴더 안 `썸네일`(또는 대표·thumbnail·cover)로 시작하는 파일이 대표 이미지, 나머지는 이름 순서(01, 02 … 10)대로 상세 이미지(최대 10장)
+   - 폴더가 없는 프로젝트는 양식의 '이미지 쪽'(PDF 쪽)을 쓴다. 예전 방식 `1-01.jpg` 낱장도 받는다
 2. 점검: `node scripts/portfolio/parse-submissions.mjs`
    - `submissions/_parsed/<id>.json` — 사이트에 넣을 데이터
    - `submissions/_parsed/report.md` — ✅ 바로 등록 / ⚠️ 확인 필요 / ❌ 학생에게 되묻기
-3. ❌ 항목(이름·게시 동의 누락, PDF·프로필 사진 없음 등)은 학생에게 다시 받는다.
+3. ❌ 항목(이름·게시 동의 누락, PDF·프로필 사진 없음, 프로젝트 이미지 없음 등)은 학생에게 다시 받는다.
+   ⚠️ 에는 썸네일 없음, 번호와 제목이 안 맞는 폴더, heic·gif 같은 못 쓰는 파일, 관련 링크 주소 형식이 나온다.
 4. 등록: `node scripts/portfolio/register.mjs` 로 미리보기 → `APPLY=1 node scripts/portfolio/register.mjs` 로 업로드·저장
    - 필요: `brew install poppler`(PDF → 쪽 이미지), `.env.local` 의 Supabase 서비스 키·R2 키
    - 처음 한 번: Supabase SQL Editor 에서 `supabase/migrations/create_students.sql` → `create_portfolios.sql` 실행
    - 특정 학생만: `APPLY=1 node scripts/portfolio/register.mjs submissions 2027-hong-gildong`
    - 비공개로 저장: `APPLY=1 DRAFT=1 …` / 이메일·PDF 는 학생이 공개에 '예'로 답한 경우만 올라간다
+   - 이미지는 긴 변 2000px webp 로 바꿔 올리고, 긴 변 1200px 미만이면 미리보기에 '작음'으로 알려 준다
+   - R2 파일 이름에 내용 해시를 붙인다(캐시 1년이라 같은 이름에 덮어쓰면 옛 이미지가 보이므로) — 다시 등록하면 새 이름으로 올라간다
 5. 사이트: WORK > 졸업생 포트폴리오 (`/work/portfolio`, 개인 페이지 `/work/portfolio/<slug>`)
 6. 공개/비공개·순서·기본 정보 수정·삭제: 관리자 페이지 `졸업생 > 포트폴리오`
 
@@ -45,4 +51,6 @@
 - 원본 PDF 쪽은 '원본 포트폴리오' 탭에 그대로 공개된다 — 전화번호·생년월일·주소가 있으면 지운 PDF를 받는다.
   안전장치로 `register.mjs` 는 쪽 이미지에서 전화번호·생년월일(1950~2012년 연.월.일)을 찾아 바탕색으로 가린다(주소는 못 찾음, PDF 다운로드를 허용하면 PDF 자체는 그대로).
 - 쇼케이스 태그는 양식 분야를 영문 필터 태그로 바꿔 넣는다(웹→Web, 영상→Video, 게임→Game, 기획→Planning …).
+- 프로젝트 '관련 링크'(여러 개)는 포트폴리오 프로젝트 칸과 쇼케이스 작품의 관련 링크(related_links)에 들어간다.
+- 프로젝트 썸네일이 있으면 그게 포트폴리오 프로젝트 대표 이미지이자 쇼케이스 썸네일이 된다.
 - 프로젝트 '팀원' 이름이 졸업생 DB 이름과 한 명만 같으면 자동 연결 — 쇼케이스 작품 제작자에 학생으로 들어가 그 학생 페이지(쇼케이스 작품 칸)에도 보이고, 포트폴리오 표의 팀원 이름이 링크가 된다. 동명이인은 잇지 않고 등록 결과에 표시. 팀원이 먼저 올린 포트폴리오에 같은 제목 작품이 있으면 쇼케이스에 또 만들지 않는다.
