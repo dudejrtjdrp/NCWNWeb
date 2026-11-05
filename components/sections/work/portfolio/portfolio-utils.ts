@@ -71,3 +71,6 @@ export function contactLinks(item: { email: string | null; website: string | nul
   }
   return out
 }
+
+/** 졸업생 포트폴리오 개인 페이지에 보여 주는 프로젝트 최대 개수 (scripts/portfolio/register.mjs 의 MAX_PROJECTS 와 같게) */
+export const MAX_PORTFOLIO_PROJECTS = 8

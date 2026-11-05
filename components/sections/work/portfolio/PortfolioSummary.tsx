@@ -1,6 +1,6 @@
 /**
  * PortfolioSummary — 개인 페이지 '학과 정리본' (E4)
- * 소개 → 프로젝트 목차(카드) → 프로젝트(최대 6, 왼쪽 정보 칸이 따라옴, 이미지는 눌러서 크게) → 원본 미리보기 줄 → 이력(최신순, 날짜 열) → 연락 → 쇼케이스 작품.
+ * 소개 → 프로젝트 목차(카드) → 프로젝트(최대 8, 왼쪽 정보 칸이 따라옴, 이미지는 눌러서 크게) → 원본 미리보기 줄 → 이력(최신순, 날짜 열) → 연락 → 쇼케이스 작품.
  * 글 속 주소(결과·설명 등)는 링크로 바뀐다.
  * 모든 졸업생이 같은 형식이라 서로 비교해 보기 쉽고, 개성은 원본 쪽에서 본다.
  */
@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl'
 import { InfoTable } from '@/components/sections/editorial/DetailParts'
 import Linkify from './Linkify'
 import ProjectGallery from './ProjectGallery'
-import { contactLinks, splitDated } from './portfolio-utils'
+import { contactLinks, splitDated, MAX_PORTFOLIO_PROJECTS } from './portfolio-utils'
 import { Link } from '@/i18n/navigation'
 import WorkCard from '@/components/sections/work/WorkCard'
 import { normalizeVideoEmbed } from '@/lib/youtube'
@@ -160,7 +160,7 @@ export default function PortfolioSummary({
   teamSlugs?: Record<string, string>
 }) {
   const t = useTranslations('work.portfolio.detail')
-  const projects = item.projects.slice(0, 6)
+  const projects = item.projects.slice(0, MAX_PORTFOLIO_PROJECTS)
   const history = [
     { key: 'awards', label: t('awards'), list: item.history.awards ?? [] },
     { key: 'exhibitions', label: t('exhibitions'), list: item.history.exhibitions ?? [] },

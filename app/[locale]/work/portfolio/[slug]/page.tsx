@@ -18,7 +18,7 @@ import PortfolioTabs from '@/components/sections/work/portfolio/PortfolioTabs'
 import PortfolioSummary from '@/components/sections/work/portfolio/PortfolioSummary'
 import PortfolioOriginal from '@/components/sections/work/portfolio/PortfolioOriginal'
 import PortfolioCard from '@/components/sections/work/portfolio/PortfolioCard'
-import { contactLinks } from '@/components/sections/work/portfolio/portfolio-utils'
+import { contactLinks, MAX_PORTFOLIO_PROJECTS } from '@/components/sections/work/portfolio/portfolio-utils'
 import WorkCard from '@/components/sections/work/WorkCard'
 import {
   getGraduateBySlug,
@@ -194,7 +194,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
 
           <PortfolioTabs
             labels={{ view: t('viewLabel'), summary: t('viewSummary'), original: t('viewOriginal'), projects: t('projects') }}
-            nav={item.projects.slice(0, 6).map((p, i) => ({ id: `p${i + 1}`, title: p.title }))}
+            nav={item.projects.slice(0, MAX_PORTFOLIO_PROJECTS).map((p, i) => ({ id: `p${i + 1}`, title: p.title }))}
             summary={<PortfolioSummary item={item} works={works} typeLabel={typeLabel} teamSlugs={Object.fromEntries(teamSlugs)} />}
             original={<PortfolioOriginal item={item} />}
           />

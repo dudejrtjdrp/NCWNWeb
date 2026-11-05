@@ -37,6 +37,9 @@ import sharp from 'sharp'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { createClient } from '@supabase/supabase-js'
 
+/** 개인 페이지 프로젝트 최대 개수 (components/sections/work/portfolio/portfolio-utils.ts 의 MAX_PORTFOLIO_PROJECTS 와 같게) */
+const MAX_PROJECTS = 8
+
 const APPLY = process.env.APPLY === '1'
 const DRAFT = process.env.DRAFT === '1'
 const [dirArg, ...onlySlugs] = process.argv.slice(2)
@@ -308,7 +311,7 @@ for (const rec of records) {
     if (Math.max(meta.width ?? 0, meta.height ?? 0) < 1200) imageNotes.push(`${path.basename(f)} ${meta.width}×${meta.height} (작음)`)
     return putFile(`${base}/projects/${key}.webp`, await toWebp(buf, { width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true }), 'image/webp')
   }
-  for (const [i, p] of (rec.projects ?? []).slice(0, 6).entries()) {
+  for (const [i, p] of (rec.projects ?? []).slice(0, MAX_PROJECTS).entries()) {
     const n = i + 1
     // 프로젝트 폴더(parse 결과 source.projects) → 없으면 예전 방식 낱장(N-01.jpg)
     const src = rec.source?.projects?.[n] ?? { thumb: null, images: (rec.source?.images ?? []).filter((f) => f.startsWith(`${n}-`)) }
