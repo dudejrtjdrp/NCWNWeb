@@ -37,7 +37,7 @@ const FIELDS = ['영상', '모션', '그래픽', '웹', 'UX/UI', '사진', '3D',
 const BASIC = {
   '이름': 'name', '영문 이름': 'nameEn', '졸업 연도': 'year', '분야': 'fields',
   '한 줄 소개': 'tagline', '영문 한 줄 소개': 'taglineEn', '자기소개': 'bio', '영문 자기소개': 'bioEn',
-  '관심 분야': 'interests', '사용 툴': 'tools', '이메일': 'email', '웹사이트': 'website',
+  '관심 분야': 'interests', '툴·기술': 'tools', '이메일': 'email', '웹사이트': 'website',
   '인스타그램': 'instagram', '비핸스·깃허브 등 기타 링크': 'otherLinks',
 }
 const VISIBILITY = {
@@ -46,7 +46,7 @@ const VISIBILITY = {
 // '기간'(예: 2025.03–2025.06, 진행 중이면 2026.03–)이 새 양식, '연도'는 예전 양식 — 둘 다 받는다
 const PROJECT = {
   '제목': 'title', '영문 제목': 'titleEn', '기간': 'period', '연도': 'year', '분야': 'fields', '형태': 'format', '팀원': 'team',
-  '내 역할': 'role', '사용 툴': 'tools', '한 줄 요약': 'summary', '설명': 'description',
+  '내 역할': 'role', '툴·기술': 'tools', '한 줄 요약': 'summary', '설명': 'description',
   '영문 설명': 'descriptionEn', '영문 한 줄 요약': 'summaryEn', '영문 내 역할': 'roleEn',
   '핵심 포인트': 'points', '영문 핵심 포인트': 'pointsEn', '결과·성과': 'outcome', '영문 결과·성과': 'outcomeEn', '영상 링크': 'video',
   '관련 링크': 'links', '이미지 쪽': 'imagePages', '대표 이미지 쪽': 'coverPage',
@@ -58,7 +58,10 @@ const HISTORY = {
   '영문 수상': 'awardsEn', '영문 전시·발표': 'exhibitionsEn', '영문 경력·대외활동': 'experienceEn',
 }
 
-const KNOWN = new Set([...Object.keys(BASIC), ...Object.keys(VISIBILITY), ...Object.keys(PROJECT), ...Object.keys(HISTORY)])
+/** 예전 양식의 항목 이름 → 지금 이름 (이미 받은 제출물도 그대로 읽히게) */
+const ALIAS = { '사용 툴': '툴·기술', '기술 스택': '툴·기술' }
+
+const KNOWN = new Set([...Object.keys(ALIAS), ...Object.keys(BASIC), ...Object.keys(VISIBILITY), ...Object.keys(PROJECT), ...Object.keys(HISTORY)])
 
 /* 글자 수 상한 (양식 괄호 안 숫자와 같게) */
 const LIMITS = {
@@ -140,7 +143,7 @@ function parseTxt(text) {
     }
     const kv = t.match(/^([^:]{1,30}):\s*(.*)$/)
     // 양식에 있는 항목 이름일 때만 새 항목으로 본다 — 설명 안의 "목표: …", URL 의 "https:" 는 이어지는 글로 처리
-    if (kv && KNOWN.has(kv[1].trim())) { lastKey = kv[1].trim(); cur.kv[lastKey] = kv[2]; continue }
+    if (kv && KNOWN.has(kv[1].trim())) { lastKey = ALIAS[kv[1].trim()] ?? kv[1].trim(); cur.kv[lastKey] = kv[2]; continue }
     if (lastKey) cur.kv[lastKey] = `${cur.kv[lastKey] ?? ''} ${t}`.trim() // 여러 줄로 이어진 값
   }
   return sections

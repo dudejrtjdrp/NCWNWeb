@@ -5,8 +5,8 @@
  * ────────────────────────────────────────────────────────────
  * 명단: 졸업생 이름·학번·영문 이름·졸업 연도. 한 줄씩 붙여 넣어 한꺼번에 넣거나 한 명씩 고친다.
  *       여기 있는 학생을 작품 입력의 '제작자' 검색에서 고를 수 있다.
- * 포트폴리오: scripts/portfolio/register.mjs 로 올린 포트폴리오를 공개/비공개, 순서, 기본 정보 수정, 삭제.
- *       (프로젝트·원본 쪽은 등록 스크립트로 다시 올린다)
+ * 포트폴리오: scripts/portfolio/register.mjs 로 올린 포트폴리오를 공개/비공개, 순서, 기본 정보·프로젝트 관련 링크 수정, 삭제.
+ *       (프로젝트 글·이미지·원본 쪽은 등록 스크립트로 다시 올린다)
  */
 
 import { useCallback, useEffect, useId, useState } from 'react'
@@ -23,6 +23,12 @@ import type { ActionResult } from '../actions'
 import { Label, Input, Textarea, Feedback, SubmitButton, DeleteButton, LoadingSpinner, Modal } from './admin-ui'
 import { useLoading } from '@/components/providers/LoadingProvider'
 import { useLoadingTransition } from '@/components/hooks/useLoadingTransition'
+
+interface ProjectLink {
+  label: string
+  url: string
+}
+const MAX_LINKS = 6
 
 interface StudentRow {
   id: string
@@ -49,7 +55,7 @@ interface PortfolioRow {
   instagram: string | null
   profile_url: string | null
   pages: string[]
-  projects: unknown[]
+  projects: { title?: string; links?: ProjectLink[] }[]
   is_published: boolean
   sort_order: number
 }
@@ -224,18 +230,57 @@ function Roster({ portfolios }: { portfolios: PortfolioRow[] }) {
 
 /* ─────────────────────────── 포트폴리오 ─────────────────────────── */
 
+/** 프로젝트마다 관련 링크(이름 + 주소, 여러 개) — 저장하면 그 프로젝트로 만든 쇼케이스 작품의 관련 링크도 같이 바뀐다 */
+function ProjectLinksEditor({ projects, value, onChange }: { projects: PortfolioRow['projects']; value: ProjectLink[][]; onChange: (v: ProjectLink[][]) => void }) {
+  const set = (i: number, links: ProjectLink[]) => onChange(value.map((l, j) => (j === i ? links : l)))
+  if (!projects.length) return null
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>프로젝트 관련 링크</Label>
+        <p className="font-body text-xs text-white/40">
+          사이트·깃허브·스토어 등. 이름은 짧게(예: 웹사이트, App Store). 등록 스크립트를 다시 돌리면 제출 txt 의 &apos;관련 링크&apos;로 덮어써지니 txt 에도 같이 적어 두세요.
+        </p>
+      </div>
+      {projects.map((p, i) => {
+        const links = value[i] ?? []
+        return (
+          <div key={i} className="rounded-xl border border-white/10 p-4 space-y-2">
+            <p className="font-body text-sm text-white/80">
+              <span className="mr-2 tabular-nums text-white/40">{String(i + 1).padStart(2, '0')}</span>
+              {p.title || `프로젝트 ${i + 1}`}
+            </p>
+            {links.map((l, k) => (
+              <div key={k} className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_auto] gap-2">
+                <Input aria-label={`프로젝트 ${i + 1} 링크 ${k + 1} 이름`} value={l.label} maxLength={30} placeholder="웹사이트" onChange={(e) => set(i, links.map((x, m) => (m === k ? { ...x, label: e.target.value } : x)))} />
+                <Input aria-label={`프로젝트 ${i + 1} 링크 ${k + 1} 주소`} value={l.url} maxLength={500} placeholder="https://" onChange={(e) => set(i, links.map((x, m) => (m === k ? { ...x, url: e.target.value } : x)))} />
+                <button type="button" className={btn} onClick={() => set(i, links.filter((_, m) => m !== k))}>삭제</button>
+              </div>
+            ))}
+            {links.length < MAX_LINKS && (
+              <button type="button" className={btn} onClick={() => set(i, [...links, { label: '', url: '' }])}>+ 링크 추가</button>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function PortfolioForm({ item, students, onDone }: { item: PortfolioRow; students: StudentRow[]; onDone: () => void }) {
   const [result, setResult] = useState<ActionResult | null>(null)
   const [pending, start] = useLoadingTransition()
+  const [links, setLinks] = useState<ProjectLink[][]>(() => (item.projects ?? []).map((p) => (p.links ?? []).map((l) => ({ label: l.label ?? '', url: l.url ?? '' }))))
   return (
     <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
       <h4 className="font-body font-semibold text-sm text-white">포트폴리오 기본 정보 — {item.name}</h4>
-      <p className="font-body text-xs text-white/40">프로젝트·원본 쪽 이미지를 바꾸려면 제출물을 고쳐 등록 스크립트를 다시 실행하세요.</p>
+      <p className="font-body text-xs text-white/40">프로젝트 글·이미지·원본 쪽을 바꾸려면 제출물을 고쳐 등록 스크립트를 다시 실행하세요. 프로젝트 관련 링크는 아래에서 바로 고칠 수 있어요.</p>
       <form
         className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault()
           const fd = new FormData(e.currentTarget)
+          fd.set('project_links', JSON.stringify(links))
           start(async () => {
             const res = await updatePortfolio(item.id, fd)
             setResult(res)
@@ -271,6 +316,7 @@ function PortfolioForm({ item, students, onDone }: { item: PortfolioRow; student
           <div><Label>웹사이트</Label><Input name="website" defaultValue={item.website ?? ''} /></div>
           <div><Label>인스타그램</Label><Input name="instagram" defaultValue={item.instagram ?? ''} /></div>
         </div>
+        <ProjectLinksEditor projects={item.projects ?? []} value={links} onChange={setLinks} />
         <label className="flex items-center gap-2 font-body text-sm text-white/70">
           <input type="checkbox" name="is_published" defaultChecked={item.is_published} /> 사이트에 공개
         </label>

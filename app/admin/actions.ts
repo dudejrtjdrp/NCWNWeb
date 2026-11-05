@@ -1707,13 +1707,54 @@ export async function updatePortfolio(id: string, formData: FormData): Promise<A
     is_published: formData.get('is_published') === 'on',
     updated_at: new Date().toISOString(),
   }
-  const { error } = await supabase.from('portfolios').update(row).eq('id', id)
+  // 프로젝트 관련 링크 — 프로젝트 순서대로 [[{label,url}…]…]. 다른 프로젝트 내용은 그대로 두고 links 만 바꾼다
+  const rawLinks = formData.get('project_links') as string | null
+  let projectLinks: { label: string; url: string }[][] | null = null
+  if (rawLinks) {
+    try {
+      const parsed = JSON.parse(rawLinks)
+      if (!Array.isArray(parsed)) throw new Error('not array')
+      projectLinks = parsed.map((list: unknown) =>
+        (Array.isArray(list) ? list : [])
+          .map((l) => ({ label: String((l as { label?: unknown })?.label ?? '').trim().slice(0, 30), url: String((l as { url?: unknown })?.url ?? '').trim().slice(0, 500) }))
+          .filter((l) => l.url)
+          .slice(0, 6)
+      )
+    } catch {
+      return { error: '프로젝트 링크 형식이 올바르지 않습니다.' }
+    }
+    const bad = projectLinks.flat().find((l) => !/^https?:\/\/[^\s/]+\.[^\s]+$/.test(l.url))
+    if (bad) return { error: `링크 주소는 http(s):// 로 시작해야 합니다: ${bad.url}` }
+  }
+  const { data: before, error: readErr } = await supabase.from('portfolios').select('slug, projects').eq('id', id).single()
+  if (readErr || !before) {
+    logError('[updatePortfolio] read', readErr?.message ?? 'not found')
+    return { error: '포트폴리오를 찾지 못했습니다.' }
+  }
+  const projects = Array.isArray(before.projects) ? (before.projects as Record<string, unknown>[]) : []
+  const nextProjects = projectLinks
+    ? projects.map((p, i) => ({ ...p, links: (projectLinks?.[i] ?? []).map((l) => ({ label: l.label || l.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0], url: l.url })) }))
+    : projects
+
+  const { error } = await supabase.from('portfolios').update({ ...row, projects: nextProjects }).eq('id', id)
   if (error) {
     if (error.code === '23505') return { error: '같은 주소(slug)를 쓰는 포트폴리오가 이미 있습니다.' }
     logError('[updatePortfolio]', error.message)
     return { error: '저장 중 오류가 발생했습니다.' }
   }
+
+  // 이 포트폴리오로 만든 쇼케이스 작품(portfolio_ref = 'slug#번호') — 주소가 바뀌었으면 ref 를, 링크가 바뀌었으면 관련 링크를 맞춘다
+  for (const [i, p] of nextProjects.entries()) {
+    const oldRef = `${before.slug}#${i + 1}`
+    const patch: Record<string, unknown> = {}
+    if (before.slug !== slug) patch.portfolio_ref = `${slug}#${i + 1}`
+    if (projectLinks) patch.related_links = (p.links as { label: string; url: string }[]) ?? []
+    if (!Object.keys(patch).length) continue
+    const { error: wErr } = await supabase.from('showcase_works').update(patch).eq('portfolio_ref', oldRef)
+    if (wErr && !/portfolio_ref/.test(wErr.message)) logError('[updatePortfolio] showcase', wErr.message)
+  }
   revalidatePortfolios()
+  revalidateTag('works')
   return { success: true }
 }
 
