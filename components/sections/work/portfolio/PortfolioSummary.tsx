@@ -1,6 +1,7 @@
 /**
  * PortfolioSummary — 개인 페이지 '학과 정리본' (E4)
- * 소개 → 프로젝트 목차 → 프로젝트(최대 6) → 원본 미리보기 줄 → 이력 → 연락 → 쇼케이스 작품.
+ * 소개 → 프로젝트 목차(카드) → 프로젝트(최대 6, 왼쪽 정보 칸이 따라옴, 이미지는 눌러서 크게) → 원본 미리보기 줄 → 이력(최신순, 날짜 열) → 연락 → 쇼케이스 작품.
+ * 글 속 주소(결과·설명 등)는 링크로 바뀐다.
  * 모든 졸업생이 같은 형식이라 서로 비교해 보기 쉽고, 개성은 원본 쪽에서 본다.
  */
 
@@ -8,6 +9,9 @@ import Image from 'next/image'
 import { Fragment } from 'react'
 import { useTranslations } from 'next-intl'
 import { InfoTable } from '@/components/sections/editorial/DetailParts'
+import Linkify from './Linkify'
+import ProjectGallery from './ProjectGallery'
+import { contactLinks, splitDated } from './portfolio-utils'
 import { Link } from '@/i18n/navigation'
 import WorkCard from '@/components/sections/work/WorkCard'
 import { normalizeVideoEmbed } from '@/lib/youtube'
@@ -16,7 +20,6 @@ import type { WorkListItem, WorkType } from '@/lib/supabase/queries/works'
 
 const num = (n: number) => String(n).padStart(2, '0')
 const safeUrl = (u?: string | null) => (u && /^https?:\/\//.test(u) ? u : null)
-const instagramUrl = (v: string) => (/^https?:\/\//.test(v) ? v : `https://instagram.com/${v.replace(/^@/, '')}`)
 
 function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlugs: Record<string, string> }) {
   const t = useTranslations('work.portfolio.detail')
@@ -61,7 +64,8 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
   return (
     <section id={`p${n}`} aria-labelledby={`p${n}-t`} className="scroll-mt-36 pt-chapter">
       <div className="grid grid-cols-12 gap-x-6 gap-y-8 border-t border-nwcn-dark pt-5">
-        <div className="col-span-12 flex flex-col lg:col-span-4">
+        {/* 왼쪽 정보 칸 — 데스크톱에서 오른쪽 긴 이미지·글을 따라 내려온다 (탭 줄 아래) */}
+        <div className="col-span-12 flex flex-col lg:sticky lg:top-32 lg:col-span-4 lg:self-start">
           <p className="m-0 font-black tabular-nums leading-none text-headline">{num(n)}</p>
           <h3 id={`p${n}-t`} className="m-0 mt-4 break-words font-extrabold text-statement">{p.title}</h3>
           {rows.length > 0 && (
@@ -71,13 +75,18 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
           )}
         </div>
         <div className="col-span-12 min-w-0 lg:col-span-8">
-          {cover && (
-            <div className="relative aspect-[16/10] overflow-hidden bg-nwcn-dark">
-              <Image src={cover} alt={p.title} fill sizes="(min-width: 1024px) 60vw, 100vw" className="object-contain" />
-            </div>
-          )}
+          <ProjectGallery
+            cover={cover}
+            rest={rest}
+            title={p.title}
+            labels={{ open: t('zoom'), close: t('zoomClose'), prev: t('zoomPrev'), next: t('zoomNext') }}
+          />
           {p.summary && <p className="mt-6 font-semibold text-lead">{p.summary}</p>}
-          {p.description && <p className="mt-4 whitespace-pre-line text-list">{p.description}</p>}
+          {p.description && (
+            <p className="mt-4 whitespace-pre-line text-list">
+              <Linkify text={p.description} />
+            </p>
+          )}
           {p.points.length > 0 && (
             <div className="mt-8">
               <p className="m-0 border-t border-nwcn-dark pt-3 font-bold text-body-sm">{t('points')}</p>
@@ -85,7 +94,9 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
                 {p.points.map((pt, i) => (
                   <li key={i} className="flex gap-4 border-b border-nwcn-rule py-2.5 text-list last:border-b-0">
                     <span aria-hidden="true" className="font-semibold tabular-nums text-nwcn-neutral-600">{num(i + 1)}</span>
-                    {pt}
+                    <span className="min-w-0">
+                      <Linkify text={pt} />
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -94,7 +105,7 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
           {p.outcome && (
             <p className="mt-6 border-t border-nwcn-dark pt-3 text-list">
               <span className="mr-3 font-bold text-body-sm">{t('outcome')}</span>
-              {p.outcome}
+              <Linkify text={p.outcome} />
             </p>
           )}
           {links.length > 0 && (
@@ -130,15 +141,6 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
               />
             </div>
           )}
-          {rest.length > 0 && (
-            <ul className="mt-6 grid grid-cols-2 gap-3">
-              {rest.map((src) => (
-                <li key={src} className="relative aspect-[16/10] overflow-hidden bg-nwcn-dark">
-                  <Image src={src} alt="" fill sizes="(min-width: 1024px) 30vw, 50vw" className="object-contain" />
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       </div>
     </section>
@@ -163,13 +165,12 @@ export default function PortfolioSummary({
     { key: 'awards', label: t('awards'), list: item.history.awards ?? [] },
     { key: 'exhibitions', label: t('exhibitions'), list: item.history.exhibitions ?? [] },
     { key: 'experience', label: t('experience'), list: item.history.experience ?? [] },
-  ].filter((h) => h.list.length > 0)
-  const contacts = [
-    ...(item.email ? [{ label: t('email'), href: `mailto:${item.email}`, text: item.email }] : []),
-    ...(safeUrl(item.website) ? [{ label: t('website'), href: item.website as string, text: (item.website as string).replace(/^https?:\/\//, '') }] : []),
-    ...(item.instagram ? [{ label: t('instagram'), href: instagramUrl(item.instagram), text: item.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//, '@') }] : []),
-    ...item.other_links.filter((u) => safeUrl(u)).map((u) => ({ label: t('links'), href: u, text: u.replace(/^https?:\/\//, '') })),
   ]
+    .filter((h) => h.list.length > 0)
+    // 이력은 앞의 날짜로 최신순 (날짜가 없는 줄은 뒤로, 같은 날짜끼리는 원래 순서)
+    .map((h) => ({ ...h, rows: h.list.map(splitDated).sort((a, b) => b.sortKey - a.sortKey) }))
+  const contactLabel = { email: t('email'), website: t('website'), instagram: t('instagram'), link: t('links') }
+  const contacts = contactLinks(item).map((c) => ({ label: contactLabel[c.kind], href: c.href, text: c.text }))
   const infoRows = [
     ...(item.fields.length ? [{ label: t('fields'), value: item.fields.join(' · ') }] : []),
     ...(item.interests.length ? [{ label: t('interests'), value: item.interests.join(' · ') }] : []),
@@ -193,19 +194,34 @@ export default function PortfolioSummary({
         </div>
       </section>
 
-      {/* ── 프로젝트 목차 ── */}
+      {/* ── 프로젝트 목차: 대표 이미지 + 번호·제목 + 기간·분야 ── */}
       {projects.length > 1 && (
         <nav aria-labelledby="toc-t" className="pt-chapter">
-          <h2 id="toc-t" className="m-0 mb-4 font-extrabold text-headline">{t('projects')}</h2>
-          <ol className="grid grid-cols-1 border-t border-nwcn-dark sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p, i) => (
-              <li key={i} className="border-b border-nwcn-rule">
-                <a href={`#p${i + 1}`} className="group flex items-baseline gap-4 py-3.5 pr-4 text-list">
-                  <span className="font-semibold tabular-nums text-nwcn-neutral-600">{num(i + 1)}</span>
-                  <span className="min-w-0 font-semibold decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">{p.title}</span>
-                </a>
-              </li>
-            ))}
+          <h2 id="toc-t" className="m-0 mb-6 font-extrabold text-headline">{t('projects')}</h2>
+          <ol className="grid grid-cols-2 gap-x-4 gap-y-8 border-t border-nwcn-dark pt-6 sm:gap-x-6 lg:grid-cols-3">
+            {projects.map((p, i) => {
+              const img = p.cover || p.images[0]
+              return (
+                <li key={i} className="min-w-0">
+                  <a href={`#p${i + 1}`} className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark focus-visible:ring-offset-2">
+                    <span className="relative block aspect-[16/10] overflow-hidden bg-nwcn-dark">
+                      {img && (
+                        <Image src={img} alt="" fill sizes="(min-width: 1024px) 30vw, 50vw" className="object-cover transition-transform duration-slow ease-nwcn group-hover:scale-[1.03]" />
+                      )}
+                    </span>
+                    <span className="mt-3 flex items-baseline gap-3 border-t border-nwcn-dark pt-2.5">
+                      <span className="font-semibold tabular-nums text-body-sm text-nwcn-neutral-600">{num(i + 1)}</span>
+                      <span className="min-w-0 font-bold text-list decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">{p.title}</span>
+                    </span>
+                    {(p.year || p.fields.length > 0) && (
+                      <span className="mt-1 block truncate pl-8 tabular-nums text-body-sm text-nwcn-neutral-600">
+                        {[p.year, p.fields.join(' · ')].filter(Boolean).join(' · ')}
+                      </span>
+                    )}
+                  </a>
+                </li>
+              )
+            })}
           </ol>
         </nav>
       )}
@@ -247,8 +263,13 @@ export default function PortfolioSummary({
               <div key={h.key}>
                 <h3 className="m-0 border-t border-nwcn-dark pt-3 font-bold text-body-sm">{h.label}</h3>
                 <ul className="mt-2">
-                  {h.list.map((x, i) => (
-                    <li key={i} className="border-b border-nwcn-rule py-2.5 text-list last:border-b-0">{x}</li>
+                  {h.rows.map((x, i) => (
+                    <li key={i} className="border-b border-nwcn-rule py-2.5 last:border-b-0">
+                      {x.date && <span className="block font-semibold tabular-nums text-caption text-nwcn-neutral-600">{x.date}</span>}
+                      <span className="block text-list">
+                        <Linkify text={x.text} />
+                      </span>
+                    </li>
                   ))}
                 </ul>
               </div>

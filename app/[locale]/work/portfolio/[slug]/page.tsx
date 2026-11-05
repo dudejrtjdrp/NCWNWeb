@@ -18,6 +18,7 @@ import PortfolioTabs from '@/components/sections/work/portfolio/PortfolioTabs'
 import PortfolioSummary from '@/components/sections/work/portfolio/PortfolioSummary'
 import PortfolioOriginal from '@/components/sections/work/portfolio/PortfolioOriginal'
 import PortfolioCard from '@/components/sections/work/portfolio/PortfolioCard'
+import { contactLinks } from '@/components/sections/work/portfolio/portfolio-utils'
 import WorkCard from '@/components/sections/work/WorkCard'
 import {
   getGraduateBySlug,
@@ -136,6 +137,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
   const [works, teamSlugs] = await Promise.all([getPortfolioWorks(item.student_id, locale, item.slug), getStudentSlugs(teamIds)])
   // 다른 졸업생: 목록에서 이 사람 다음 사람부터 4명
   const others = otherGraduates(all, item.slug)
+  const quick = contactLinks(item)
 
   return (
     <SubPageLayout tone="paper">
@@ -155,6 +157,24 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
               <h1 className="m-0 mt-2 break-keep font-extrabold text-poster-ko">{item.name}</h1>
               {item.name_en && locale !== 'en' && <p lang="en" className="mt-2 font-semibold text-lead">{item.name_en}</p>}
               {item.tagline && <p className="mt-8 max-w-2xl font-bold text-statement">{item.tagline}</p>}
+              {/* 연락 바로가기 — 맨 아래 '연락' 칸까지 내려가지 않아도 되게 */}
+              {quick.length > 0 && (
+                <ul aria-label={t('contact')} className="mt-6 flex flex-wrap gap-x-5 gap-y-2">
+                  {quick.map((c) => (
+                    <li key={c.href}>
+                      <a
+                        href={c.href}
+                        target={c.kind === 'email' ? undefined : '_blank'}
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-baseline gap-1.5 font-semibold text-body-sm"
+                      >
+                        <span className="break-all underline decoration-1 underline-offset-4 group-hover:decoration-2 group-hover:decoration-nwcn-green-darker">{c.short}</span>
+                        <span aria-hidden="true">{c.kind === 'email' ? '→' : '↗'}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div className="col-span-12 self-end sm:col-span-5 lg:col-span-4">
               <div className="relative aspect-[4/5] max-w-[320px] overflow-hidden bg-nwcn-neutral-200 sm:max-w-none">
@@ -173,7 +193,8 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
           </header>
 
           <PortfolioTabs
-            labels={{ view: t('viewLabel'), summary: t('viewSummary'), original: t('viewOriginal') }}
+            labels={{ view: t('viewLabel'), summary: t('viewSummary'), original: t('viewOriginal'), projects: t('projects') }}
+            nav={item.projects.slice(0, 6).map((p, i) => ({ id: `p${i + 1}`, title: p.title }))}
             summary={<PortfolioSummary item={item} works={works} typeLabel={typeLabel} teamSlugs={Object.fromEntries(teamSlugs)} />}
             original={<PortfolioOriginal item={item} />}
           />

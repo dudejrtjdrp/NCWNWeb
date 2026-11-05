@@ -1,7 +1,8 @@
 /**
  * 졸업생 포트폴리오 쿼리 (캐시 5분, tag: 'portfolios')
  * - 공개된(is_published) 것만 읽는다. 표가 아직 없으면(마이그레이션 전) 빈 목록.
- * - locale='en' 이면 name·tagline·bio 와 프로젝트 제목·설명을 영문 값으로 (비어 있으면 한국어 그대로)
+ * - locale='en' 이면 name·tagline·bio 와 프로젝트 제목·설명·한 줄 요약·역할·핵심 포인트·결과를 영문 값으로 (비어 있으면 한국어 그대로),
+ *   개인 페이지의 분야·관심 분야·프로젝트 형태는 영문 이름으로
  * - 조회가 실패하면 캐시 안에서 에러를 던져 빈 결과가 캐시에 남지 않게 한다.
  */
 
@@ -10,6 +11,7 @@ import { unstable_cache } from 'next/cache'
 import { applyLocale } from './_locale'
 import type { WorkListItem } from './works'
 import { nameSlug } from '@/lib/romanize'
+import { fieldLabel, formatLabel, linkLabel } from '@/components/sections/work/portfolio/portfolio-utils'
 
 /** 프로젝트 팀원 — 졸업생 DB 이름과 한 명만 같으면 등록 스크립트가 student_id 로 잇는다 */
 export interface PortfolioTeamMember {
@@ -29,8 +31,12 @@ export interface PortfolioProject {
   summary?: string
   description?: string
   descriptionEn?: string
+  summaryEn?: string
+  roleEn?: string
   points: string[]
+  pointsEn?: string[]
   outcome?: string
+  outcomeEn?: string
   video?: string
   /** 프로젝트 관련 사이트 (여러 개) — 제출 양식 '관련 링크' */
   links?: { label: string; url: string }[]
@@ -113,7 +119,18 @@ export async function getPortfolios(locale: string = 'ko'): Promise<PortfolioLis
 
 function localizeProject(p: PortfolioProject, locale: string): PortfolioProject {
   if (locale === 'ko') return p
-  return { ...p, title: p.titleEn?.trim() || p.title, description: p.descriptionEn?.trim() || p.description }
+  return {
+    ...p,
+    title: p.titleEn?.trim() || p.title,
+    description: p.descriptionEn?.trim() || p.description,
+    summary: p.summaryEn?.trim() || p.summary,
+    role: p.roleEn?.trim() || p.role,
+    points: p.pointsEn?.length ? p.pointsEn : p.points,
+    outcome: p.outcomeEn?.trim() || p.outcome,
+    format: formatLabel(p.format, locale),
+    fields: (p.fields ?? []).map((f) => fieldLabel(f, locale)),
+    links: (p.links ?? []).map((l) => ({ ...l, label: linkLabel(l.label, locale) })),
+  }
 }
 
 /** 포트폴리오 한 명 (slug) */
@@ -142,6 +159,8 @@ export async function getPortfolioBySlug(slug: string, locale: string = 'ko'): P
     const p = applyLocale(item, ['name', 'tagline', 'bio'], locale)
     return {
       ...p,
+      fields: (p.fields ?? []).map((f) => fieldLabel(f, locale)),
+      interests: (p.interests ?? []).map((f) => fieldLabel(f, locale)),
       projects: (p.projects ?? []).map((pr) => localizeProject(pr, locale)),
       history: p.history ?? {},
     }
@@ -149,6 +168,19 @@ export async function getPortfolioBySlug(slug: string, locale: string = 'ko'): P
     console.error('[getPortfolioBySlug]', err)
     return null
   }
+}
+
+/** 쇼케이스 작품의 원래 포트폴리오 프로젝트 — portfolio_ref 'slug#번호' (등록 스크립트가 만든 작품만) */
+export async function getPortfolioProjectByRef(
+  ref: string | null | undefined,
+  locale: string = 'ko'
+): Promise<{ slug: string; n: number; owner: string; project: PortfolioProject } | null> {
+  const m = ref?.match(/^(.+)#(\d+)$/)
+  if (!m) return null
+  const item = await getPortfolioBySlug(m[1], locale)
+  const n = Number(m[2])
+  const project = item?.projects[n - 1]
+  return item && project ? { slug: item.slug, n, owner: item.name, project } : null
 }
 
 /** 이 학생이 제작자로 연결된 쇼케이스 작품 (관리자 작품 입력에서 학생 DB 로 고른 경우)

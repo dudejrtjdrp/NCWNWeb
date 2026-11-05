@@ -180,7 +180,13 @@
       "sectionType": "유형",
       "relatedTitle": "다른 작품",
       "relatedSame": "같은 제작자",
-      "relatedHint": "같은 제작자 작품 하나와 다른 학생 작품을 섞어 보여 줍니다"
+      "relatedHint": "같은 제작자 작품 하나와 다른 학생 작품을 섞어 보여 줍니다",
+      "sectionFormat": "형태",
+      "sectionRole": "역할",
+      "sectionPoints": "핵심 포인트",
+      "sectionOutcome": "결과·성과",
+      "fromPortfolio": "{name}의 포트폴리오에서 이 프로젝트 보기",
+      "sectionDuration": "기간"
     },
     "portfolio": {
       "heroEn": [
@@ -238,7 +244,11 @@
         "toc": "이 페이지 목차",
         "summaryOf": "{name}의 포트폴리오를 학과 형식으로 정리했습니다.",
         "team": "팀원",
-        "projectLinks": "관련 링크"
+        "projectLinks": "관련 링크",
+        "zoom": "크게 보기",
+        "zoomClose": "닫기",
+        "zoomPrev": "이전 이미지",
+        "zoomNext": "다음 이미지"
       }
     }
   },

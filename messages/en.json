@@ -180,7 +180,13 @@
       "sectionType": "Type",
       "relatedTitle": "More works",
       "relatedSame": "Same creator",
-      "relatedHint": "One more by the same creator, mixed with work by others"
+      "relatedHint": "One more by the same creator, mixed with work by others",
+      "sectionFormat": "Format",
+      "sectionRole": "Role",
+      "sectionPoints": "Key points",
+      "sectionOutcome": "Outcome",
+      "fromPortfolio": "See this project in {name}'s portfolio",
+      "sectionDuration": "Period"
     },
     "portfolio": {
       "heroEn": [
@@ -238,7 +244,11 @@
         "toc": "On this page",
         "summaryOf": "{name}'s portfolio, summarized in the department format.",
         "team": "Team",
-        "projectLinks": "Links"
+        "projectLinks": "Links",
+        "zoom": "View larger",
+        "zoomClose": "Close",
+        "zoomPrev": "Previous image",
+        "zoomNext": "Next image"
       }
     }
   },

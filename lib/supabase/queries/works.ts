@@ -37,6 +37,8 @@ export interface WorkItem {
   related_links: RelatedLink[] | null
   /** 제작자 목록 — creators 컬럼(마이그레이션 후). 없으면 author 문자열을 쓴다 */
   creators?: WorkCreatorRef[] | null
+  /** 졸업생 포트폴리오에서 만든 작품이면 'slug#프로젝트번호' (register.mjs) */
+  portfolio_ref?: string | null
   view_count: number
   created_at: string
   // 영어 원문 (admin 편집용)

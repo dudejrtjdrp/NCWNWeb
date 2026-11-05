@@ -17,6 +17,9 @@ import { getTranslations } from 'next-intl/server'
 import DesignViewer from './DesignViewer'
 import ViewCountTracker from './ViewCountTracker'
 import { normalizeVideoEmbed } from '@/lib/youtube'
+import { getPortfolioProjectByRef } from '@/lib/supabase/queries/portfolios'
+import Linkify from '@/components/sections/work/portfolio/Linkify'
+import { linkLabel } from '@/components/sections/work/portfolio/portfolio-utils'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.dima-nwcn.com'
 
@@ -126,7 +129,9 @@ export default async function WorkDetailPage({ params }: PageProps) {
   const { id, locale } = await params
   const [work, more] = await Promise.all([getWorkById(id, locale), getMoreWorks(id, locale)])
   if (!work) notFound()
-  const creators = await getWorkCreators(work)
+  // 졸업생 포트폴리오에서 온 작품이면 그 프로젝트의 기간·형태·역할·핵심 포인트·결과도 보여 주고 포트폴리오로 잇는다
+  const [creators, pf] = await Promise.all([getWorkCreators(work), getPortfolioProjectByRef(work.portfolio_ref, locale)])
+  const pp = pf?.project
 
   const t = await getTranslations({ locale, namespace: 'work.detail' })
   const TYPE_LABEL: Record<WorkType, string> = { design: t('typeDesign'), video: t('typeVideo'), '3d': t('type3d') }
@@ -154,7 +159,9 @@ export default async function WorkDetailPage({ params }: PageProps) {
         </ul>
       ),
     },
-    { label: t('sectionPeriod'), value: work.year },
+    { label: pp?.year ? t('sectionDuration') : t('sectionPeriod'), value: <span className="tabular-nums">{pp?.year || work.year}</span> },
+    ...(pp?.format ? [{ label: t('sectionFormat'), value: pp.format }] : []),
+    ...(pp?.role ? [{ label: t('sectionRole'), value: pp.role }] : []),
     { label: t('sectionType'), value: TYPE_LABEL[work.type] },
     ...(tags.length ? [{ label: t('sectionTools'), value: tags.join(' · ') }] : []),
     { label: t('views'), value: <span className="tabular-nums">{work.view_count.toLocaleString()}</span> },
@@ -176,6 +183,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                 {t('backToList')}
               </Link>
               <h1 className="m-0 mt-10 break-words font-extrabold text-headline lg:mt-14">{work.title}</h1>
+              {pp?.summary && <p className="mt-5 max-w-2xl font-semibold text-lead">{pp.summary}</p>}
             </div>
             <dl className="col-span-12 self-end border-b border-nwcn-dark text-list lg:col-span-4">
               {rows.map((row) => (
@@ -200,18 +208,56 @@ export default async function WorkDetailPage({ params }: PageProps) {
           </div>
 
           {/* ── 작품 소개 · 관련 링크 ── */}
-          {(work.description || links.length > 0) && (
+          {(work.description || links.length > 0 || pf) && (
             <div className="grid grid-cols-12 gap-x-6 gap-y-10 pt-chapter">
               {work.description && (
                 <section aria-labelledby="work-intro" className="col-span-12 lg:col-span-7">
                   <h2 id="work-intro" className="m-0 border-t border-nwcn-dark pt-3.5 font-bold text-section">
                     {t('sectionIntro')}
                   </h2>
-                  <p className="mt-5 whitespace-pre-line text-list">{work.description}</p>
+                  <p className="mt-5 whitespace-pre-line text-list">
+                    <Linkify text={work.description} />
+                  </p>
                 </section>
               )}
+              {pp && (pp.points.length > 0 || pp.outcome) && (
+                <section aria-label={t('sectionPoints')} className="col-span-12 lg:col-span-7">
+                  {pp.points.length > 0 && (
+                    <>
+                      <h2 className="m-0 border-t border-nwcn-dark pt-3.5 font-bold text-section">{t('sectionPoints')}</h2>
+                      <ul className="mt-2">
+                        {pp.points.map((pt, i) => (
+                          <li key={i} className="flex gap-4 border-b border-nwcn-rule py-2.5 text-list last:border-b-0">
+                            <span aria-hidden="true" className="font-semibold tabular-nums text-nwcn-neutral-600">{String(i + 1).padStart(2, '0')}</span>
+                            <span className="min-w-0">
+                              <Linkify text={pt} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {pp.outcome && (
+                    <p className="mt-6 border-t border-nwcn-dark pt-3 text-list">
+                      <span className="mr-3 font-bold text-body-sm">{t('sectionOutcome')}</span>
+                      <Linkify text={pp.outcome} />
+                    </p>
+                  )}
+                </section>
+              )}
+              {pf && (
+                <p className="col-span-12 m-0 lg:col-span-7">
+                  <Link
+                    href={`/work/portfolio/${pf.slug}#p${pf.n}`}
+                    className="flex items-center justify-between gap-3 border border-nwcn-dark px-4 py-3 font-semibold text-body-sm transition-colors duration-fast ease-nwcn hover:bg-nwcn-dark hover:text-white"
+                  >
+                    {t('fromPortfolio', { name: pf.owner })}
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </p>
+              )}
               {links.length > 0 && (
-                <section aria-labelledby="work-links" className="col-span-12 lg:col-span-4 lg:col-start-9">
+                <section aria-labelledby="work-links" className="col-span-12 lg:col-span-4 lg:col-start-9 lg:row-span-3 lg:row-start-1">
                   <h2 id="work-links" className="m-0 border-t border-nwcn-dark pt-3.5 font-bold text-section">
                     {t('sectionLinks')}
                   </h2>
@@ -225,7 +271,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                           className="group flex items-baseline justify-between gap-3 py-3 text-list"
                         >
                           <span className="min-w-0 truncate decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">
-                            {link.label || link.url}
+                            {(link.label && linkLabel(link.label, locale)) || link.url}
                           </span>
                           <span aria-hidden="true">↗</span>
                         </a>
