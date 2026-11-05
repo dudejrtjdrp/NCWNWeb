@@ -53,7 +53,10 @@ const PROJECT = {
 }
 /** 프로젝트 하나에 올리는 상세 이미지 최대 장수 (register.mjs 와 같게) */
 const MAX_IMAGES = 10
-const HISTORY = { '수상': 'awards', '전시·발표': 'exhibitions', '경력·대외활동': 'experience' }
+const HISTORY = {
+  '수상': 'awards', '전시·발표': 'exhibitions', '경력·대외활동': 'experience',
+  '영문 수상': 'awardsEn', '영문 전시·발표': 'exhibitionsEn', '영문 경력·대외활동': 'experienceEn',
+}
 
 const KNOWN = new Set([...Object.keys(BASIC), ...Object.keys(VISIBILITY), ...Object.keys(PROJECT), ...Object.keys(HISTORY)])
 
@@ -81,7 +84,8 @@ function valueOf(v) {
   if (!s) return ''
   if (/^\(.*\)$/.test(s)) return '' // "(40)", "(주력 분야 1~3개)" 같은 안내만 남은 경우
   if (s.startsWith('[직접 입력]')) return null // 학생이 채워야 하는데 비어 있음
-  return s.replace(/\s*\((?:\d+|예\s*\/\s*아니오|예)\)\s*$/, '').trim()
+  // 끝에 남은 글자 수 안내 '(40)'·'(예 / 아니오)'만 지운다 — '(2026)' 같은 연도는 값이라 남긴다
+  return s.replace(/\s*\((?:\d{1,3}|예\s*\/\s*아니오|예)\)\s*$/, '').trim()
 }
 
 const list = (s) => (s ? s.split(/[,，、]/).map((x) => x.trim()).filter(Boolean) : [])
@@ -189,6 +193,7 @@ function validate(d, files) {
   const warns = []
   const b = d.basic
   if (!b.name) errors.push('이름 없음')
+  if (b.nameEn && !/^[A-Za-z][A-Za-z .'-]*$/.test(b.nameEn)) warns.push(`영문 이름 표기 확인: "${b.nameEn}" (영문자만)`)
   if (!/^20\d{2}$/.test(b.year ?? '')) errors.push(`졸업 연도 형식 오류: "${b.year ?? ''}"`)
   if (!b.fields.length) errors.push('분야 없음')
   if (!b.tagline) errors.push('한 줄 소개 없음')
@@ -224,6 +229,10 @@ function validate(d, files) {
   })
   for (const [k, v] of Object.entries({ 웹사이트: b.website, 인스타그램: b.instagram })) {
     if (v && !/^https?:\/\//.test(v) && !(k === '인스타그램' && /^@?[\w.]+$/.test(v))) warns.push(`${k} 주소 형식 확인: ${v}`)
+  }
+  for (const k of ['awards', 'exhibitions', 'experience']) {
+    const ko = d.history[k] ?? [], en = d.history[`${k}En`] ?? []
+    if (en.length && en.length !== ko.length) warns.push(`이력 '${k}' 영문 ${en.length}줄 / 한글 ${ko.length}줄 — 같은 순서·개수여야 영문 페이지가 맞게 나옴`)
   }
   warns.push(...(files.folderNotes ?? []))
   return { errors, warns }
@@ -420,8 +429,11 @@ for (const sub of collect(dir)) {
     const fromRoster = rosterPhoto(data.basic.name)
     if (fromRoster) sub.profile = join(dir, fromRoster)
   }
+  // 영문 이름은 학생이 직접 쓴다(영문 페이지 이름·주소에 쓰임). 비었으면 명단의 영문 이름으로, 그것도 없으면 오류
   const rosterEn = data.basic.name && roster.byName.get(data.basic.name.normalize('NFC'))?.en
   if (!data.basic.nameEn && rosterEn) data.basic.nameEn = rosterEn
+  if (data.basic.nameEn) missingStudent.splice(0, missingStudent.length, ...missingStudent.filter((k) => k !== '영문 이름'))
+  else if (!missingStudent.includes('영문 이름')) missingStudent.push('영문 이름')
   const pf = projectFiles(sub, data.projects, dir)
   sub.projects = pf.map
   sub.folderNotes = pf.notes

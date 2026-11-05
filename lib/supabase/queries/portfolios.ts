@@ -48,6 +48,18 @@ export interface PortfolioHistory {
   awards?: string[]
   exhibitions?: string[]
   experience?: string[]
+  /** 영문 페이지용 — 한글 목록과 같은 순서 */
+  awardsEn?: string[]
+  exhibitionsEn?: string[]
+  experienceEn?: string[]
+}
+
+/** 영문 페이지 이력: 영문 목록이 있으면 그것을 */
+function localizeHistory(h: PortfolioHistory | null | undefined, locale: string): PortfolioHistory {
+  const src = h ?? {}
+  if (locale === 'ko') return src
+  const pick = (ko?: string[], en?: string[]) => (en?.length ? en : ko)
+  return { awards: pick(src.awards, src.awardsEn), exhibitions: pick(src.exhibitions, src.exhibitionsEn), experience: pick(src.experience, src.experienceEn) }
 }
 
 export interface PortfolioItem {
@@ -162,7 +174,7 @@ export async function getPortfolioBySlug(slug: string, locale: string = 'ko'): P
       fields: (p.fields ?? []).map((f) => fieldLabel(f, locale)),
       interests: (p.interests ?? []).map((f) => fieldLabel(f, locale)),
       projects: (p.projects ?? []).map((pr) => localizeProject(pr, locale)),
-      history: p.history ?? {},
+      history: localizeHistory(p.history, locale),
     }
   } catch (err) {
     console.error('[getPortfolioBySlug]', err)
