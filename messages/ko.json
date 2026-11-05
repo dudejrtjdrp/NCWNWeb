@@ -248,7 +248,8 @@
         "zoom": "크게 보기",
         "zoomClose": "닫기",
         "zoomPrev": "이전 이미지",
-        "zoomNext": "다음 이미지"
+        "zoomNext": "다음 이미지",
+        "projectPage": "프로젝트 페이지"
       }
     }
   },

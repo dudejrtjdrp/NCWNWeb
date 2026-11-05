@@ -253,6 +253,30 @@ function shareCreator(a: WorkCreatorRef[], b: WorkCreatorRef[]): boolean {
   )
 }
 
+/** 졸업생 포트폴리오 프로젝트 번호 → 그 프로젝트로 만든 쇼케이스 작품 id (portfolio_ref 'slug#번호', 캐시 5분) */
+export async function getPortfolioWorkIds(slug: string): Promise<Record<number, string>> {
+  const fetcher = unstable_cache(
+    async (): Promise<Record<number, string>> => {
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase.from('showcase_works').select('id, portfolio_ref').like('portfolio_ref', `${slug}#%`)
+        if (error) return {}
+        const out: Record<number, string> = {}
+        for (const w of (data ?? []) as { id: string; portfolio_ref: string | null }[]) {
+          const n = Number(w.portfolio_ref?.split('#')[1])
+          if (n) out[n] = w.id
+        }
+        return out
+      } catch {
+        return {}
+      }
+    },
+    ['portfolio-work-ids', slug],
+    { revalidate: 300, tags: ['works'] }
+  )
+  return fetcher()
+}
+
 /** 상세 페이지 하단 "다른 작품" 후보 한 개 — 실제로 몇 개를 고를지는 화면(MoreWorks)에서 방문자마다 정한다 */
 export interface MoreWorkCandidate {
   work: WorkListItem

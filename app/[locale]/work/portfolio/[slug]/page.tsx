@@ -20,6 +20,7 @@ import PortfolioOriginal from '@/components/sections/work/portfolio/PortfolioOri
 import PortfolioCard from '@/components/sections/work/portfolio/PortfolioCard'
 import { contactLinks, MAX_PORTFOLIO_PROJECTS } from '@/components/sections/work/portfolio/portfolio-utils'
 import WorkCard from '@/components/sections/work/WorkCard'
+import { getPortfolioWorkIds } from '@/lib/supabase/queries/works'
 import {
   getGraduateBySlug,
   getGraduates,
@@ -134,7 +135,18 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
   }
 
   const teamIds = item.projects.flatMap((p) => (p.team ?? []).map((m) => m.student_id)).filter((v): v is string => !!v)
-  const [works, teamSlugs] = await Promise.all([getPortfolioWorks(item.student_id, locale, item.slug), getStudentSlugs(teamIds)])
+  const [works, teamSlugs, ownWorkIds] = await Promise.all([
+    getPortfolioWorks(item.student_id, locale, item.slug),
+    getStudentSlugs(teamIds),
+    getPortfolioWorkIds(item.slug),
+  ])
+  // 프로젝트 → 작품 페이지: 이 포트폴리오로 만든 작품, 없으면(팀원 포트폴리오가 먼저 만든 작품) 제목이 같은 연결 작품
+  const titleKey = (v?: string | null) => (v ?? '').normalize('NFC').replace(/\s+/g, '').toLowerCase()
+  const projectWorkIds: Record<number, string> = {}
+  item.projects.forEach((p, i) => {
+    const id = ownWorkIds[i + 1] ?? works.find((w) => titleKey(w.title) === titleKey(p.title))?.id
+    if (id) projectWorkIds[i + 1] = id
+  })
   // 다른 졸업생: 목록에서 이 사람 다음 사람부터 4명
   const others = otherGraduates(all, item.slug)
   const quick = contactLinks(item)
@@ -195,7 +207,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
           <PortfolioTabs
             labels={{ view: t('viewLabel'), summary: t('viewSummary'), original: t('viewOriginal'), projects: t('projects') }}
             nav={item.projects.slice(0, MAX_PORTFOLIO_PROJECTS).map((p, i) => ({ id: `p${i + 1}`, title: p.title }))}
-            summary={<PortfolioSummary item={item} works={works} typeLabel={typeLabel} teamSlugs={Object.fromEntries(teamSlugs)} />}
+            summary={<PortfolioSummary item={item} works={works} typeLabel={typeLabel} teamSlugs={Object.fromEntries(teamSlugs)} projectWorkIds={projectWorkIds} />}
             original={<PortfolioOriginal item={item} />}
           />
 

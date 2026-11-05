@@ -248,7 +248,8 @@
         "zoom": "View larger",
         "zoomClose": "Close",
         "zoomPrev": "Previous image",
-        "zoomNext": "Next image"
+        "zoomNext": "Next image",
+        "projectPage": "Project page"
       }
     }
   },

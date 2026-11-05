@@ -1,6 +1,7 @@
 /**
  * PortfolioSummary — 개인 페이지 '학과 정리본' (E4)
- * 소개 → 프로젝트 목차(카드) → 프로젝트(최대 8, 왼쪽 정보 칸이 따라옴, 이미지는 눌러서 크게) → 원본 미리보기 줄 → 이력(최신순, 날짜 열) → 연락 → 쇼케이스 작품.
+ * 소개 → 프로젝트(최대 8, 왼쪽 정보 칸이 따라옴, 이미지는 눌러서 크게, 프로젝트 페이지로 연결) → 원본 미리보기 줄 → 이력(최신순, 날짜 열) → 연락 → 쇼케이스 작품.
+ * 프로젝트 사이 이동은 탭 줄 오른쪽 번호(01 02 …)로 — 위에 따로 목차를 두면 아래 프로젝트와 겹쳐 보여서 뺐다.
  * 글 속 주소(결과·설명 등)는 링크로 바뀐다.
  * 모든 졸업생이 같은 형식이라 서로 비교해 보기 쉽고, 개성은 원본 쪽에서 본다.
  */
@@ -21,7 +22,7 @@ import type { WorkListItem, WorkType } from '@/lib/supabase/queries/works'
 const num = (n: number) => String(n).padStart(2, '0')
 const safeUrl = (u?: string | null) => (u && /^https?:\/\//.test(u) ? u : null)
 
-function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlugs: Record<string, string> }) {
+function Project({ p, n, teamSlugs, workId }: { p: PortfolioProject; n: number; teamSlugs: Record<string, string>; workId?: string }) {
   const t = useTranslations('work.portfolio.detail')
   const video = normalizeVideoEmbed(p.video)
   const cover = p.cover || p.images[0] || null
@@ -72,6 +73,16 @@ function Project({ p, n, teamSlugs }: { p: PortfolioProject; n: number; teamSlug
             <div className="mt-6">
               <InfoTable rows={rows} />
             </div>
+          )}
+          {/* 이 프로젝트의 작품 페이지(학생 작품) — 조회수·다른 작품 추천이 있는 곳 */}
+          {workId && (
+            <Link
+              href={`/work/${workId}`}
+              className="mt-4 flex items-center justify-between gap-3 border border-nwcn-dark px-4 py-3 font-semibold text-body-sm transition-colors duration-fast ease-nwcn hover:bg-nwcn-dark hover:text-white"
+            >
+              {t('projectPage')}
+              <span aria-hidden="true">→</span>
+            </Link>
           )}
         </div>
         <div className="col-span-12 min-w-0 lg:col-span-8">
@@ -152,12 +163,15 @@ export default function PortfolioSummary({
   works,
   typeLabel,
   teamSlugs = {},
+  projectWorkIds = {},
 }: {
   item: PortfolioItem
   works: WorkListItem[]
   typeLabel: Record<WorkType, string>
   /** 팀원 student_id → 졸업생 상세 주소 */
   teamSlugs?: Record<string, string>
+  /** 프로젝트 번호(1부터) → 그 프로젝트의 작품 페이지 id */
+  projectWorkIds?: Record<number, string>
 }) {
   const t = useTranslations('work.portfolio.detail')
   const projects = item.projects.slice(0, MAX_PORTFOLIO_PROJECTS)
@@ -194,40 +208,8 @@ export default function PortfolioSummary({
         </div>
       </section>
 
-      {/* ── 프로젝트 목차: 대표 이미지 + 번호·제목 + 기간·분야 ── */}
-      {projects.length > 1 && (
-        <nav aria-labelledby="toc-t" className="pt-chapter">
-          <h2 id="toc-t" className="m-0 mb-6 font-extrabold text-headline">{t('projects')}</h2>
-          <ol className="grid grid-cols-2 gap-x-4 gap-y-8 border-t border-nwcn-dark pt-6 sm:gap-x-6 lg:grid-cols-3">
-            {projects.map((p, i) => {
-              const img = p.cover || p.images[0]
-              return (
-                <li key={i} className="min-w-0">
-                  <a href={`#p${i + 1}`} className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark focus-visible:ring-offset-2">
-                    <span className="relative block aspect-[16/10] overflow-hidden bg-nwcn-dark">
-                      {img && (
-                        <Image src={img} alt="" fill sizes="(min-width: 1024px) 30vw, 50vw" className="object-cover transition-transform duration-slow ease-nwcn group-hover:scale-[1.03]" />
-                      )}
-                    </span>
-                    <span className="mt-3 flex items-baseline gap-3 border-t border-nwcn-dark pt-2.5">
-                      <span className="font-semibold tabular-nums text-body-sm text-nwcn-neutral-600">{num(i + 1)}</span>
-                      <span className="min-w-0 font-bold text-list decoration-nwcn-green-darker decoration-2 underline-offset-4 group-hover:underline">{p.title}</span>
-                    </span>
-                    {(p.year || p.fields.length > 0) && (
-                      <span className="mt-1 block truncate pl-8 tabular-nums text-body-sm text-nwcn-neutral-600">
-                        {[p.year, p.fields.join(' · ')].filter(Boolean).join(' · ')}
-                      </span>
-                    )}
-                  </a>
-                </li>
-              )
-            })}
-          </ol>
-        </nav>
-      )}
-
       {projects.map((p, i) => (
-        <Project key={i} p={p} n={i + 1} teamSlugs={teamSlugs} />
+        <Project key={i} p={p} n={i + 1} teamSlugs={teamSlugs} workId={projectWorkIds[i + 1]} />
       ))}
 
       {/* ── 원본 미리보기 ── */}
