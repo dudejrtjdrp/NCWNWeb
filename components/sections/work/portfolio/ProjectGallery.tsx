@@ -2,6 +2,7 @@
 
 /**
  * ProjectGallery — 포트폴리오 프로젝트 이미지 (대표 1장 크게 + 나머지 2열) + 눌러서 크게 보기
+ * 이미지는 원래 비율 그대로 가로를 꽉 채운다 — 고정 비율 상자에 넣으면 양옆·위아래에 띠가 생겨서. 2열은 높이가 달라도 빈틈이 없게 세로로 흘린다(columns).
  * 크게 보기: 화면 가득 어두운 바탕, ←/→(키보드·버튼)로 넘기기, Esc·바깥 누르기로 닫기, 열린 동안 배경 스크롤 잠금.
  * PDF 쪽 이미지는 글씨가 작아 작은 칸에서는 못 읽기 때문에, 모든 이미지를 누를 수 있게 했다.
  */
@@ -63,14 +64,15 @@ export default function ProjectGallery({ cover, rest, title, labels }: { cover: 
       type="button"
       onClick={() => setAt(i)}
       aria-label={`${labels.open} — ${title} ${i + 1}/${all.length}`}
-      className="group relative block aspect-[16/10] w-full cursor-zoom-in overflow-hidden bg-nwcn-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark focus-visible:ring-offset-2"
+      className="group relative block w-full cursor-zoom-in overflow-hidden bg-nwcn-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-nwcn-dark focus-visible:ring-offset-2"
     >
       <Image
         src={src}
         alt={big ? title : ''}
-        fill
+        width={2000}
+        height={1500}
         sizes={big ? '(min-width: 1024px) 60vw, 100vw' : '(min-width: 1024px) 30vw, 50vw'}
-        className="object-contain transition-transform duration-slow ease-nwcn group-hover:scale-[1.015]"
+        className="block h-auto w-full transition-transform duration-slow ease-nwcn group-hover:scale-[1.015]"
       />
       <span aria-hidden="true" className="absolute bottom-2 right-2 bg-nwcn-dark/80 px-1.5 py-0.5 font-semibold text-caption text-white opacity-0 transition-opacity duration-fast ease-nwcn group-hover:opacity-100 group-focus-visible:opacity-100">
         ⤢
@@ -82,9 +84,11 @@ export default function ProjectGallery({ cover, rest, title, labels }: { cover: 
     <>
       {cover && thumb(cover, 0, true)}
       {rest.length > 0 && (
-        <ul className="mt-3 grid grid-cols-2 gap-3">
+        <ul className="mt-3 columns-2 gap-3">
           {rest.map((src, j) => (
-            <li key={src}>{thumb(src, j + (cover ? 1 : 0), !cover && j === 0)}</li>
+            <li key={src} className="mb-3 break-inside-avoid">
+              {thumb(src, j + (cover ? 1 : 0), !cover && j === 0)}
+            </li>
           ))}
         </ul>
       )}
