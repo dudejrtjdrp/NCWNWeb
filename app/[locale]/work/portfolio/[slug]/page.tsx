@@ -194,13 +194,15 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
                   <Image src={item.profile_url} alt={list('profileAlt', { name: item.name })} fill priority sizes="(min-width: 1024px) 30vw, (min-width: 640px) 40vw, 100vw" className="object-cover" />
                 )}
               </div>
-              <a
-                href="#original"
-                className="mt-3 flex max-w-[320px] items-center justify-between gap-3 border border-nwcn-dark px-4 py-3 font-semibold text-body-sm transition-colors duration-fast ease-nwcn hover:bg-nwcn-dark hover:text-white sm:max-w-none"
-              >
-                {t('openOriginal')}
-                <span aria-hidden="true">→</span>
-              </a>
+              {item.pages.length > 0 && (
+                <a
+                  href="#original"
+                  className="mt-3 flex max-w-[320px] items-center justify-between gap-3 border border-nwcn-dark px-4 py-3 font-semibold text-body-sm transition-colors duration-fast ease-nwcn hover:bg-nwcn-dark hover:text-white sm:max-w-none"
+                >
+                  {t('openOriginal')}
+                  <span aria-hidden="true">→</span>
+                </a>
+              )}
             </div>
           </header>
 
@@ -208,7 +210,7 @@ export default async function PortfolioDetailPage({ params }: { params: Promise<
             labels={{ view: t('viewLabel'), summary: t('viewSummary'), original: t('viewOriginal'), projects: t('projects') }}
             nav={item.projects.slice(0, MAX_PORTFOLIO_PROJECTS).map((p, i) => ({ id: `p${i + 1}`, title: p.title }))}
             summary={<PortfolioSummary item={item} works={works} typeLabel={typeLabel} teamSlugs={Object.fromEntries(teamSlugs)} projectWorkIds={projectWorkIds} />}
-            original={<PortfolioOriginal item={item} />}
+            original={item.pages.length > 0 ? <PortfolioOriginal item={item} /> : null}
           />
 
           {/* ── 다른 졸업생 ── */}

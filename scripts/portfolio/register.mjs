@@ -17,7 +17,10 @@
  *     쇼케이스 작품 제작자(creators)에 학생으로 들어가 그 학생 페이지에도 작품이 보이고, 포트폴리오 표의 팀원 이름이 링크가 된다.
  *     동명이인이면 잇지 않고 알려 준다. 팀원이 먼저 올린 포트폴리오에 같은 제목 작품이 있으면 쇼케이스에 또 만들지 않는다.
  *
- * 공개 원칙: '이메일 공개: 예'일 때만 이메일, 'PDF 다운로드 허용: 예'일 때만 PDF 를 올린다.
+ * 공개 원칙: 학과가 받은 공개 동의(students.is_public·consent — scripts/portfolio/apply-consent.mjs)를 따른다.
+ *   공개(is_public)가 아니면 비공개로 저장하고 쇼케이스도 만들지 않는다. 동의하지 않은 이메일·사진·링크·PDF·원본 쪽·프로젝트는 올리지 않는다.
+ *   팀원 중 비공개이거나 '팀 이름 표시'에 동의하지 않은 졸업생은 이름을 넣지 않는다.
+ *   동의(consent)가 아직 없으면 양식의 '이메일 공개'·'PDF 다운로드 허용'을 따르되 비공개로 저장한다.
  * 게시 동의가 '예'가 아니거나 PDF·프로필 사진이 없으면 건너뛴다.
  *
  * 사용
@@ -239,17 +242,31 @@ async function flush() {
 /* 팀원 이름 → 졸업생 DB 연결 (이름이 딱 한 명과 같을 때만) */
 const nameKey = (v) => String(v ?? '').normalize('NFC').replace(/\s+/g, '').toLowerCase()
 const byName = new Map()
+/** 학생 id → { is_public, consent } (공개 동의 — supabase/migrations/add_student_consent.sql) */
+const consentOf = new Map()
 {
-  const { data, error } = await supabase.from('students').select('id, name')
-  if (error) throw error
-  for (const st of data ?? []) byName.set(nameKey(st.name), [...(byName.get(nameKey(st.name)) ?? []), st.id])
+  const { data, error } = await supabase.from('students').select('id, name, graduation_year, is_public, consent')
+  if (error) {
+    if (/is_public|consent/.test(error.message)) console.error('students.is_public 열이 없습니다. supabase/migrations/add_student_consent.sql 을 먼저 실행하세요.')
+    throw error
+  }
+  for (const st of data ?? []) {
+    byName.set(nameKey(st.name), [...(byName.get(nameKey(st.name)) ?? []), st.id])
+    consentOf.set(st.id, { name: st.name, year: st.graduation_year, is_public: st.is_public === true, consent: st.consent ?? null })
+  }
 }
+/** 다른 졸업생 팀 프로젝트에 이름을 넣어도 되는지 */
+const teamNameOk = (id) => consentOf.get(id)?.is_public === true && consentOf.get(id)?.consent?.teamName === true
 function linkTeam(names, ownerName) {
   const team = []
-  const note = { linked: [], unknown: [], twins: [] }
+  const note = { linked: [], unknown: [], twins: [], hidden: [] }
   for (const n of names ?? []) {
     if (nameKey(n) === nameKey(ownerName)) continue
     const ids = byName.get(nameKey(n)) ?? []
+    if (ids.length === 1 && !teamNameOk(ids[0])) {
+      note.hidden.push(n) // 비공개이거나 팀 이름 표시에 동의하지 않은 졸업생 — 이름을 넣지 않는다
+      continue
+    }
     team.push({ name: n, student_id: ids.length === 1 ? ids[0] : null })
     ;(ids.length === 1 ? note.linked : ids.length > 1 ? note.twins : note.unknown).push(n)
   }
@@ -283,14 +300,33 @@ for (const rec of records) {
   const slug = rec.id
   const base = `portfolios/${year}/${slug}`
 
+  // 공개 동의 — 명단(이름+졸업 연도)에서 찾는다. 없거나 공개가 아니면 비공개로 저장
+  const sameName = [...consentOf.entries()].filter(([, s]) => nameKey(s.name) === nameKey(b.name) && s.year === year)
+  const agreed = sameName.length === 1 ? sameName[0][1] : null
+  const c = agreed?.consent ?? null
+  const publish = !DRAFT && agreed?.is_public === true && !!c
+  const allow = {
+    email: c ? c.email === true : v.emailPublic === true,
+    pdf: c ? c.pdf === 'download' : v.pdfDownload === true,
+    pages: c ? c.pdf !== 'none' : true,
+    photo: c ? c.photo === true : true,
+    links: c ? c.links === true : true,
+    showcase: c ? c.showcase === true : true,
+    project: (n) => (!c || c.projects === 'all' ? true : c.projects === 'some' ? (c.projectNums ?? []).includes(n) : false),
+  }
+  const consentNote = !agreed
+    ? '명단에 없음(또는 동명이인) — 공개 동의를 몰라 비공개로 저장'
+    : !agreed.is_public || !c
+      ? '공개 동의 없음 — 비공개로 저장'
+      : null
+
+  // 쪽 이미지는 '이미지 쪽' 프로젝트 사진에도 쓰므로 PDF 비공개여도 만들고, 원본 보기(pages)에만 넣지 않는다
   const pages = await pdfPages(pdf)
   const pageUrls = pages.map((buf, i) => putFile(`${base}/pages/${String(i + 1).padStart(3, '0')}.webp`, buf, 'image/webp'))
-  const profileUrl = putFile(
-    `${base}/profile.webp`,
-    await toWebp(fs.readFileSync(profile), { width: 1200, height: 1500, fit: 'cover', position: 'top' }),
-    'image/webp'
-  )
-  const pdfUrl = v.pdfDownload === true ? putFile(`${base}/portfolio.pdf`, fs.readFileSync(pdf), 'application/pdf') : null
+  const profileUrl = allow.photo
+    ? putFile(`${base}/profile.webp`, await toWebp(fs.readFileSync(profile), { width: 1200, height: 1500, fit: 'cover', position: 'top' }), 'image/webp')
+    : null
+  const pdfUrl = allow.pdf ? putFile(`${base}/portfolio.pdf`, fs.readFileSync(pdf), 'application/pdf') : null
 
   const projects = []
   const teamNotes = []
@@ -311,8 +347,13 @@ for (const rec of records) {
     if (Math.max(meta.width ?? 0, meta.height ?? 0) < 1200) imageNotes.push(`${path.basename(f)} ${meta.width}×${meta.height} (작음)`)
     return putFile(`${base}/projects/${key}.webp`, await toWebp(buf, { width: 2000, height: 2000, fit: 'inside', withoutEnlargement: true }), 'image/webp')
   }
+  const hiddenProjects = []
   for (const [i, p] of (rec.projects ?? []).slice(0, MAX_PROJECTS).entries()) {
-    const n = i + 1
+    const n = i + 1 // 양식의 [프로젝트 N] — 이미지 폴더 번호·공개 동의 번호와 같다
+    if (!allow.project(n)) {
+      hiddenProjects.push(n)
+      continue
+    }
     // 프로젝트 폴더(parse 결과 source.projects) → 없으면 예전 방식 낱장(N-01.jpg)
     const src = rec.source?.projects?.[n] ?? { thumb: null, images: (rec.source?.images ?? []).filter((f) => f.startsWith(`${n}-`)) }
     const own = src.images.slice(0, MAX_IMAGES)
@@ -325,7 +366,12 @@ for (const rec of records) {
     if (!images.length) images.push(...(p.imagePages ?? []).map((k) => pageUrls[k - 1]).filter(Boolean))
     const cover = thumb ?? (p.coverPage && pageUrls[p.coverPage - 1] && !own.length ? pageUrls[p.coverPage - 1] : images[0]) ?? null
     const tl = linkTeam(p.team, b.name)
-    teamNotes.push(...tl.note.linked.map((n) => `${n}(연결)`), ...tl.note.twins.map((n) => `${n}(동명이인 — 안 이음)`), ...tl.note.unknown.map((n) => `${n}(명단에 없음)`))
+    teamNotes.push(
+      ...tl.note.linked.map((n) => `${n}(연결)`),
+      ...tl.note.twins.map((n) => `${n}(동명이인 — 안 이음)`),
+      ...tl.note.unknown.map((n) => `${n}(명단에 없음)`),
+      ...tl.note.hidden.map((n) => `${n}(공개 동의 없음 — 이름 뺌)`)
+    )
     projects.push({
       team: tl.team,
       title: p.title, titleEn: p.titleEn, year: p.year, fields: p.fields ?? [], format: p.format, role: p.role,
@@ -339,15 +385,17 @@ for (const rec of records) {
     slug, year, name: b.name, name_en: b.nameEn || null, fields: b.fields ?? [],
     tagline: b.tagline || null, tagline_en: b.taglineEn || null, bio: b.bio || null, bio_en: b.bioEn || null,
     interests: b.interests ?? [], tools: b.tools ?? [],
-    email: v.emailPublic === true ? b.email || null : null,
-    website: b.website || null, instagram: b.instagram || null,
-    other_links: (b.otherLinks || '').split(/[,\s]+/).filter((u) => /^https?:\/\//.test(u)),
-    profile_url: profileUrl, cover_url: pageUrls[0] ?? null, pages: pageUrls, pdf_url: pdfUrl,
-    projects, history: rec.history ?? {}, is_published: !DRAFT, updated_at: new Date().toISOString(),
+    email: allow.email ? b.email || null : null,
+    website: allow.links ? b.website || null : null, instagram: allow.links ? b.instagram || null : null,
+    other_links: allow.links ? (b.otherLinks || '').split(/[,\s]+/).filter((u) => /^https?:\/\//.test(u)) : [],
+    profile_url: profileUrl, cover_url: allow.pages ? pageUrls[0] ?? null : null, pages: allow.pages ? pageUrls : [], pdf_url: pdfUrl,
+    projects, history: rec.history ?? {}, is_published: publish, updated_at: new Date().toISOString(),
   }
 
   const total = uploads.reduce((n, u) => n + u.bytes, 0)
   console.log(`• ${b.name} (${slug}) — 원본 ${pages.length}쪽 · 프로젝트 ${projects.length}개 · 올릴 파일 ${uploads.length}개 ${(total / 1024 / 1024).toFixed(1)}MB${row.email ? ' · 이메일 공개' : ''}${pdfUrl ? ' · PDF 공개' : ''}`)
+  if (consentNote) console.log(`  ! ${consentNote}`)
+  else console.log(`  · 공개 범위: 이메일 ${allow.email ? 'O' : 'X'} · 사진 ${allow.photo ? 'O' : 'X'} · 링크 ${allow.links ? 'O' : 'X'} · 원본 ${allow.pdf ? '쪽+PDF' : allow.pages ? '쪽 보기만' : 'X'} · 학생 작품 ${allow.showcase ? 'O' : 'X'}${hiddenProjects.length ? ` · 뺀 프로젝트 ${hiddenProjects.join(', ')}` : ''}`)
   if (pages.masked?.length) console.log(`  · 원본 쪽 개인정보 가림: ${pages.masked.join(', ')}`)
   if (teamNotes.length) console.log(`  · 팀원: ${[...new Set(teamNotes)].join(', ')}`)
   if (imageNotes.length) console.log(`  · 이미지 확인: ${imageNotes.join(', ')}`)
@@ -372,10 +420,19 @@ for (const rec of records) {
   }
   const { error: upErr } = await supabase.from('portfolios').upsert({ ...row, student_id: studentId }, { onConflict: 'slug' })
   if (upErr) throw upErr
-  console.log(`  ✓ 저장 — /work/portfolio/${slug}${DRAFT ? ' (비공개)' : ''}`)
+  console.log(`  ✓ 저장 — /work/portfolio/${slug}${publish ? '' : ' (비공개)'}`)
 
   // 쇼케이스 — 프로젝트마다 작품 하나 (기간순 정렬용 work_date, 다시 등록하면 portfolio_ref 로 덮어씀)
-  if (DRAFT) continue
+  if (!publish || !allow.showcase) {
+    // 비공개이거나 학생 작품 노출에 동의하지 않았으면 이 포트폴리오로 만든 작품을 지운다
+    const { data: olds } = await supabase.from('showcase_works').select('id').like('portfolio_ref', `${slug}#%`)
+    if (olds?.length) {
+      const { error: delErr } = await supabase.from('showcase_works').delete().in('id', olds.map((w) => w.id))
+      if (delErr) throw delErr
+      console.log(`  ✓ 쇼케이스 작품 ${olds.length}개 지움 (학생 작품 노출 안 함)`)
+    }
+    continue
+  }
   const refs = []
   let made = 0
   let skipped = 0

@@ -19,11 +19,13 @@ export default function PortfolioTabs({
   nav = [],
 }: {
   summary: ReactNode
-  original: ReactNode
+  /** 원본 포트폴리오 — 학생이 원본 공개에 동의하지 않았으면 null (원본 탭을 그리지 않음) */
+  original: ReactNode | null
   labels: { view: string; summary: string; original: string; projects?: string }
   /** 프로젝트 바로가기 — id 는 정리본 안 프로젝트 칸의 id (p1, p2 …) */
   nav?: { id: string; title: string }[]
 }) {
+  const hasOriginal = original != null
   const [view, setView] = useState<View>('summary')
   const [current, setCurrent] = useState<string | null>(null)
   const barRef = useRef<HTMLDivElement>(null)
@@ -46,7 +48,7 @@ export default function PortfolioTabs({
 
   useEffect(() => {
     const sync = () => {
-      if (window.location.hash === '#original') {
+      if (window.location.hash === '#original' && hasOriginal) {
         setView('original')
         barRef.current?.scrollIntoView({ block: 'start' })
       } else if (window.location.hash === '#summary') {
@@ -56,7 +58,7 @@ export default function PortfolioTabs({
     sync()
     window.addEventListener('hashchange', sync)
     return () => window.removeEventListener('hashchange', sync)
-  }, [])
+  }, [hasOriginal])
 
   const choose = (v: View) => {
     setView(v)
@@ -77,7 +79,7 @@ export default function PortfolioTabs({
     <>
       <div id="views" ref={barRef} className="sticky top-16 z-20 mt-14 flex scroll-mt-16 items-center justify-between gap-3 border-y border-nwcn-dark bg-nwcn-paper">
         <div role="tablist" aria-label={labels.view} className="flex shrink-0 gap-6">
-          {(['summary', 'original'] as const).map((v) => (
+          {(original ? (['summary', 'original'] as const) : (['summary'] as const)).map((v) => (
             <button
               key={v}
               type="button"
@@ -118,9 +120,11 @@ export default function PortfolioTabs({
       <div id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" hidden={view !== 'summary'}>
         {summary}
       </div>
-      <div id="panel-original" role="tabpanel" aria-labelledby="tab-original" hidden={view !== 'original'}>
-        {original}
-      </div>
+      {original && (
+        <div id="panel-original" role="tabpanel" aria-labelledby="tab-original" hidden={view !== 'original'}>
+          {original}
+        </div>
+      )}
     </>
   )
 }

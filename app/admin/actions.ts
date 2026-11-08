@@ -1577,7 +1577,8 @@ export async function saveStudent(id: string | null, formData: FormData): Promis
   if (studentNo && !STUDENT_NO_RE.test(studentNo)) return { error: '학번은 숫자·영문 4~20자로 입력해주세요.' }
   if (nameEn && nameEn.length > 60) return { error: '영문 이름은 60자 이내로 입력해주세요.' }
 
-  const row = { name, student_no: studentNo, name_en: nameEn, graduation_year: year }
+  // 사이트 공개 — 공개 동의를 받은 학생만 (공개 범위 consent 는 scripts/portfolio/apply-consent.mjs)
+  const row = { name, student_no: studentNo, name_en: nameEn, graduation_year: year, is_public: formData.get('is_public') === 'on' }
   const { error } = id
     ? await supabase.from('students').update(row).eq('id', id)
     : await supabase.from('students').insert(row)

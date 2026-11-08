@@ -36,6 +36,36 @@ interface StudentRow {
   student_no: string | null
   name_en: string | null
   graduation_year: number | null
+  /** 사이트 공개 동의 (supabase/migrations/add_student_consent.sql — 열이 없으면 undefined) */
+  is_public?: boolean
+  consent?: StudentConsent | null
+}
+
+/** 공개 범위 — scripts/portfolio/apply-consent.mjs 가 넣는다 */
+interface StudentConsent {
+  projects: 'all' | 'some' | 'none'
+  projectNums?: number[]
+  email: boolean
+  photo: boolean
+  links: boolean
+  pdf: 'download' | 'pages' | 'none'
+  teamName: boolean
+  showcase: boolean
+}
+
+/** 공개 범위 한 줄 요약 (명단 표) */
+function consentSummary(c: StudentConsent | null | undefined): string {
+  if (!c) return '동의 내용 없음'
+  const off = [
+    c.projects === 'none' ? '프로젝트' : c.projects === 'some' ? `프로젝트(${(c.projectNums ?? []).join('·')}만)` : null,
+    !c.email && '이메일',
+    !c.photo && '사진',
+    !c.links && '링크',
+    c.pdf === 'none' ? '원본' : c.pdf === 'pages' ? 'PDF 다운로드' : null,
+    !c.teamName && '팀 이름',
+    !c.showcase && '학생 작품',
+  ].filter(Boolean)
+  return off.length ? `비공개: ${off.join(', ')}` : '모두 공개'
 }
 
 interface PortfolioRow {
@@ -93,6 +123,13 @@ function StudentForm({ student, onDone }: { student: StudentRow | null; onDone: 
           <div><Label>영문 이름</Label><Input name="name_en" defaultValue={student?.name_en ?? ''} placeholder="예: Hong Gildong" maxLength={60} /></div>
           <div><Label>졸업 연도</Label><Input name="graduation_year" type="number" defaultValue={student?.graduation_year ?? thisYear} /></div>
         </div>
+        <label className="flex items-start gap-3 font-body text-sm text-white/80">
+          <input type="checkbox" name="is_public" defaultChecked={student?.is_public === true} className="mt-1 accent-nwcn-green" />
+          <span>
+            사이트에 공개 (졸업생 목록·개인 페이지)
+            <span className="block text-xs text-white/40">공개 동의를 받은 학생만 켜 주세요. 공개 범위(이메일·사진·PDF 등)는 scripts/portfolio/apply-consent.mjs 로 넣습니다 — {consentSummary(student?.consent)}</span>
+          </span>
+        </label>
         <Feedback result={result} />
         <div className="flex gap-3">
           <button type="button" onClick={onDone} className="flex-1 py-3 rounded-xl border border-white/10 font-body text-sm text-white/40 hover:text-white">취소</button>
@@ -158,7 +195,7 @@ function Roster({ portfolios }: { portfolios: PortfolioRow[] }) {
     setLoading(true)
     const { data, error } = await createClient()
       .from('students')
-      .select('id, name, student_no, name_en, graduation_year')
+      .select('*')
       .order('graduation_year', { ascending: false })
       .order('name')
     setMissing(!!error && /students/.test(error.message))
@@ -202,7 +239,7 @@ function Roster({ portfolios }: { portfolios: PortfolioRow[] }) {
         <div className="overflow-x-auto rounded-xl border border-white/8">
           <table className="w-full font-body text-sm text-white/80">
             <thead className="bg-white/3 text-left text-xs text-white/40">
-              <tr><th className="px-4 py-2.5">이름</th><th className="px-4 py-2.5">학번</th><th className="px-4 py-2.5">영문 이름</th><th className="px-4 py-2.5">졸업</th><th className="px-4 py-2.5">포트폴리오</th><th /></tr>
+              <tr><th className="px-4 py-2.5">이름</th><th className="px-4 py-2.5">학번</th><th className="px-4 py-2.5">영문 이름</th><th className="px-4 py-2.5">졸업</th><th className="px-4 py-2.5">사이트 공개</th><th className="px-4 py-2.5">포트폴리오</th><th /></tr>
             </thead>
             <tbody>
               {shown.map((r) => (
@@ -211,6 +248,10 @@ function Roster({ portfolios }: { portfolios: PortfolioRow[] }) {
                   <td className="px-4 py-2.5 tabular-nums">{r.student_no ?? '—'}</td>
                   <td className="px-4 py-2.5">{r.name_en ?? '—'}</td>
                   <td className="px-4 py-2.5 tabular-nums">{r.graduation_year ?? '—'}</td>
+                  <td className="px-4 py-2.5" title={consentSummary(r.consent)}>
+                    {r.is_public ? <span className="text-nwcn-green">공개</span> : <span className="text-white/30">비공개</span>}
+                    {r.is_public && <span className="block text-[11px] text-white/40">{consentSummary(r.consent)}</span>}
+                  </td>
                   <td className="px-4 py-2.5">{linked.has(r.id) ? <span className="text-nwcn-green">연결됨</span> : <span className="text-white/30">없음</span>}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex justify-end gap-2">
