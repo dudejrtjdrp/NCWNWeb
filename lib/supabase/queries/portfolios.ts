@@ -237,6 +237,7 @@ export async function getPortfolioWorks(studentId: string | null, locale: string
  * 모든 졸업생 카드가 상세(/work/portfolio/[slug])로 이어진다:
  *   포트폴리오가 공개됐으면 그 주소, 아니면 이름 로마자로 만든 주소(예: 2027-lee-seonghyo — 사진·이름·연결된 작품만).
  * 명단에 없는 포트폴리오(학생 연결 전)도 그대로 보여 준다.
+ * 공개에 동의하지 않은 학생은 이름·사진 없이 자리만 남긴다(anonymous — 로고 카드, 상세로 잇지 않음).
  */
 
 export interface GraduateCard {
@@ -252,6 +253,8 @@ export interface GraduateCard {
   slug: string
   /** 공개된 포트폴리오가 있는지 */
   hasPortfolio: boolean
+  /** 공개에 동의하지 않은 졸업생 — 이름·사진 없이 로고 카드로만 (slug 없음, 상세·다른 졸업생·사이트맵에서 뺌) */
+  anonymous: boolean
   fields: string[]
   tagline: string | null
   sort: number
@@ -259,10 +262,13 @@ export interface GraduateCard {
 
 interface GraduateRow {
   id: string
-  name: string
+  /** 비공개 학생은 null (get_graduates 가 가림) */
+  name: string | null
   name_en: string | null
   graduation_year: number
   photo_url: string | null
+  /** supabase/migrations/graduates_private_cards.sql 이전 함수에는 없음 → 공개로 본다 */
+  is_public?: boolean
 }
 
 const isMissingGraduates = (msg: string) => /get_graduates|photo_url/.test(msg) && /(does not exist|schema cache|Could not find)/i.test(msg)
@@ -279,6 +285,7 @@ export function toGraduateCard(p: PortfolioListItem): GraduateCard {
     cover: p.cover_url,
     slug: p.slug,
     hasPortfolio: true,
+    anonymous: false,
     fields: p.fields ?? [],
     tagline: p.tagline,
     sort: p.sort_order ?? 0,
@@ -314,6 +321,12 @@ export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[
   const listed = new Set<string>()
   const cards: GraduateCard[] = rows.map((g) => {
     const p = byStudent.get(g.id)
+    if (g.is_public === false || !g.name) {
+      return {
+        key: g.id, studentId: null, name: '', nameEn: null, year: g.graduation_year, photo: null, cover: null,
+        slug: '', hasPortfolio: false, anonymous: true, fields: [], tagline: null, sort: Number.MAX_SAFE_INTEGER,
+      }
+    }
     if (p) {
       listed.add(p.id)
       return { ...toGraduateCard(p), key: g.id, studentId: g.id, photo: p.profile_url ?? g.photo_url }
@@ -328,6 +341,7 @@ export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[
       cover: null,
       slug: `${g.graduation_year}-${nameSlug(g.name, g.name_en) || g.id.slice(0, 8)}`,
       hasPortfolio: false,
+      anonymous: false,
       fields: [],
       tagline: null,
       sort: Number.MAX_SAFE_INTEGER,
@@ -337,20 +351,22 @@ export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[
 
   // 같은 해 같은 이름(또는 남의 포트폴리오 주소와 겹침)이면 포트폴리오 없는 쪽 주소 뒤에 id 앞 네 글자
   const used = new Map<string, number>()
-  for (const c of cards) used.set(c.slug, (used.get(c.slug) ?? 0) + 1)
-  for (const c of cards) if (!c.hasPortfolio && (used.get(c.slug) ?? 0) > 1 && c.studentId) c.slug = `${c.slug}-${c.studentId.slice(0, 4)}`
+  for (const c of cards) if (!c.anonymous) used.set(c.slug, (used.get(c.slug) ?? 0) + 1)
+  for (const c of cards) if (!c.anonymous && !c.hasPortfolio && (used.get(c.slug) ?? 0) > 1 && c.studentId) c.slug = `${c.slug}-${c.studentId.slice(0, 4)}`
 
-  return cards.sort((a, b) => b.year - a.year || a.name.localeCompare(b.name, 'ko'))
+  // 같은 해 안에서는 공개한 졸업생 먼저, 비공개(로고 카드)는 뒤에
+  return cards.sort((a, b) => b.year - a.year || Number(a.anonymous) - Number(b.anonymous) || a.name.localeCompare(b.name, 'ko'))
 }
 
 /** 상세 주소로 졸업생 찾기 (포트폴리오가 없는 졸업생 상세용) */
 export async function getGraduateBySlug(slug: string, locale: string = 'ko'): Promise<GraduateCard | null> {
   const cards = await getGraduates(locale)
-  return cards.find((c) => c.slug === slug) ?? null
+  return cards.find((c) => !c.anonymous && c.slug === slug) ?? null
 }
 
 /** 상세 아래 '다른 졸업생' — 목록에서 이 사람 다음 사람부터 n명 (끝나면 처음으로) */
-export function otherGraduates(cards: GraduateCard[], slug: string, n = 4): GraduateCard[] {
+export function otherGraduates(all: GraduateCard[], slug: string, n = 4): GraduateCard[] {
+  const cards = all.filter((c) => !c.anonymous)
   const i = cards.findIndex((c) => c.slug === slug)
   const rest = i < 0 ? cards : [...cards.slice(i + 1), ...cards.slice(0, i)]
   return rest.slice(0, n)
@@ -361,7 +377,7 @@ export async function getStudentSlugs(studentIds: string[]): Promise<Map<string,
   const want = new Set(studentIds.filter(Boolean))
   if (want.size === 0) return new Map()
   const cards = await getGraduates()
-  return new Map(cards.filter((c) => c.studentId && want.has(c.studentId)).map((c) => [c.studentId as string, c.slug]))
+  return new Map(cards.filter((c) => !c.anonymous && c.studentId && want.has(c.studentId)).map((c) => [c.studentId as string, c.slug]))
 }
 
 export interface PortfolioThumb {

@@ -75,7 +75,7 @@ async function getPortfolioSlugs(): Promise<{ slug: string; updated_at: string }
     ])
     const updated = new Map(((data ?? []) as { slug: string; updated_at: string }[]).map((r) => [r.slug, r.updated_at]))
     const now = new Date().toISOString()
-    return graduates.map((g) => ({ slug: g.slug, updated_at: updated.get(g.slug) ?? now }))
+    return graduates.filter((g) => !g.anonymous).map((g) => ({ slug: g.slug, updated_at: updated.get(g.slug) ?? now }))
   } catch {
     return []
   }

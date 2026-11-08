@@ -3,6 +3,7 @@
  * 프로필 사진(4:5) → 1px 선 → 이름 / 분야 / 한 줄 소개. 카드 전체가 졸업생 상세로 이어진다.
  * 포트폴리오가 공개된 학생은 마우스를 올리거나 키보드로 고르면 학생이 만든 원본 표지로 바뀜(어두운 판 위에 통째로).
  * 없는 값(사진·분야·소개)은 자리만 비워 두고 따로 문구를 띄우지 않는다.
+ * 공개에 동의하지 않은 졸업생(anonymous)은 이름·사진 없이 NWCN 로고 판만 — 링크 없음.
  */
 
 import Image from 'next/image'
@@ -15,9 +16,23 @@ export default function PortfolioCard({
   priority,
 }: {
   item: GraduateCard
-  labels: { profileAlt: string; coverHint: string }
+  labels: { profileAlt: string; coverHint: string; privateCard?: string }
   priority?: boolean
 }) {
+  if (item.anonymous) {
+    return (
+      <li className="min-w-0" aria-label={labels.privateCard}>
+        <span aria-hidden="true" className="flex aspect-[4/5] items-center justify-center bg-nwcn-dark">
+          <svg viewBox="0 0 90 24" fill="none" className="w-2/5 opacity-80">
+            <text x="0" y="20" fontFamily="'A2z', 'Arial Black', sans-serif" fontWeight="900" fontSize="22" fill="var(--color-green)" letterSpacing="-0.5">
+              NWCN
+            </text>
+          </svg>
+        </span>
+        <span aria-hidden="true" className="mt-3 block border-t border-nwcn-dark" />
+      </li>
+    )
+  }
   return (
     <li className="min-w-0">
       <Link
