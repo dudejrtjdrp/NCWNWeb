@@ -2,6 +2,7 @@
 -- ─────────────────────────────────────────────────────────────
 -- add_student_consent.sql 다음에 실행. get_graduates 가 비공개 학생도 돌려주되
 -- 이름·영문 이름·사진은 null 로 가린다(is_public=false). 사이트는 이 줄을 로고 카드로 그리고 개인 페이지로 잇지 않는다.
+-- 순서는 실제 이름 가나다순 — 비공개 학생도 이름은 가린 채 그 자리에 들어간다(사이트는 이 순서를 그대로 쓴다).
 -- 반환 열이 바뀌어 drop 후 다시 만든다.
 --
 -- 적용: Supabase 대시보드 → SQL Editor 에 붙여 넣고 실행 (여러 번 실행해도 안전)
@@ -23,7 +24,7 @@ as $$
          s.is_public
   from public.students s
   where s.graduation_year is not null
-  order by s.graduation_year desc, s.is_public desc, s.name
+  order by s.graduation_year desc, s.name   -- 실제 이름 순서 (비공개 학생도 제 자리에 로고 카드로)
 $$;
 
 revoke all on function public.get_graduates() from public;

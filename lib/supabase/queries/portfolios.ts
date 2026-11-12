@@ -319,7 +319,10 @@ export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[
   const [rows, portfolios] = await Promise.all([getGraduateRows(), getPortfolios(locale)])
   const byStudent = new Map(portfolios.filter((p) => p.student_id).map((p) => [p.student_id as string, p]))
   const listed = new Set<string>()
-  const cards: GraduateCard[] = rows.map((g) => {
+  // 명단 순서(get_graduates — 졸업 연도 → 실제 이름 가나다순)를 그대로 쓴다. 비공개 학생은 이름을 가렸으므로 화면에서 다시 이름으로 정렬하지 않는다
+  const order = new Map<string, number>()
+  const cards: GraduateCard[] = rows.map((g, i) => {
+    order.set(g.id, i)
     const p = byStudent.get(g.id)
     if (g.is_public === false || !g.name) {
       return {
@@ -354,8 +357,9 @@ export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[
   for (const c of cards) if (!c.anonymous) used.set(c.slug, (used.get(c.slug) ?? 0) + 1)
   for (const c of cards) if (!c.anonymous && !c.hasPortfolio && (used.get(c.slug) ?? 0) > 1 && c.studentId) c.slug = `${c.slug}-${c.studentId.slice(0, 4)}`
 
-  // 같은 해 안에서는 공개한 졸업생 먼저, 비공개(로고 카드)는 뒤에
-  return cards.sort((a, b) => b.year - a.year || Number(a.anonymous) - Number(b.anonymous) || a.name.localeCompare(b.name, 'ko'))
+  // 졸업 연도 최신순 → 명단 순서(이름순). 명단에 없는 포트폴리오는 그해 끝에 이름순
+  const rank = (c: GraduateCard) => order.get(c.key) ?? Number.MAX_SAFE_INTEGER // 명단 카드의 key 는 학생 id
+  return cards.sort((a, b) => b.year - a.year || rank(a) - rank(b) || a.name.localeCompare(b.name, 'ko'))
 }
 
 /** 상세 주소로 졸업생 찾기 (포트폴리오가 없는 졸업생 상세용) */
