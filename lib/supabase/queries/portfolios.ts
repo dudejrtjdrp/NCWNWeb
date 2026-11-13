@@ -237,7 +237,7 @@ export async function getPortfolioWorks(studentId: string | null, locale: string
  * 모든 졸업생 카드가 상세(/work/portfolio/[slug])로 이어진다:
  *   포트폴리오가 공개됐으면 그 주소, 아니면 이름 로마자로 만든 주소(예: 2027-lee-seonghyo — 사진·이름·연결된 작품만).
  * 명단에 없는 포트폴리오(학생 연결 전)도 그대로 보여 준다.
- * 공개에 동의하지 않은 학생은 이름·사진 없이 자리만 남긴다(anonymous — 로고 카드, 상세로 잇지 않음).
+ * 공개에 동의하지 않은 학생은 이름만 남기고 사진 자리는 X 판으로(anonymous — 상세로 잇지 않음).
  */
 
 export interface GraduateCard {
@@ -253,7 +253,7 @@ export interface GraduateCard {
   slug: string
   /** 공개된 포트폴리오가 있는지 */
   hasPortfolio: boolean
-  /** 공개에 동의하지 않은 졸업생 — 이름·사진 없이 로고 카드로만 (slug 없음, 상세·다른 졸업생·사이트맵에서 뺌) */
+  /** 공개에 동의하지 않은 졸업생 — 이름만, 사진 자리는 X 판 (slug 없음, 상세·다른 졸업생·사이트맵에서 뺌) */
   anonymous: boolean
   fields: string[]
   tagline: string | null
@@ -262,8 +262,7 @@ export interface GraduateCard {
 
 interface GraduateRow {
   id: string
-  /** 비공개 학생은 null (get_graduates 가 가림) */
-  name: string | null
+  name: string
   name_en: string | null
   graduation_year: number
   photo_url: string | null
@@ -319,14 +318,14 @@ export async function getGraduates(locale: string = 'ko'): Promise<GraduateCard[
   const [rows, portfolios] = await Promise.all([getGraduateRows(), getPortfolios(locale)])
   const byStudent = new Map(portfolios.filter((p) => p.student_id).map((p) => [p.student_id as string, p]))
   const listed = new Set<string>()
-  // 명단 순서(get_graduates — 졸업 연도 → 실제 이름 가나다순)를 그대로 쓴다. 비공개 학생은 이름을 가렸으므로 화면에서 다시 이름으로 정렬하지 않는다
+  // 명단 순서(get_graduates — 졸업 연도 → 이름 가나다순)를 그대로 쓴다
   const order = new Map<string, number>()
   const cards: GraduateCard[] = rows.map((g, i) => {
     order.set(g.id, i)
     const p = byStudent.get(g.id)
-    if (g.is_public === false || !g.name) {
+    if (g.is_public === false) {
       return {
-        key: g.id, studentId: null, name: '', nameEn: null, year: g.graduation_year, photo: null, cover: null,
+        key: g.id, studentId: null, name: locale !== 'ko' && g.name_en?.trim() ? g.name_en : g.name, nameEn: g.name_en, year: g.graduation_year, photo: null, cover: null,
         slug: '', hasPortfolio: false, anonymous: true, fields: [], tagline: null, sort: Number.MAX_SAFE_INTEGER,
       }
     }

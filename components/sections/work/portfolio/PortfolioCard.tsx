@@ -3,7 +3,7 @@
  * 프로필 사진(4:5) → 1px 선 → 이름 / 분야 / 한 줄 소개. 카드 전체가 졸업생 상세로 이어진다.
  * 포트폴리오가 공개된 학생은 마우스를 올리거나 키보드로 고르면 학생이 만든 원본 표지로 바뀜(어두운 판 위에 통째로).
  * 없는 값(사진·분야·소개)은 자리만 비워 두고 따로 문구를 띄우지 않는다.
- * 공개에 동의하지 않은 졸업생(anonymous)은 이름·사진 없이 NWCN 로고 판만 — 링크 없음.
+ * 공개에 동의하지 않은 졸업생(anonymous)은 사진 자리에 흰 판 + 모서리를 잇는 큰 X, 아래 이름만 — 링크 없음.
  */
 
 import Image from 'next/image'
@@ -21,15 +21,17 @@ export default function PortfolioCard({
 }) {
   if (item.anonymous) {
     return (
-      <li className="min-w-0" aria-label={labels.privateCard}>
-        <span aria-hidden="true" className="flex aspect-[4/5] items-center justify-center bg-nwcn-dark">
-          <svg viewBox="0 0 90 24" fill="none" className="w-2/5 opacity-80">
-            <text x="0" y="20" fontFamily="'A2z', 'Arial Black', sans-serif" fontWeight="900" fontSize="22" fill="var(--color-green)" letterSpacing="-0.5">
-              NWCN
-            </text>
+      <li className="min-w-0">
+        <span aria-hidden="true" className="relative block aspect-[4/5] border border-nwcn-neutral-300 bg-nwcn-neutral-0">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full text-nwcn-neutral-400">
+            <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+            <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
           </svg>
         </span>
-        <span aria-hidden="true" className="mt-3 block border-t border-nwcn-dark" />
+        <span className="mt-3 block border-t border-nwcn-dark pt-3 font-bold text-statement">
+          {item.name}
+          {labels.privateCard && <span className="sr-only"> — {labels.privateCard}</span>}
+        </span>
       </li>
     )
   }
